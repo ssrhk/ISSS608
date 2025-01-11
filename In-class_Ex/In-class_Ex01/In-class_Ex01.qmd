@@ -1,0 +1,14 @@
+---
+title: "In-class_Ex01"
+format: html
+author: "Sei Sar Hla Kyi"
+date: "`r Sys.Date()`"
+date-modified: "`r Sys.Date()`"
+execute: 
+  eval: true
+  echo: true
+  message: false
+  freeze: true
+  warning: false
+---
+

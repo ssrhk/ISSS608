@@ -1,0 +1,30 @@
+project:
+  type: website
+
+website:
+  title: "ISSS608"
+  navbar:
+    left:
+      - text: "Hands-on Exercise"
+        menu:
+          - text: "Hands-on Exercise 1"
+            href: "Hands-on_Ex/Hands-on_Ex01/Hands-on_Ex01.html"
+      - text: "In-Class Exercise"
+        menu:
+          - text: "In-Class Exercise 1"
+            href: "In-class_Ex/In-class_Ex01/In-class_Ex01.html"
+    right: 
+      - href: index.qmd
+        text: Home
+      - about.qmd
+      
+format:
+  html:
+    theme: lux
+    css: styles.css
+    toc: true
+
+editor: visual
+
+
+
