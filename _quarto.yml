@@ -2,7 +2,7 @@ project:
   type: website
 
 website:
-  title: "ISSS608 Coursework"
+  title: "ISSS608"
   navbar:
     left:
       - text: "Hands-on Exercise"
@@ -26,7 +26,7 @@ website:
       
 format:
   html:
-    theme: pulse
+    theme: lux
     css: styles.css
     toc: true
 

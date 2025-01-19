@@ -12,13 +12,13 @@ execute:
   warning: false
 ---
 
-# **1 Installing and Loading Packages**
+# 1 Installing and Loading Packages
 
 ```{r}
 pacman::p_load(tidyverse)
 ```
 
-# **2 Importing Data**
+# 2 Importing Data
 
 ```{r}
 
