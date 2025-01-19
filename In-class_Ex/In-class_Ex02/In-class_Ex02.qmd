@@ -1,0 +1,25 @@
+---
+title: "In-class Exercise 2"
+format: html
+author: "Sei Sar Hla Kyi"
+date: "`r Sys.Date()`"
+date-modified: "`r Sys.Date()`"
+execute: 
+  eval: true
+  echo: true
+  message: false
+  freeze: true
+  warning: false
+---
+
+# **1 Installing and Loading Packages**
+
+```{r}
+pacman::p_load(tidyverse)
+```
+
+# **2 Importing Data**
+
+```{r}
+
+```

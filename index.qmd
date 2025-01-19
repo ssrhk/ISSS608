@@ -1,5 +1,5 @@
 ---
-title: "ISSS608"
+title: "ISSS608 Homepage"
 ---
 
 Hi there! Welcome to my **ISSS608 Visual Analytics homepage**!

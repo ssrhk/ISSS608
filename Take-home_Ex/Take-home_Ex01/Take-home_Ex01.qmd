@@ -1,5 +1,5 @@
 ---
-title: "In-class_Ex01"
+title: "Take-home_Ex01"
 format: html
 author: "Sei Sar Hla Kyi"
 date: "`r Sys.Date()`"

@@ -1,5 +1,5 @@
 ---
-title: "Hands-on Exercise 01"
+title: "Hands-on Exercise 01: A Layered Grammar of Graphics: ggplot2 methods"
 format: html
 author: "Sei Sar Hla Kyi"
 date: "12 January 2025"
@@ -12,13 +12,13 @@ execute:
   warning: false
 ---
 
-# 1 Installing and Loading Packages
+# **1 Installing and Loading Packages**
 
 ```{r}
 pacman::p_load(tidyverse)
 ```
 
-# 2 Importing Data
+# **2 Importing Data**
 
 ```{r}
 exam_data <- read_csv("data/Exam_data.csv")
