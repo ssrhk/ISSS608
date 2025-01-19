@@ -12,7 +12,7 @@ execute:
   warning: false
 ---
 
-# **1 Installing and Loading Packages**
+# 1 Installing and Loading Packages
 
 ::: panel-tabset
 ## Code
@@ -36,7 +36,7 @@ In this exercise, beside tidyverse, four R packages will be used. They are:
 -   patchwork: an R package for preparing composite figure created using ggplot2.
 :::
 
-# **2 Importing Data**
+# 2 Importing Data
 
 The code chunk below imports *exam_data.csv* into R environment by using [*read_csv()*](https://readr.tidyverse.org/reference/read_delim.html) function of [**readr**](https://readr.tidyverse.org/) package. **readr** is one of the tidyverse package.
 
@@ -50,7 +50,7 @@ There are a total of seven attributes in the exam_data tibble data frame.
 
 -   The continuous attributes are: MATHS, ENGLISH and SCIENCE.
 
-# **3 Beyond ggplot2 Annotation: ggrepel**
+# 3 Beyond ggplot2 Annotation: ggrepel
 
 ::: panel-tabset
 ## The Plot
@@ -110,7 +110,7 @@ ggplot(data=exam_data,
   ggtitle("English scores versus Maths scores for Primary 3")
 ```
 
-# **4 Beyond ggplot2 Themes**
+# 4 Beyond ggplot2 Themes
 
 ggplot2 comes with eight [built-in themes](https://ggplot2.tidyverse.org/reference/ggtheme.html), they are: `theme_gray()`, `theme_bw()`, `theme_classic()`, `theme_dark()`, `theme_light()`, `theme_linedraw()`, `theme_minimal()`, and `theme_void()`
 
@@ -125,7 +125,7 @@ ggplot(data=exam_data,
   ggtitle("Distribution of Maths scores") 
 ```
 
-## **4.1 Working with ggtheme package**
+## 4.1 Working with ggtheme package
 
 [**ggthemes**](https://cran.r-project.org/web/packages/ggthemes/) provides [‘ggplot2’ themes](https://yutannihilation.github.io/allYourFigureAreBelongToUs/ggthemes/) that replicate the look of plots by Edward Tufte, Stephen Few, [Fivethirtyeight](https://fivethirtyeight.com/), [The Economist](https://www.economist.com/graphic-detail), ‘Stata’, ‘Excel’, and [The Wall Street Journal](https://www.pinterest.com/wsjgraphics/wsj-graphics/), among others.
 
@@ -144,7 +144,7 @@ ggplot(data=exam_data,
 The solarized theme is used here.
 :::
 
-## **4.2 Working with hrbthems package**
+## 4.2 Working with hrbthems package
 
 [**hrbrthemes**](https://cinc.rud.is/web/packages/hrbrthemes/) package provides a base theme that focuses on typographic elements, including where various labels are placed as well as the fonts that are used.
 
@@ -180,7 +180,7 @@ ggplot(data=exam_data,
               grid = "Y")
 ```
 
-# **5 Beyond Single Graph: patchwork methods**
+# 5 Beyond Single Graph: patchwork methods
 
 There are several ggplot2 extensions provide functions to compose figure with multiple graphs.
 
@@ -246,13 +246,13 @@ Patchwork package has a very simple syntax where we can create layouts super eas
 
 -   Two-Row Layout using the Division Sign `/`
 
-## **5.1 Combining two ggplot2 graphs**
+## 5.1 Combining two ggplot2 graphs
 
 ```{r}
 p1 + p2
 ```
 
-## **5.2 Combining three ggplot2 graphs**
+## 5.2 Combining three ggplot2 graphs
 
 -   “/” operator to stack two ggplot2 graphs,
 
@@ -264,7 +264,7 @@ p1 + p2
 (p1 / p2) | p3
 ```
 
-##  **5.3 Creating a composite figure with tag**
+## 5.3 Creating a composite figure with tag
 
 -   `plot_annotation()` is used to add labels, titles, captions, and other metadata to the combined plot.
 
@@ -275,7 +275,7 @@ p1 + p2
   plot_annotation(tag_levels = 'I')
 ```
 
-## **5.4 Creating figure with insert**
+## 5.4 Creating figure with insert
 
 With [`inset_element()`](https://patchwork.data-imaginist.com/reference/inset_element.html) of **patchwork**, we can place one or several plots or graphic elements freely on top or below another plot.
 
@@ -287,7 +287,7 @@ p3 + inset_element(p2,
                    top = 1)
 ```
 
-## 5.5 **Creating a composite figure by using patchwork and ggtheme**
+## 5.5 Creating a composite figure by using patchwork and ggtheme
 
 Putting what we learned through this exercise all together:
 

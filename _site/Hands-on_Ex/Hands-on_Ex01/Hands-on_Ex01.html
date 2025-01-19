@@ -9,7 +9,7 @@
 <meta name="author" content="Sei Sar Hla Kyi">
 <meta name="dcterms.date" content="2025-01-12">
 
-<title>Hands-on Exercise 01 – ISSS608 Coursework</title>
+<title>Hands-on Exercise 01: A Layered Grammar of Graphics: ggplot2 methods – ISSS608 Coursework</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -189,18 +189,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#installing-and-loading-packages" id="toc-installing-and-loading-packages" class="nav-link active" data-scroll-target="#installing-and-loading-packages">1 Installing and Loading Packages</a></li>
   <li><a href="#importing-data" id="toc-importing-data" class="nav-link" data-scroll-target="#importing-data">2 Importing Data</a></li>
-  <li><a href="#introducing-ggplot" id="toc-introducing-ggplot" class="nav-link" data-scroll-target="#introducing-ggplot"><strong>3 Introducing ggplot</strong></a></li>
-  <li><a href="#r-graphics-vs-ggplot" id="toc-r-graphics-vs-ggplot" class="nav-link" data-scroll-target="#r-graphics-vs-ggplot"><strong>4 R Graphics VS ggplot</strong></a></li>
-  <li><a href="#grammar-of-graphics" id="toc-grammar-of-graphics" class="nav-link" data-scroll-target="#grammar-of-graphics"><strong>5 Grammar of Graphics</strong></a>
+  <li><a href="#introducing-ggplot" id="toc-introducing-ggplot" class="nav-link" data-scroll-target="#introducing-ggplot">3 Introducing ggplot</a></li>
+  <li><a href="#r-graphics-vs-ggplot" id="toc-r-graphics-vs-ggplot" class="nav-link" data-scroll-target="#r-graphics-vs-ggplot">4 R Graphics VS ggplot</a></li>
+  <li><a href="#grammar-of-graphics" id="toc-grammar-of-graphics" class="nav-link" data-scroll-target="#grammar-of-graphics">5 Grammar of Graphics</a>
   <ul class="collapse">
-  <li><a href="#a-layered-grammar-of-graphics" id="toc-a-layered-grammar-of-graphics" class="nav-link" data-scroll-target="#a-layered-grammar-of-graphics"><strong>A Layered Grammar of Graphics</strong></a></li>
-  <li><a href="#data" id="toc-data" class="nav-link" data-scroll-target="#data"><strong>5.1 data</strong></a></li>
-  <li><a href="#aesthetic-mappings" id="toc-aesthetic-mappings" class="nav-link" data-scroll-target="#aesthetic-mappings">5.2 <strong>Aesthetic mappings</strong></a></li>
-  <li><a href="#geom" id="toc-geom" class="nav-link" data-scroll-target="#geom"><strong>5.3 geom</strong></a>
+  <li><a href="#a-layered-grammar-of-graphics" id="toc-a-layered-grammar-of-graphics" class="nav-link" data-scroll-target="#a-layered-grammar-of-graphics">A Layered Grammar of Graphics</a></li>
+  <li><a href="#data" id="toc-data" class="nav-link" data-scroll-target="#data">5.1 data</a></li>
+  <li><a href="#aesthetic-mappings" id="toc-aesthetic-mappings" class="nav-link" data-scroll-target="#aesthetic-mappings">5.2 Aesthetic mappings</a></li>
+  <li><a href="#geom" id="toc-geom" class="nav-link" data-scroll-target="#geom">5.3 geom</a>
   <ul class="collapse">
   <li><a href="#modifying-geometric-object" id="toc-modifying-geometric-object" class="nav-link" data-scroll-target="#modifying-geometric-object">5.3.1 Modifying geometric object</a></li>
   <li><a href="#geometric-objects" id="toc-geometric-objects" class="nav-link" data-scroll-target="#geometric-objects">5.3.2 Geometric Objects</a></li>
-  <li><a href="#geom-objects-can-be-combined" id="toc-geom-objects-can-be-combined" class="nav-link" data-scroll-target="#geom-objects-can-be-combined">5.3.3 <strong><em>geom</em></strong> <strong>objects can be combined</strong></a></li>
+  <li><a href="#geom-objects-can-be-combined" id="toc-geom-objects-can-be-combined" class="nav-link" data-scroll-target="#geom-objects-can-be-combined">5.3.3 <em>geom</em> objects can be combined</a></li>
   </ul></li>
   <li><a href="#stat" id="toc-stat" class="nav-link" data-scroll-target="#stat">5.4 stat</a>
   <ul class="collapse">
@@ -209,17 +209,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#geom-method" id="toc-geom-method" class="nav-link" data-scroll-target="#geom-method">5.4.3 geom() method</a></li>
   <li><a href="#adding-a-best-fit-curve-on-a-scatterplot" id="toc-adding-a-best-fit-curve-on-a-scatterplot" class="nav-link" data-scroll-target="#adding-a-best-fit-curve-on-a-scatterplot">5.4.4 <strong>Adding a best fit curve on a scatterplot?</strong></a></li>
   </ul></li>
-  <li><a href="#facets" id="toc-facets" class="nav-link" data-scroll-target="#facets"><strong>5.5 Facets</strong></a>
+  <li><a href="#facets" id="toc-facets" class="nav-link" data-scroll-target="#facets">5.5 Facets</a>
   <ul class="collapse">
   <li><a href="#facet_wrap" id="toc-facet_wrap" class="nav-link" data-scroll-target="#facet_wrap">5.5.1 facet_wrap()</a></li>
   <li><a href="#facet_grid" id="toc-facet_grid" class="nav-link" data-scroll-target="#facet_grid">5.5.2 facet_grid()</a></li>
   </ul></li>
-  <li><a href="#coordinates" id="toc-coordinates" class="nav-link" data-scroll-target="#coordinates"><strong>5.6 Coordinates</strong></a>
+  <li><a href="#coordinates" id="toc-coordinates" class="nav-link" data-scroll-target="#coordinates">5.6 Coordinates</a>
   <ul class="collapse">
-  <li><a href="#working-with-coordinate" id="toc-working-with-coordinate" class="nav-link" data-scroll-target="#working-with-coordinate"><strong>5.6.1 Working with Coordinate</strong></a></li>
-  <li><a href="#changing-the-y--and-x-axis-range" id="toc-changing-the-y--and-x-axis-range" class="nav-link" data-scroll-target="#changing-the-y--and-x-axis-range"><strong>5.6.2 Changing the y- and x-axis range</strong></a></li>
+  <li><a href="#working-with-coordinate" id="toc-working-with-coordinate" class="nav-link" data-scroll-target="#working-with-coordinate">5.6.1 Working with Coordinate</a></li>
+  <li><a href="#changing-the-y--and-x-axis-range" id="toc-changing-the-y--and-x-axis-range" class="nav-link" data-scroll-target="#changing-the-y--and-x-axis-range">5.6.2 Changing the y- and x-axis range</a></li>
   </ul></li>
-  <li><a href="#themes" id="toc-themes" class="nav-link" data-scroll-target="#themes"><strong>5.7 Themes</strong></a></li>
+  <li><a href="#themes" id="toc-themes" class="nav-link" data-scroll-target="#themes">5.7 Themes</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -229,7 +229,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Hands-on Exercise 01</h1>
+<h1 class="title">Hands-on Exercise 01: A Layered Grammar of Graphics: ggplot2 methods</h1>
 </div>
 
 
@@ -272,12 +272,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="importing-data" class="level1">
 <h1>2 Importing Data</h1>
+<p>The code chunk below imports <em>exam_data.csv</em> into R environment by using <a href="https://readr.tidyverse.org/reference/read_delim.html"><em>read_csv()</em></a> function of <a href="https://readr.tidyverse.org/"><strong>readr</strong></a> package. <strong>readr</strong> is one of the tidyverse package.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>exam_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/Exam_data.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>There are a total of seven attributes. Four of them are categorical data type and the other three are in continuous data type.</p>
+<ul>
+<li><p>The categorical attributes are: ID, CLASS, GENDER and RACE.</p></li>
+<li><p>The continuous attributes are: MATHS, ENGLISH and SCIENCE.</p></li>
+</ul>
 </section>
 <section id="introducing-ggplot" class="level1">
-<h1><strong>3 Introducing ggplot</strong></h1>
+<h1>3 Introducing ggplot</h1>
 <p>ggplot2 is an R package for <strong>declaratively</strong> creating <strong>data-driven</strong> graphics based on <strong><em>The Grammar of Graphics</em></strong></p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -286,7 +292,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </section>
 <section id="r-graphics-vs-ggplot" class="level1">
-<h1><strong>4 R Graphics VS ggplot</strong></h1>
+<h1>4 R Graphics VS ggplot</h1>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true">R Graphics</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false">ggplot2</a></li></ul>
 <div class="tab-content">
@@ -336,10 +342,10 @@ Why ggplot2 is recommended?
 </div>
 </section>
 <section id="grammar-of-graphics" class="level1">
-<h1><strong>5 Grammar of Graphics</strong></h1>
+<h1>5 Grammar of Graphics</h1>
 <p>Grammar of Graphics is a general scheme for data visualization which breaks up graphs into semantic components such as scales and layers. A good grammar of graphics will allow us to gain insight into the composition of complicated graphics, and reveal unexpected connections between seemingly different graphics. It also provides a strong foundation for understanding a diverse range of graphics. Furthermore, it may also help guide us on what a well-formed or correct graphic looks like, but there will still be many grammatically correct but nonsensical graphics.</p>
 <section id="a-layered-grammar-of-graphics" class="level2">
-<h2 class="anchored" data-anchor-id="a-layered-grammar-of-graphics"><strong>A Layered Grammar of Graphics</strong></h2>
+<h2 class="anchored" data-anchor-id="a-layered-grammar-of-graphics">A Layered Grammar of Graphics</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="layered.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
@@ -356,7 +362,7 @@ Why ggplot2 is recommended?
 </ul>
 </section>
 <section id="data" class="level2">
-<h2 class="anchored" data-anchor-id="data"><strong>5.1 data</strong></h2>
+<h2 class="anchored" data-anchor-id="data">5.1 data</h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data=</span>exam_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
@@ -387,7 +393,7 @@ Note
 </div>
 </section>
 <section id="aesthetic-mappings" class="level2">
-<h2 class="anchored" data-anchor-id="aesthetic-mappings">5.2 <a href="https://ggplot2.tidyverse.org/articles/ggplot2-specs.html"><strong>Aesthetic mappings</strong></a></h2>
+<h2 class="anchored" data-anchor-id="aesthetic-mappings">5.2 <a href="https://ggplot2.tidyverse.org/articles/ggplot2-specs.html">Aesthetic mappings</a></h2>
 <p>All aesthetics of a plot are specified in the <a href="https://ggplot2.tidyverse.org/reference/aes.html"><code>aes()</code></a> function call</p>
 <p>Code chunk below adds the aesthetic element into the plot.</p>
 <div class="cell">
@@ -403,7 +409,7 @@ Note
 </div>
 </section>
 <section id="geom" class="level2">
-<h2 class="anchored" data-anchor-id="geom"><strong>5.3 geom</strong></h2>
+<h2 class="anchored" data-anchor-id="geom">5.3 geom</h2>
 <p>Geometric objects are the actual marks we put on a plot. Examples include:</p>
 <ul>
 <li><p><em>geom_point</em> for drawing individual points (e.g., a scatter plot)</p></li>
@@ -632,7 +638,7 @@ Notches</strong></a> are used in box plots to help visually assess whether the m
 </div>
 </section>
 <section id="geom-objects-can-be-combined" class="level3">
-<h3 class="anchored" data-anchor-id="geom-objects-can-be-combined">5.3.3 <strong><em>geom</em></strong> <strong>objects can be combined</strong></h3>
+<h3 class="anchored" data-anchor-id="geom-objects-can-be-combined">5.3.3 <em>geom</em> objects can be combined</h3>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data=</span>exam_data, </span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">y =</span> MATHS, </span>
@@ -765,7 +771,7 @@ Notches</strong></a> are used in box plots to help visually assess whether the m
 </section>
 </section>
 <section id="facets" class="level2">
-<h2 class="anchored" data-anchor-id="facets"><strong>5.5 Facets</strong></h2>
+<h2 class="anchored" data-anchor-id="facets">5.5 Facets</h2>
 <p>Facetting generates small multiples (sometimes also called trellis plot), each displaying a different subset of the data. They are an alternative to aesthetics for displaying additional discrete variables. ggplot2 supports two types of factes, namely: <a href="https://ggplot2.tidyverse.org/reference/facet_grid.html"><code>facet_grid()</code></a> and <a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html"><code>facet_wrap</code></a>.</p>
 <section id="facet_wrap" class="level3">
 <h3 class="anchored" data-anchor-id="facet_wrap">5.5.1 facet_wrap()</h3>
@@ -803,14 +809,14 @@ Notches</strong></a> are used in box plots to help visually assess whether the m
 </section>
 </section>
 <section id="coordinates" class="level2">
-<h2 class="anchored" data-anchor-id="coordinates"><strong>5.6 Coordinates</strong></h2>
+<h2 class="anchored" data-anchor-id="coordinates">5.6 Coordinates</h2>
 <p>The <em>Coordinates</em> functions map the position of objects onto the plane of the plot. There are a number of different possible coordinate systems to use, they are:</p>
 <pre><code>-   [`coord_cartesian()`](https://ggplot2.tidyverse.org/reference/coord_cartesian.html): the default cartesian coordinate systems, where you specify x and y values (e.g. allows you to zoom in or out).
 -   [`coord_flip()`](https://ggplot2.tidyverse.org/reference/coord_flip.html): a cartesian system with the x and y flipped.
 -   [`coord_fixed()`](https://ggplot2.tidyverse.org/reference/coord_fixed.html): a cartesian system with a "fixed" aspect ratio (e.g. 1.78 for a "widescreen" plot).
 -   [`coord_quickmap()`](https://ggplot2.tidyverse.org/reference/coord_map.html): a coordinate system that approximates a good aspect ratio for maps.</code></pre>
 <section id="working-with-coordinate" class="level3">
-<h3 class="anchored" data-anchor-id="working-with-coordinate"><strong>5.6.1 Working with Coordinate</strong></h3>
+<h3 class="anchored" data-anchor-id="working-with-coordinate">5.6.1 Working with Coordinate</h3>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data=</span>exam_data, </span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x=</span>RACE)) <span class="sc">+</span></span>
@@ -839,7 +845,7 @@ Notches</strong></a> are used in box plots to help visually assess whether the m
 </div>
 </section>
 <section id="changing-the-y--and-x-axis-range" class="level3">
-<h3 class="anchored" data-anchor-id="changing-the-y--and-x-axis-range"><strong>5.6.2 Changing the y- and x-axis range</strong></h3>
+<h3 class="anchored" data-anchor-id="changing-the-y--and-x-axis-range">5.6.2 Changing the y- and x-axis range</h3>
 <p>The scatterplot on the right is slightly misleading because the y-aixs and x-axis range are not equal.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data=</span>exam_data, </span>
@@ -874,7 +880,7 @@ Notches</strong></a> are used in box plots to help visually assess whether the m
 </section>
 </section>
 <section id="themes" class="level2">
-<h2 class="anchored" data-anchor-id="themes"><strong>5.7 Themes</strong></h2>
+<h2 class="anchored" data-anchor-id="themes">5.7 Themes</h2>
 <p>Themes control elements of the graph not related to the data. For example:</p>
 <ul>
 <li><p>background colour</p></li>

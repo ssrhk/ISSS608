@@ -12,25 +12,33 @@ execute:
   warning: false
 ---
 
-# **1 Installing and Loading Packages**
+# 1 Installing and Loading Packages
 
 ```{r}
 pacman::p_load(tidyverse)
 ```
 
-# **2 Importing Data**
+# 2 Importing Data
+
+The code chunk below imports *exam_data.csv* into R environment by using [*read_csv()*](https://readr.tidyverse.org/reference/read_delim.html) function of [**readr**](https://readr.tidyverse.org/) package. **readr** is one of the tidyverse package.
 
 ```{r}
 exam_data <- read_csv("data/Exam_data.csv")
 ```
 
-# **3 Introducing ggplot**
+There are a total of seven attributes. Four of them are categorical data type and the other three are in continuous data type.
+
+-   The categorical attributes are: ID, CLASS, GENDER and RACE.
+
+-   The continuous attributes are: MATHS, ENGLISH and SCIENCE.
+
+# 3 Introducing ggplot
 
 ggplot2 is an R package for **declaratively** creating **data-driven** graphics based on ***The Grammar of Graphics***
 
 ![](ggplot2.png){fig-align="center"}
 
-# **4 R Graphics VS ggplot**
+# 4 R Graphics VS ggplot
 
 ::: panel-tabset
 ## R Graphics
@@ -57,11 +65,11 @@ ggplot(data=exam_data, aes(x = MATHS)) +
 The transferable skills from ggplot2 are not the idiosyncrasies of plotting syntax, but a powerful way of thinking about visualisation, as a way of mapping between variables and the visual properties of geometric objects that you can perceive.
 :::
 
-# **5 Grammar of Graphics**
+# 5 Grammar of Graphics
 
 Grammar of Graphics is a general scheme for data visualization which breaks up graphs into semantic components such as scales and layers. A good grammar of graphics will allow us to gain insight into the composition of complicated graphics, and reveal unexpected connections between seemingly different graphics. It also provides a strong foundation for understanding a diverse range of graphics. Furthermore, it may also help guide us on what a well-formed or correct graphic looks like, but there will still be many grammatically correct but nonsensical graphics.
 
-## **A Layered Grammar of Graphics**
+## A Layered Grammar of Graphics
 
 ![](layered.png){fig-align="center"}
 
@@ -79,7 +87,7 @@ Grammar of Graphics is a general scheme for data visualization which breaks up g
 
 -   **Themes** modify all non-data components of a plot, such as main title, sub-title, y-aixs title, or legend background.
 
-## **5.1 data**
+## 5.1 data
 
 ```{r}
 ggplot(data=exam_data)
@@ -95,7 +103,7 @@ ggplot(data=exam_data)
 -   If the dataset is not already a data.frame, it will be converted to one by `fortify()`.
 :::
 
-## 5.2 [**Aesthetic mappings**](https://ggplot2.tidyverse.org/articles/ggplot2-specs.html)
+## 5.2 [Aesthetic mappings](https://ggplot2.tidyverse.org/articles/ggplot2-specs.html)
 
 All aesthetics of a plot are specified in the [`aes()`](https://ggplot2.tidyverse.org/reference/aes.html) function call
 
@@ -106,7 +114,7 @@ ggplot(data=exam_data,
        aes(x= MATHS))
 ```
 
-## **5.3 geom**
+## 5.3 geom
 
 Geometric objects are the actual marks we put on a plot. Examples include:
 
@@ -267,7 +275,7 @@ ggplot(data=exam_data,
 ```
 :::
 
-### 5.3.3 ***geom*** **objects can be combined**
+### 5.3.3 *geom* objects can be combined
 
 ```{r}
 ggplot(data=exam_data, 
@@ -362,7 +370,7 @@ ggplot(data=exam_data,
               linewidth=0.5)
 ```
 
-## **5.5 Facets**
+## 5.5 Facets
 
 Facetting generates small multiples (sometimes also called trellis plot), each displaying a different subset of the data. They are an alternative to aesthetics for displaying additional discrete variables. ggplot2 supports two types of factes, namely: [`facet_grid()`](https://ggplot2.tidyverse.org/reference/facet_grid.html) and [`facet_wrap`](https://ggplot2.tidyverse.org/reference/facet_wrap.html).
 
@@ -388,7 +396,7 @@ ggplot(data=exam_data,
     facet_grid(~ CLASS)
 ```
 
-## **5.6 Coordinates**
+## 5.6 Coordinates
 
 The *Coordinates* functions map the position of objects onto the plane of the plot. There are a number of different possible coordinate systems to use, they are:
 
@@ -399,7 +407,7 @@ The *Coordinates* functions map the position of objects onto the plane of the pl
 -   [`coord_quickmap()`](https://ggplot2.tidyverse.org/reference/coord_map.html): a coordinate system that approximates a good aspect ratio for maps.
 ```
 
-### **5.6.1 Working with Coordinate**
+### 5.6.1 Working with Coordinate
 
 ```{r}
 ggplot(data=exam_data, 
@@ -416,7 +424,7 @@ ggplot(data=exam_data,
   coord_flip()
 ```
 
-### **5.6.2 Changing the y- and x-axis range**
+### 5.6.2 Changing the y- and x-axis range
 
 The scatterplot on the right is slightly misleading because the y-aixs and x-axis range are not equal.
 
@@ -439,7 +447,7 @@ ggplot(data=exam_data,
                   ylim=c(0,100))
 ```
 
-## **5.7 Themes**
+## 5.7 Themes
 
 Themes control elements of the graph not related to the data. For example:
 
