@@ -121,7 +121,7 @@ ggplot(data=exam_data,
                  boundary = 100,
                  color="grey25", 
                  fill="grey90") +
-  theme_dark() +
+  theme_linedraw() +
   ggtitle("Distribution of Maths scores") 
 ```
 
@@ -184,7 +184,7 @@ ggplot(data=exam_data,
 
 There are several ggplot2 extensions provide functions to compose figure with multiple graphs.
 
-Let's create three statistical graphics first.
+Let's create three statistical graphics separately first - p1, p2 and p3.
 
 ::: panel-tabset
 ## p1
