@@ -1,0 +1,15 @@
+{
+  "hash": "a6adedb58e1ac33382b87d0132aaadc6",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"In-class Exercise 2\"\nformat: html\nauthor: \"Sei Sar Hla Kyi\"\ndate: \"2025-02-02\"\ndate-modified: \"2025-02-02\"\nexecute: \n  eval: true\n  echo: true\n  message: false\n  freeze: true\n  warning: false\n---\n\n\n\n\n# 1 Installing and Loading Packages\n\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\npacman::p_load(tidyverse)\n```\n:::\n\n\n\n\n# 2 Importing Data\n\n\n\n\n::: {.cell}\n\n:::\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}
