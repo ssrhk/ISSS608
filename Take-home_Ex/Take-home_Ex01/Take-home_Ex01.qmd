@@ -41,19 +41,19 @@ The following R packages will be used to achieve the objective.
 ::: panel-tabset
 ## Packages Used
 
-| Package   | Explanation |
-|-----------|-------------|
-| tidyverse |             |
-|           |             |
-|           |             |
-|           |             |
-|           |             |
-|           |             |
+| Package | Explanation |
+|------------------------------------|------------------------------------|
+| tidyverse | to efficiently manipulate and clean data, utilizing functions from packages like `dplyr` and `tidyr` for data wrangling. |
+| ggplot2 | to create informative and aesthetically pleasing visualizations, such as histograms and boxplots, to analyze the data |
+| patchwork | to combine multiple ggplot2 plots into a cohesive layout, making it easier to present related visualizations side by side |
+|  |  |
+|  |  |
+|  |  |
 
 ## Code to Install and Launch
 
 ```{r}
-pacman::p_load(tidyverse)
+pacman::p_load(tidyverse,patchwork)
 ```
 :::
 
@@ -63,7 +63,7 @@ pacman::p_load(tidyverse)
 
 The dataset, *Heart Attack in Japan: Youth vs. Adult,* used in this analysis was obtained from Kaggle. It contains data for heart attack cases across different age groups.
 
-This dataset includes 17 variables, both numerical and categorical variables, related to cardiovascular health, such as cholesterol levels, blood pressure, heart rate, and lifestyle factors. These indicators are crucial in assessing the likelihood of heart attacks and understanding how risk factors differ between younger and older populations.
+This dataset includes both numerical and categorical variables related to cardiovascular health, such as cholesterol levels, blood pressure, heart rate, and lifestyle factors. These indicators are crucial in assessing the likelihood of heart attacks and understanding how risk factors differ between younger and older populations.
 
 In the next section, we will import the raw dataset and refine it further to ensure its readiness for visual analysis and gain deeper insights.
 
@@ -79,13 +79,13 @@ The code chunk below imports *japan_heart_attack_dataset.csv* into R environment
 heartattack_data <- read_csv("data/raw/japan_heart_attack_dataset.csv")
 ```
 
-Let's view the structure of the dataset using glimpse() which allows us to see data structure and variable names as well as types.
+Let's view the structure of the dataset using *glimpse()*, which allows us to see data structure and variable names as well as types.
 
 ```{r}
 glimpse(heartattack_data)
 ```
 
-At a glimpse, we note that all variables are in the correct data types.
+At a glimpse, we see that there at 32,000 rows and 32 columns.
 
 ## 4.2 Filtering for Relevant Variables
 
@@ -95,34 +95,110 @@ We notice that there were certain columns titled "Extra_Column\_" from column nu
 heartattack_data <- heartattack_data %>% select(-c(18:32))
 ```
 
-## 4.3 Checking for Duplicates and Missing values 
+We also notice that this dataset also contains data for people with no heart attack occurrence (in the Heart_Attack_Occurrence column). Since we are performing exploratory data analysis (EDA), it would be valuable to keep both groups, as this allows us to identify and compare characteristics like age, gender, lifestyle, or pre-existing conditions between those who had a heart attack and those who didn't, potentially letting us uncover patterns or trends that can inform your study.
 
-It is essential to check for duplicates and missing values before we move forward.
+## 4.3 Convert Data Types
+
+We note that all variables are in the correct data types. However, we will convert the Binary columns (Yes/No) such as Smoking_History,Diabetes_History, Hypertension_History, Family_History and Heart_Attack_Occurrence as factor for better visualisation.
 
 ```{r}
-colSums(is.na(heartattack_data))
+heartattack_data$Smoking_History <- factor(heartattack_data$Smoking_History, levels = c("No", "Yes"))
+
+heartattack_data$Diabetes_History <- factor(heartattack_data$Diabetes_History, levels = c("No", "Yes"))
+
+heartattack_data$Hypertension_History <- factor(heartattack_data$Hypertension_History, levels = c("No", "Yes"))
+
+heartattack_data$Family_History <- factor(heartattack_data$Family_History, levels = c("No", "Yes"))
+
+heartattack_data$Heart_Attack_Occurrence <- factor(heartattack_data$Heart_Attack_Occurrence, levels = c("No", "Yes"))
 
 ```
+
+## 4.3 Checking for Duplicates and Missing values
+
+It is essential to check for duplicates and missing values before we move forward. We will use the following code to check for them.
+
+::: panel-tabset
+## Checking for Duplicates
+
+The *duplicated()* function in the **base** package is used to check for duplicates in heartattack_data.
 
 ```{r}
 sum(duplicated(heartattack_data))
 ```
 
+## Checking for Missing Values
+
+The *colSums()* function in the **base** package is used to check for missing values in heartattack_data.
+
+```{r}
+colSums(is.na(heartattack_data))
+```
+:::
+
 There are no duplicates and missing values in this dataset.
 
 ## 4.4 Grouping Variables into Categories
 
-The following numerical variables (represented as "dbl" when we checked data structure in section 4.1), will be grouped into categories for meaningful insights:
+Some numerical variables (represented as "dbl" when we checked data structure in section 4.1), will be grouped into the following categories for meaningful insights:
 
--   Age
+-   **Age:** For this variable which ranges from 18 to 79, we will use equal bins for each category, categorized as:
 
--   Cholesterol Level
+    -   **Young**: 18–39
 
--   Stress Level
+    -   **Middle-Aged**: 40–59
 
--   Heart Rate
+    -   **Old**: 60–79
 
-## **4.5** ...
+-   **Cholesterol Level:** According to guidelines from the American Heart Association (AHA) and National Heart, Lung, and Blood Institute (NHLBI) (Lauer et al, 2004), a desirable low cholesterol level is Below 200 mg/dL, a borderline high medium would be between 200 to 239 mg/dL and high cholesterol level is considered as 240 mg/dL and above.To align with this finding, we will categorize as:
+
+    -   **Low:** 80–199 mg/dL
+    -   **Medium:** 200–239 mg/dL
+    -   **High:** 240–336 mg/dL
+
+-   **Stress Level:** A common method to measure stress is the Perceived Stress Scale (Cohen,1994) where individuals rate their stress from 0 (no stress) to 10 (extreme stress). Since our dataset usesa 0 to 10 range, it's likely a self-reported scale, where 0-3 represents minimal or manageable stress, 4-6 represents moderate stress and 7-10 represents high to extreme stress, with potential health risks. Therefore, we will categorize the stress levels as:
+
+    -   **Low:** 0.000–3.999
+    -   **Medium:** 4.000–6.999
+    -   **High:** 7.000–10.000
+
+-   **Heart Rate:** According to Mayo Clinic, low/below normal heart rate is below 60 bpm, a normal healthy range is 60–100 bpm, and above normal is above 100 bpm. Aligning with this, our categories will be:
+
+    -   **Low:** 30.000–59.999 bpm
+
+    -   **Normal:** 60.000–99.999 bpm
+
+    -   **High:** 100.000–108.7812 bpm
+
+```{r}
+heartattack_data <- heartattack_data %>%
+  mutate(
+    AgeCat = case_when(
+      Age >= 18 & Age <= 39 ~ "Young",
+      Age >= 40 & Age <= 59 ~ "Middle-Aged",
+      Age >= 60 & Age <= 79 ~ "Old"
+    ),
+    
+    Cholesterol = case_when(
+      Cholesterol_Level >= 80.0000 & Cholesterol_Level  <= 199.9999 ~ "Low",
+      Cholesterol_Level  >= 200.0000 & Cholesterol_Level  <= 239.9999 ~ "Medium",
+      Cholesterol_Level  >= 240.0000 & Cholesterol_Level  <= 336.9999 ~ "High"
+    ),
+    
+    Stress = case_when(
+      Stress_Levels >= 0.000 & Stress_Levels <= 3.999999 ~ "Low",
+      Stress_Levels > 4.000 & Stress_Levels <= 6.999999 ~ "Medium",
+      Stress_Levels > 7.000 & Stress_Levels <= 10.000 ~ "High"
+    ),
+    
+    HeartRate = case_when(
+      Heart_Rate >= 30.000 & Heart_Rate <= 59.99999 ~ "Low",
+      Heart_Rate > 60.000 & Heart_Rate <= 99.99999 ~ "Normal",
+      Heart_Rate > 100.000 & Heart_Rate <= 108.78217 ~ "High"
+    )
+  )
+
+```
 
 Lastly, save the prepared output to rds format using the following code chunk. We will use this newly prepared data from this point.
 
@@ -142,9 +218,191 @@ heartattack <- read_rds("data/rds/heartattack.rds")
 
 ------------------------------------------------------------------------
 
-# 5 Data Visualisation 
+# 5 Data Visualisation
 
-## 5.1 Exploratory Analysis 1:
+## 5.1 Starting Big: Overview of Heart Attack Occurrence in Japan
+
+### 5.1.1 Heart Attack Occurrence by Age Group and Gender
+
+We will first explore the distribution of heart attack occurrences across different age groups and genders in Japan. By categorizing individuals into age groups (Young, Middle-Aged, and Old), we can observe trends in heart attack prevalence, with particular focus on gender differences. This helps identify which demographic groups are more vulnerable and gives us the overview.
+
+::: panel-tabset
+## Plot
+
+```{r}
+#| echo: False
+# Compute percentages within each AgeCat-Gender group
+heartattack_summary <- heartattack %>%
+  group_by(AgeCat, Gender, Heart_Attack_Occurrence) %>%
+  summarise(count = n(), .groups = 'drop') %>%
+  group_by(AgeCat, Gender) %>%
+  mutate(percentage = (count / sum(count)) * 100)
+
+# Histogram Plot
+histograms_age <- ggplot(heartattack_summary, aes(x = AgeCat, y = percentage, fill = Heart_Attack_Occurrence)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_wrap(~Gender) + 
+  geom_text(aes(label = sprintf("%.1f%%", percentage)), 
+            position = position_dodge(width = 0.8), 
+            vjust = -0.2, size = 3) +  # Display percentages on top of bars
+  labs(x = "Age Category",
+       y = "Percentage of Individuals",
+       fill = "Heart Attack") +
+  scale_fill_manual(values = c("No" = "#d3d2d1", "Yes" = "#83bace")) + 
+  theme_minimal(base_size = 14) +
+  theme( 
+        axis.title = element_text(size = 10), 
+        axis.text = element_text(size = 9),
+        legend.key.size = unit(0.5, "cm"),  
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 10),
+        strip.text = element_text(size = 10, face = "bold"))
+
+# Compute Mean Age to display on Boxplot
+mean_values <- heartattack %>%
+  group_by(Gender, Heart_Attack_Occurrence) %>%
+  summarise(mean_age = mean(Age, na.rm = TRUE), .groups = "drop")
+
+# Boxplot
+genderboxplots <- ggplot(heartattack, aes(x = Heart_Attack_Occurrence, y = Age, fill = Heart_Attack_Occurrence)) +
+  geom_boxplot(alpha = 0.7) +
+  facet_wrap(~Gender) +  
+  stat_summary(
+    aes(y = Age),
+    fun = mean,
+    geom = "point",
+    shape = 21, size = 2, color = "black", fill = "#b9d990"
+  ) + 
+  geom_text(
+    data = mean_values,
+    aes(x = Heart_Attack_Occurrence, y = mean_age, label = sprintf("Mean = %.1f", mean_age)),  
+    vjust = -0.5, size = 2, color = "black"
+  ) +
+  labs(title = "Age Distribution by Heart Attack Status & Gender",
+       x = "Heart Attack Occurrence") + 
+  scale_fill_manual(values = c("No" = "#d3d2d1", "Yes" = "#83bace")) + 
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(size = 12, face = "bold"),
+    axis.title = element_text(size = 10),  
+    axis.text = element_text(size = 9), 
+    axis.title.y = element_blank(), 
+    legend.position = "none",
+    strip.text = element_text(size = 10, face = "bold")  
+  ) +
+  coord_flip()
+
+# Combine plots using patchwork
+genderboxplots / histograms_age + 
+  plot_layout(heights = c(1, 4))
+```
+
+## Code
+
+```{r}
+#| eval: False
+# Compute percentages within each AgeCat-Gender group
+heartattack_summary <- heartattack %>%
+  group_by(AgeCat, Gender, Heart_Attack_Occurrence) %>%
+  summarise(count = n(), .groups = 'drop') %>%
+  group_by(AgeCat, Gender) %>%
+  mutate(percentage = (count / sum(count)) * 100)
+
+# Histogram Plot
+histograms_age <- ggplot(heartattack_summary, aes(x = AgeCat, y = percentage, fill = Heart_Attack_Occurrence)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_wrap(~Gender) + 
+  geom_text(aes(label = sprintf("%.1f%%", percentage)), 
+            position = position_dodge(width = 0.8), 
+            vjust = -0.2, size = 3) +  # Display percentages on top of bars
+  labs(x = "Age Category",
+       y = "Percentage of Individuals",
+       fill = "Heart Attack") +
+  scale_fill_manual(values = c("No" = "#d3d2d1", "Yes" = "#83bace")) + 
+  theme_minimal(base_size = 14) +
+  theme( 
+        axis.title = element_text(size = 10), 
+        axis.text = element_text(size = 9),
+        legend.key.size = unit(0.5, "cm"),  
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 10),
+        strip.text = element_text(size = 10, face = "bold"))
+
+# Compute Mean Age to display on Boxplot
+mean_values <- heartattack %>%
+  group_by(Gender, Heart_Attack_Occurrence) %>%
+  summarise(mean_age = mean(Age, na.rm = TRUE), .groups = "drop")
+
+# Boxplot
+genderboxplots <- ggplot(heartattack, aes(x = Heart_Attack_Occurrence, y = Age, fill = Heart_Attack_Occurrence)) +
+  geom_boxplot(alpha = 0.7) +
+  facet_wrap(~Gender) +  
+  stat_summary(
+    aes(y = Age),
+    fun = mean,
+    geom = "point",
+    shape = 21, size = 2, color = "black", fill = "#b9d990"
+  ) + 
+  geom_text(
+    data = mean_values,
+    aes(x = Heart_Attack_Occurrence, y = mean_age, label = sprintf("Mean = %.1f", mean_age)),  
+    vjust = -0.5, size = 2, color = "black"
+  ) +
+  labs(title = "Age Distribution by Heart Attack Status & Gender",
+       x = "Heart Attack Occurrence") + 
+  scale_fill_manual(values = c("No" = "#d3d2d1", "Yes" = "#83bace")) + 
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(size = 12, face = "bold"),
+    axis.title = element_text(size = 10),  
+    axis.text = element_text(size = 9), 
+    axis.title.y = element_blank(), 
+    legend.position = "none",
+    strip.text = element_text(size = 10, face = "bold")  
+  ) +
+  coord_flip()
+
+# Combine plots using patchwork
+genderboxplots / histograms_age + 
+  plot_layout(heights = c(1, 4))
+```
+:::
+
+::: {.callout-note style="color: black; background-color: #e0f3f9"}
+## Insights
+
+-   The **Middle-Aged Male** category shows the highest percentage of individuals who have had a heart attack, at **10.8%**.
+
+-   Both female and male have a similar mean of 48 years for those who have had heart attacks.
+:::
+
+### 5.1.2 Heart Attack Occurrence by Lifestyle Factors (Smoking, Alcohol, Physical Activity, Diet Quality)
+
+Lifestyle factors such as smoking, alcohol consumption, physical activity, and diet quality play a significant role in heart attack occurrences. This section visualizes how these factors interact with heart attack risk, providing insights into the relative contributions of each factor. This analysis shows us the importance of lifestyle modifications in preventing heart attacks.
+
+### 5.1.3 Heart Attack Occurrence by Medical History (Diabetes, Hypertension, Family History, Cholesterol Level)
+
+Medical history, including conditions like diabetes, hypertension, family history of heart disease, and high cholesterol, is a critical determinant of heart attack risk. This section aims to reveal which medical conditions are most strongly associated with an increased risk. For example, individuals with a family history of heart disease or high cholesterol levels may be more likely to experience a heart attack.
+
+## 5.2 Narrowing Down: Risk Factors and Their Impact
+
+### **5.2.1 Smoking’s Impact on Heart Attack Occurrence by Age**
+
+### 5.2.2 **Diabetes & Hypertension Impact by Age**
+
+### 5.2.3 **BMI vs. Heart Attack with Physical Activity Levels**
+
+### 5.2.4 **Stress vs. Heart Attack by Gender and Region**
+
+### 5.2.5 **Heart Rate & BP Comparison**
+
+### 5.2.6 **Lifestyle Risk Factor Combinations**
+
+## 5.3 Clinical Insights
+
+### 5.3.1 Correlation between BMI and Heart Attack
+
+### **5.3.2 Blood Pressure vs. Heart Rate Among Heart Attack Patients (Regression)**
 
 ------------------------------------------------------------------------
 
@@ -154,4 +412,10 @@ heartattack <- read_rds("data/rds/heartattack.rds")
 
 # References
 
+Cohen, S. (1994). *Perceived Stress Scale*. Mind Garden. Retrieved from <https://www.mindgarden.com/documents/PerceivedStressScale.pdf>
+
 Iso H. (2011). Lifestyle and cardiovascular disease in Japan. *Journal of atherosclerosis and thrombosis*, *18*(2), 83–88. https://doi.org/10.5551/jat.6866
+
+Lauer, M. S., Okin, P. M., Larson, M. G., Evans, J. C., Levy, D. (2004). Impaired heart rate response to graded exercise: Prognostic implications of chronotropic incompetence in the Framingham Heart Study. *Circulation, 109*(7), 988–994. [https://doi.org/10.1161/01.CIR.0000141564.89465.4E](https://www.ahajournals.org/doi/10.1161/01.CIR.0000141564.89465.4E)
+
+Mayo Clinic. (n.d.). *What’s a normal resting heart rate?* Mayo Clinic. Retrieved February 3, 2025, from <https://www.mayoclinic.org/healthy-lifestyle/fitness/expert-answers/heart-rate/faq-20057979>

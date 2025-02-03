@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Sei Sar Hla Kyi">
-<meta name="dcterms.date" content="2025-02-02">
+<meta name="dcterms.date" content="2025-02-03">
 
 <title>Take-home Exercise 01: Visualizing and Uncovering Trends on Heart Attacks in Japan – ISSS608</title>
 <style>
@@ -210,13 +210,32 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#importing-the-data" id="toc-importing-the-data" class="nav-link" data-scroll-target="#importing-the-data">4.1 Importing the Data</a></li>
   <li><a href="#filtering-for-relevant-variables" id="toc-filtering-for-relevant-variables" class="nav-link" data-scroll-target="#filtering-for-relevant-variables">4.2 Filtering for Relevant Variables</a></li>
+  <li><a href="#convert-data-types" id="toc-convert-data-types" class="nav-link" data-scroll-target="#convert-data-types">4.3 Convert Data Types</a></li>
   <li><a href="#checking-for-duplicates-and-missing-values" id="toc-checking-for-duplicates-and-missing-values" class="nav-link" data-scroll-target="#checking-for-duplicates-and-missing-values">4.3 Checking for Duplicates and Missing values</a></li>
   <li><a href="#grouping-variables-into-categories" id="toc-grouping-variables-into-categories" class="nav-link" data-scroll-target="#grouping-variables-into-categories">4.4 Grouping Variables into Categories</a></li>
-  <li><a href="#section" id="toc-section" class="nav-link" data-scroll-target="#section"><strong>4.5</strong> …</a></li>
   </ul></li>
   <li><a href="#data-visualisation" id="toc-data-visualisation" class="nav-link" data-scroll-target="#data-visualisation">5 Data Visualisation</a>
   <ul class="collapse">
-  <li><a href="#exploratory-analysis-1" id="toc-exploratory-analysis-1" class="nav-link" data-scroll-target="#exploratory-analysis-1">5.1 Exploratory Analysis 1:</a></li>
+  <li><a href="#starting-big-overview-of-heart-attack-occurrence-in-japan" id="toc-starting-big-overview-of-heart-attack-occurrence-in-japan" class="nav-link" data-scroll-target="#starting-big-overview-of-heart-attack-occurrence-in-japan">5.1 Starting Big: Overview of Heart Attack Occurrence in Japan</a>
+  <ul class="collapse">
+  <li><a href="#heart-attack-occurrence-by-age-group-and-gender" id="toc-heart-attack-occurrence-by-age-group-and-gender" class="nav-link" data-scroll-target="#heart-attack-occurrence-by-age-group-and-gender">5.1.1 Heart Attack Occurrence by Age Group and Gender</a></li>
+  <li><a href="#heart-attack-occurrence-by-lifestyle-factors-smoking-alcohol-physical-activity-diet-quality" id="toc-heart-attack-occurrence-by-lifestyle-factors-smoking-alcohol-physical-activity-diet-quality" class="nav-link" data-scroll-target="#heart-attack-occurrence-by-lifestyle-factors-smoking-alcohol-physical-activity-diet-quality">5.1.2 Heart Attack Occurrence by Lifestyle Factors (Smoking, Alcohol, Physical Activity, Diet Quality)</a></li>
+  <li><a href="#heart-attack-occurrence-by-medical-history-diabetes-hypertension-family-history-cholesterol-level" id="toc-heart-attack-occurrence-by-medical-history-diabetes-hypertension-family-history-cholesterol-level" class="nav-link" data-scroll-target="#heart-attack-occurrence-by-medical-history-diabetes-hypertension-family-history-cholesterol-level">5.1.3 Heart Attack Occurrence by Medical History (Diabetes, Hypertension, Family History, Cholesterol Level)</a></li>
+  </ul></li>
+  <li><a href="#narrowing-down-risk-factors-and-their-impact" id="toc-narrowing-down-risk-factors-and-their-impact" class="nav-link" data-scroll-target="#narrowing-down-risk-factors-and-their-impact">5.2 Narrowing Down: Risk Factors and Their Impact</a>
+  <ul class="collapse">
+  <li><a href="#smokings-impact-on-heart-attack-occurrence-by-age" id="toc-smokings-impact-on-heart-attack-occurrence-by-age" class="nav-link" data-scroll-target="#smokings-impact-on-heart-attack-occurrence-by-age"><strong>5.2.1 Smoking’s Impact on Heart Attack Occurrence by Age</strong></a></li>
+  <li><a href="#diabetes-hypertension-impact-by-age" id="toc-diabetes-hypertension-impact-by-age" class="nav-link" data-scroll-target="#diabetes-hypertension-impact-by-age">5.2.2 <strong>Diabetes &amp; Hypertension Impact by Age</strong></a></li>
+  <li><a href="#bmi-vs.-heart-attack-with-physical-activity-levels" id="toc-bmi-vs.-heart-attack-with-physical-activity-levels" class="nav-link" data-scroll-target="#bmi-vs.-heart-attack-with-physical-activity-levels">5.2.3 <strong>BMI vs.&nbsp;Heart Attack with Physical Activity Levels</strong></a></li>
+  <li><a href="#stress-vs.-heart-attack-by-gender-and-region" id="toc-stress-vs.-heart-attack-by-gender-and-region" class="nav-link" data-scroll-target="#stress-vs.-heart-attack-by-gender-and-region">5.2.4 <strong>Stress vs.&nbsp;Heart Attack by Gender and Region</strong></a></li>
+  <li><a href="#heart-rate-bp-comparison" id="toc-heart-rate-bp-comparison" class="nav-link" data-scroll-target="#heart-rate-bp-comparison">5.2.5 <strong>Heart Rate &amp; BP Comparison</strong></a></li>
+  <li><a href="#lifestyle-risk-factor-combinations" id="toc-lifestyle-risk-factor-combinations" class="nav-link" data-scroll-target="#lifestyle-risk-factor-combinations">5.2.6 <strong>Lifestyle Risk Factor Combinations</strong></a></li>
+  </ul></li>
+  <li><a href="#clinical-insights" id="toc-clinical-insights" class="nav-link" data-scroll-target="#clinical-insights">5.3 Clinical Insights</a>
+  <ul class="collapse">
+  <li><a href="#correlation-between-bmi-and-heart-attack" id="toc-correlation-between-bmi-and-heart-attack" class="nav-link" data-scroll-target="#correlation-between-bmi-and-heart-attack">5.3.1 Correlation between BMI and Heart Attack</a></li>
+  <li><a href="#blood-pressure-vs.-heart-rate-among-heart-attack-patients-regression" id="toc-blood-pressure-vs.-heart-rate-among-heart-attack-patients-regression" class="nav-link" data-scroll-target="#blood-pressure-vs.-heart-rate-among-heart-attack-patients-regression"><strong>5.3.2 Blood Pressure vs.&nbsp;Heart Rate Among Heart Attack Patients (Regression)</strong></a></li>
+  </ul></li>
   </ul></li>
   <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">6 Summary</a></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
@@ -245,14 +264,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 2, 2025</p>
+      <p class="date">February 3, 2025</p>
     </div>
   </div>
   
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">February 2, 2025</p>
+      <p class="date-modified">February 3, 2025</p>
     </div>
   </div>
     
@@ -288,6 +307,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="tab-content">
 <div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
 <table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Package</th>
@@ -297,15 +320,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td>tidyverse</td>
-<td></td>
+<td>to efficiently manipulate and clean data, utilizing functions from packages like&nbsp;<code>dplyr</code>&nbsp;and&nbsp;<code>tidyr</code>&nbsp;for data wrangling.</td>
 </tr>
 <tr class="even">
-<td></td>
-<td></td>
+<td>ggplot2</td>
+<td>to create informative and aesthetically pleasing visualizations, such as histograms and boxplots, to analyze the data</td>
 </tr>
 <tr class="odd">
-<td></td>
-<td></td>
+<td>patchwork</td>
+<td>to combine multiple ggplot2 plots into a cohesive layout, making it easier to present related visualizations side by side</td>
 </tr>
 <tr class="even">
 <td></td>
@@ -324,7 +347,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(tidyverse,patchwork)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -334,7 +357,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="the-dataset" class="level1">
 <h1>3 The Dataset</h1>
 <p>The dataset, <em>Heart Attack in Japan: Youth vs.&nbsp;Adult,</em> used in this analysis was obtained from&nbsp;Kaggle. It contains data for heart attack cases across different age groups.</p>
-<p>This dataset includes 17 variables, both numerical and categorical variables, related to cardiovascular health, such as cholesterol levels, blood pressure, heart rate, and lifestyle factors. These indicators are crucial in assessing the likelihood of heart attacks and understanding how risk factors differ between younger and older populations.</p>
+<p>This dataset includes both numerical and categorical variables related to cardiovascular health, such as cholesterol levels, blood pressure, heart rate, and lifestyle factors. These indicators are crucial in assessing the likelihood of heart attacks and understanding how risk factors differ between younger and older populations.</p>
 <p>In the next section, we will import the raw dataset and refine it further to ensure its readiness for visual analysis and gain deeper insights.</p>
 <hr>
 </section>
@@ -346,7 +369,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>heartattack_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/raw/japan_heart_attack_dataset.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Let’s view the structure of the dataset using glimpse() which allows us to see data structure and variable names as well as types.</p>
+<p>Let’s view the structure of the dataset using <em>glimpse()</em>, which allows us to see data structure and variable names as well as types.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(heartattack_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -386,7 +409,7 @@ $ Extra_Column_14         &lt;dbl&gt; 0.8340099, 0.5356022, 0.9972962, 0.6262165
 $ Extra_Column_15         &lt;dbl&gt; 0.061632229, 0.617825340, 0.974455410, 0.22860…</code></pre>
 </div>
 </div>
-<p>At a glimpse, we note that all variables are in the correct data types.</p>
+<p>At a glimpse, we see that there at 32,000 rows and 32 columns.</p>
 </section>
 <section id="filtering-for-relevant-variables" class="level2">
 <h2 class="anchored" data-anchor-id="filtering-for-relevant-variables">4.2 Filtering for Relevant Variables</h2>
@@ -394,12 +417,42 @@ $ Extra_Column_15         &lt;dbl&gt; 0.061632229, 0.617825340, 0.974455410, 0.2
 <div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>heartattack_data <span class="ot">&lt;-</span> heartattack_data <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span><span class="fu">c</span>(<span class="dv">18</span><span class="sc">:</span><span class="dv">32</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>We also notice that this dataset also contains data for people with no heart attack occurrence (in the Heart_Attack_Occurrence column). Since we are performing exploratory data analysis (EDA), it would be valuable to keep both groups, as this allows us to identify and compare characteristics like&nbsp;age, gender, lifestyle, or pre-existing conditions&nbsp;between those who had a heart attack and those who didn’t, potentially letting us uncover patterns or trends that can inform your study.</p>
+</section>
+<section id="convert-data-types" class="level2">
+<h2 class="anchored" data-anchor-id="convert-data-types">4.3 Convert Data Types</h2>
+<p>We note that all variables are in the correct data types. However, we will convert the Binary columns (Yes/No) such as Smoking_History,Diabetes_History, Hypertension_History, Family_History and Heart_Attack_Occurrence as factor for better visualisation.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>heartattack_data<span class="sc">$</span>Smoking_History <span class="ot">&lt;-</span> <span class="fu">factor</span>(heartattack_data<span class="sc">$</span>Smoking_History, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"No"</span>, <span class="st">"Yes"</span>))</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>heartattack_data<span class="sc">$</span>Diabetes_History <span class="ot">&lt;-</span> <span class="fu">factor</span>(heartattack_data<span class="sc">$</span>Diabetes_History, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"No"</span>, <span class="st">"Yes"</span>))</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>heartattack_data<span class="sc">$</span>Hypertension_History <span class="ot">&lt;-</span> <span class="fu">factor</span>(heartattack_data<span class="sc">$</span>Hypertension_History, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"No"</span>, <span class="st">"Yes"</span>))</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>heartattack_data<span class="sc">$</span>Family_History <span class="ot">&lt;-</span> <span class="fu">factor</span>(heartattack_data<span class="sc">$</span>Family_History, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"No"</span>, <span class="st">"Yes"</span>))</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>heartattack_data<span class="sc">$</span>Heart_Attack_Occurrence <span class="ot">&lt;-</span> <span class="fu">factor</span>(heartattack_data<span class="sc">$</span>Heart_Attack_Occurrence, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"No"</span>, <span class="st">"Yes"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </section>
 <section id="checking-for-duplicates-and-missing-values" class="level2">
 <h2 class="anchored" data-anchor-id="checking-for-duplicates-and-missing-values">4.3 Checking for Duplicates and Missing values</h2>
-<p>It is essential to check for duplicates and missing values before we move forward.</p>
+<p>It is essential to check for duplicates and missing values before we move forward. We will use the following code to check for them.</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true">Checking for Duplicates</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" role="tab" aria-controls="tabset-2-2" aria-selected="false">Checking for Missing Values</a></li></ul>
+<div class="tab-content">
+<div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
+<p>The <em>duplicated()</em> function in the <strong>base</strong> package is used to check for duplicates in heartattack_data.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(<span class="fu">is.na</span>(heartattack_data))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">duplicated</span>(heartattack_data))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0</code></pre>
+</div>
+</div>
+</div>
+<div id="tabset-2-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-2-tab">
+<p>The <em>colSums()</em> function in the <strong>base</strong> package is used to check for missing values in heartattack_data.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(<span class="fu">is.na</span>(heartattack_data))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                    Age                  Gender                  Region 
                       0                       0                       0 
@@ -415,38 +468,80 @@ $ Extra_Column_15         &lt;dbl&gt; 0.061632229, 0.617825340, 0.974455410, 0.2
                       0                       0 </code></pre>
 </div>
 </div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(<span class="fu">duplicated</span>(heartattack_data))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 0</code></pre>
+</div>
 </div>
 </div>
 <p>There are no duplicates and missing values in this dataset.</p>
 </section>
 <section id="grouping-variables-into-categories" class="level2">
 <h2 class="anchored" data-anchor-id="grouping-variables-into-categories">4.4 Grouping Variables into Categories</h2>
-<p>The following numerical variables (represented as “dbl” when we checked data structure in section 4.1), will be grouped into categories for meaningful insights:</p>
+<p>Some numerical variables (represented as “dbl” when we checked data structure in section 4.1), will be grouped into the following categories for meaningful insights:</p>
 <ul>
-<li><p>Age</p></li>
-<li><p>Cholesterol Level</p></li>
-<li><p>Stress Level</p></li>
-<li><p>Heart Rate</p></li>
+<li><p><strong>Age:</strong> For this variable which ranges from 18 to 79, we will use equal bins for each category, categorized as:</p>
+<ul>
+<li><p><strong>Young</strong>: 18–39</p></li>
+<li><p><strong>Middle-Aged</strong>: 40–59</p></li>
+<li><p><strong>Old</strong>: 60–79</p></li>
+</ul></li>
+<li><p><strong>Cholesterol Level:</strong> According to guidelines from the American Heart Association (AHA) and National Heart, Lung, and Blood Institute (NHLBI) (Lauer et al, 2004), a desirable low cholesterol level is&nbsp;Below&nbsp;200 mg/dL, a borderline high medium would be between 200 to 239 mg/dL and high cholesterol level is considered as 240 mg/dL and above.To align with this finding, we will categorize as:</p>
+<ul>
+<li><strong>Low:</strong>&nbsp;80–199 mg/dL</li>
+<li><strong>Medium:</strong>&nbsp;200–239 mg/dL</li>
+<li><strong>High:</strong>&nbsp;240–336 mg/dL</li>
+</ul></li>
+<li><p><strong>Stress Level:</strong> A common method to measure stress is the Perceived Stress Scale (Cohen,1994) where individuals rate their stress from&nbsp;0 (no stress) to 10 (extreme stress). Since our dataset usesa&nbsp;0 to 10 range, it’s likely a self-reported scale, where 0-3 represents minimal or manageable stress, 4-6 represents moderate stress and 7-10 represents high to extreme stress, with potential health risks. Therefore, we will categorize the stress levels as:</p>
+<ul>
+<li><strong>Low:</strong>&nbsp;0.000–3.999</li>
+<li><strong>Medium:</strong>&nbsp;4.000–6.999</li>
+<li><strong>High:</strong>&nbsp;7.000–10.000</li>
+</ul></li>
+<li><p><strong>Heart Rate:</strong> According to Mayo Clinic, low/below normal heart rate is below 60 bpm, a normal healthy range is 60–100 bpm, and above normal is above 100 bpm. Aligning with this, our categories will be:</p>
+<ul>
+<li><p><strong>Low:</strong>&nbsp;30.000–59.999 bpm</p></li>
+<li><p><strong>Normal:</strong>&nbsp;60.000–99.999 bpm</p></li>
+<li><p><strong>High:</strong>&nbsp;100.000–108.7812 bpm</p></li>
+</ul></li>
 </ul>
-</section>
-<section id="section" class="level2">
-<h2 class="anchored" data-anchor-id="section"><strong>4.5</strong> …</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>heartattack_data <span class="ot">&lt;-</span> heartattack_data <span class="sc">%&gt;%</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">AgeCat =</span> <span class="fu">case_when</span>(</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>      Age <span class="sc">&gt;=</span> <span class="dv">18</span> <span class="sc">&amp;</span> Age <span class="sc">&lt;=</span> <span class="dv">39</span> <span class="sc">~</span> <span class="st">"Young"</span>,</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>      Age <span class="sc">&gt;=</span> <span class="dv">40</span> <span class="sc">&amp;</span> Age <span class="sc">&lt;=</span> <span class="dv">59</span> <span class="sc">~</span> <span class="st">"Middle-Aged"</span>,</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>      Age <span class="sc">&gt;=</span> <span class="dv">60</span> <span class="sc">&amp;</span> Age <span class="sc">&lt;=</span> <span class="dv">79</span> <span class="sc">~</span> <span class="st">"Old"</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">Cholesterol =</span> <span class="fu">case_when</span>(</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>      Cholesterol_Level <span class="sc">&gt;=</span> <span class="fl">80.0000</span> <span class="sc">&amp;</span> Cholesterol_Level  <span class="sc">&lt;=</span> <span class="fl">199.9999</span> <span class="sc">~</span> <span class="st">"Low"</span>,</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>      Cholesterol_Level  <span class="sc">&gt;=</span> <span class="fl">200.0000</span> <span class="sc">&amp;</span> Cholesterol_Level  <span class="sc">&lt;=</span> <span class="fl">239.9999</span> <span class="sc">~</span> <span class="st">"Medium"</span>,</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>      Cholesterol_Level  <span class="sc">&gt;=</span> <span class="fl">240.0000</span> <span class="sc">&amp;</span> Cholesterol_Level  <span class="sc">&lt;=</span> <span class="fl">336.9999</span> <span class="sc">~</span> <span class="st">"High"</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">Stress =</span> <span class="fu">case_when</span>(</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>      Stress_Levels <span class="sc">&gt;=</span> <span class="fl">0.000</span> <span class="sc">&amp;</span> Stress_Levels <span class="sc">&lt;=</span> <span class="fl">3.999999</span> <span class="sc">~</span> <span class="st">"Low"</span>,</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>      Stress_Levels <span class="sc">&gt;</span> <span class="fl">4.000</span> <span class="sc">&amp;</span> Stress_Levels <span class="sc">&lt;=</span> <span class="fl">6.999999</span> <span class="sc">~</span> <span class="st">"Medium"</span>,</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>      Stress_Levels <span class="sc">&gt;</span> <span class="fl">7.000</span> <span class="sc">&amp;</span> Stress_Levels <span class="sc">&lt;=</span> <span class="fl">10.000</span> <span class="sc">~</span> <span class="st">"High"</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">HeartRate =</span> <span class="fu">case_when</span>(</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>      Heart_Rate <span class="sc">&gt;=</span> <span class="fl">30.000</span> <span class="sc">&amp;</span> Heart_Rate <span class="sc">&lt;=</span> <span class="fl">59.99999</span> <span class="sc">~</span> <span class="st">"Low"</span>,</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>      Heart_Rate <span class="sc">&gt;</span> <span class="fl">60.000</span> <span class="sc">&amp;</span> Heart_Rate <span class="sc">&lt;=</span> <span class="fl">99.99999</span> <span class="sc">~</span> <span class="st">"Normal"</span>,</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>      Heart_Rate <span class="sc">&gt;</span> <span class="fl">100.000</span> <span class="sc">&amp;</span> Heart_Rate <span class="sc">&lt;=</span> <span class="fl">108.78217</span> <span class="sc">~</span> <span class="st">"High"</span></span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 <p>Lastly, save the prepared output to rds format using the following code chunk. We will use this newly prepared data from this point.</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true">Save to .rds format</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" role="tab" aria-controls="tabset-2-2" aria-selected="false">Load the rds file</a></li></ul>
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-3-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-1" role="tab" aria-controls="tabset-3-1" aria-selected="true">Save to .rds format</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-2" role="tab" aria-controls="tabset-3-2" aria-selected="false">Load the rds file</a></li></ul>
 <div class="tab-content">
-<div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
+<div id="tabset-3-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-3-1-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(heartattack_data, <span class="at">file =</span> <span class="st">"data/rds/heartattack.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(heartattack_data, <span class="at">file =</span> <span class="st">"data/rds/heartattack.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
-<div id="tabset-2-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-2-tab">
+<div id="tabset-3-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-2-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>heartattack <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/heartattack.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>heartattack <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/heartattack.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -456,9 +551,151 @@ $ Extra_Column_15         &lt;dbl&gt; 0.061632229, 0.617825340, 0.974455410, 0.2
 </section>
 <section id="data-visualisation" class="level1">
 <h1>5 Data Visualisation</h1>
-<section id="exploratory-analysis-1" class="level2">
-<h2 class="anchored" data-anchor-id="exploratory-analysis-1">5.1 Exploratory Analysis 1:</h2>
+<section id="starting-big-overview-of-heart-attack-occurrence-in-japan" class="level2">
+<h2 class="anchored" data-anchor-id="starting-big-overview-of-heart-attack-occurrence-in-japan">5.1 Starting Big: Overview of Heart Attack Occurrence in Japan</h2>
+<section id="heart-attack-occurrence-by-age-group-and-gender" class="level3">
+<h3 class="anchored" data-anchor-id="heart-attack-occurrence-by-age-group-and-gender">5.1.1 Heart Attack Occurrence by Age Group and Gender</h3>
+<p>We will first explore the distribution of heart attack occurrences across different age groups and genders in Japan. By categorizing individuals into age groups (Young, Middle-Aged, and Old), we can observe trends in heart attack prevalence, with particular focus on gender differences. This helps identify which demographic groups are more vulnerable and gives us the overview.</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-4-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-1" role="tab" aria-controls="tabset-4-1" aria-selected="true">Plot</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-2" role="tab" aria-controls="tabset-4-2" aria-selected="false">Code</a></li></ul>
+<div class="tab-content">
+<div id="tabset-4-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-4-1-tab">
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Take-home_Ex01_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-4-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-2-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute percentages within each AgeCat-Gender group</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>heartattack_summary <span class="ot">&lt;-</span> heartattack <span class="sc">%&gt;%</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(AgeCat, Gender, Heart_Attack_Occurrence) <span class="sc">%&gt;%</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">count =</span> <span class="fu">n</span>(), <span class="at">.groups =</span> <span class="st">'drop'</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(AgeCat, Gender) <span class="sc">%&gt;%</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">percentage =</span> (count <span class="sc">/</span> <span class="fu">sum</span>(count)) <span class="sc">*</span> <span class="dv">100</span>)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Histogram Plot</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>histograms_age <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(heartattack_summary, <span class="fu">aes</span>(<span class="at">x =</span> AgeCat, <span class="at">y =</span> percentage, <span class="at">fill =</span> Heart_Attack_Occurrence)) <span class="sc">+</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">position =</span> <span class="st">"dodge"</span>) <span class="sc">+</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Gender) <span class="sc">+</span> </span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">sprintf</span>(<span class="st">"%.1f%%"</span>, percentage)), </span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>            <span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="at">width =</span> <span class="fl">0.8</span>), </span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>            <span class="at">vjust =</span> <span class="sc">-</span><span class="fl">0.2</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span>  <span class="co"># Display percentages on top of bars</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Age Category"</span>,</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Percentage of Individuals"</span>,</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">fill =</span> <span class="st">"Heart Attack"</span>) <span class="sc">+</span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"No"</span> <span class="ot">=</span> <span class="st">"#d3d2d1"</span>, <span class="st">"Yes"</span> <span class="ot">=</span> <span class="st">"#83bace"</span>)) <span class="sc">+</span> </span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>) <span class="sc">+</span></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>( </span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>), </span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">9</span>),</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.key.size =</span> <span class="fu">unit</span>(<span class="fl">0.5</span>, <span class="st">"cm"</span>),  </span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>),</span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>),</span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>        <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>, <span class="at">face =</span> <span class="st">"bold"</span>))</span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute Mean Age to display on Boxplot</span></span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>mean_values <span class="ot">&lt;-</span> heartattack <span class="sc">%&gt;%</span></span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Gender, Heart_Attack_Occurrence) <span class="sc">%&gt;%</span></span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_age =</span> <span class="fu">mean</span>(Age, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a><span class="co"># Boxplot</span></span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>genderboxplots <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(heartattack, <span class="fu">aes</span>(<span class="at">x =</span> Heart_Attack_Occurrence, <span class="at">y =</span> Age, <span class="at">fill =</span> Heart_Attack_Occurrence)) <span class="sc">+</span></span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Gender) <span class="sc">+</span>  </span>
+<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_summary</span>(</span>
+<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">y =</span> Age),</span>
+<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">fun =</span> mean,</span>
+<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">geom =</span> <span class="st">"point"</span>,</span>
+<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a>    <span class="at">shape =</span> <span class="dv">21</span>, <span class="at">size =</span> <span class="dv">2</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">fill =</span> <span class="st">"#b9d990"</span></span>
+<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(</span>
+<span id="cb14-44"><a href="#cb14-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> mean_values,</span>
+<span id="cb14-45"><a href="#cb14-45" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> Heart_Attack_Occurrence, <span class="at">y =</span> mean_age, <span class="at">label =</span> <span class="fu">sprintf</span>(<span class="st">"Mean = %.1f"</span>, mean_age)),  </span>
+<span id="cb14-46"><a href="#cb14-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">vjust =</span> <span class="sc">-</span><span class="fl">0.5</span>, <span class="at">size =</span> <span class="dv">2</span>, <span class="at">color =</span> <span class="st">"black"</span></span>
+<span id="cb14-47"><a href="#cb14-47" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-48"><a href="#cb14-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Age Distribution by Heart Attack Status &amp; Gender"</span>,</span>
+<span id="cb14-49"><a href="#cb14-49" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Heart Attack Occurrence"</span>) <span class="sc">+</span> </span>
+<span id="cb14-50"><a href="#cb14-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"No"</span> <span class="ot">=</span> <span class="st">"#d3d2d1"</span>, <span class="st">"Yes"</span> <span class="ot">=</span> <span class="st">"#83bace"</span>)) <span class="sc">+</span> </span>
+<span id="cb14-51"><a href="#cb14-51" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
+<span id="cb14-52"><a href="#cb14-52" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb14-53"><a href="#cb14-53" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">12</span>, <span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb14-54"><a href="#cb14-54" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>),  </span>
+<span id="cb14-55"><a href="#cb14-55" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">9</span>), </span>
+<span id="cb14-56"><a href="#cb14-56" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.y =</span> <span class="fu">element_blank</span>(), </span>
+<span id="cb14-57"><a href="#cb14-57" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"none"</span>,</span>
+<span id="cb14-58"><a href="#cb14-58" aria-hidden="true" tabindex="-1"></a>    <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>, <span class="at">face =</span> <span class="st">"bold"</span>)  </span>
+<span id="cb14-59"><a href="#cb14-59" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-60"><a href="#cb14-60" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>()</span>
+<span id="cb14-61"><a href="#cb14-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-62"><a href="#cb14-62" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine plots using patchwork</span></span>
+<span id="cb14-63"><a href="#cb14-63" aria-hidden="true" tabindex="-1"></a>genderboxplots <span class="sc">/</span> histograms_age <span class="sc">+</span> </span>
+<span id="cb14-64"><a href="#cb14-64" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">heights =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">4</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled" style="color: black; background-color: #e0f3f9">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Insights
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><p>The&nbsp;<strong>Middle-Aged Male</strong>&nbsp;category shows the highest percentage of individuals who have had a heart attack, at&nbsp;<strong>10.8%</strong>.</p></li>
+<li><p>Both female and male have a similar mean of 48 years for those who have had heart attacks.</p></li>
+</ul>
+</div>
+</div>
+</section>
+<section id="heart-attack-occurrence-by-lifestyle-factors-smoking-alcohol-physical-activity-diet-quality" class="level3">
+<h3 class="anchored" data-anchor-id="heart-attack-occurrence-by-lifestyle-factors-smoking-alcohol-physical-activity-diet-quality">5.1.2 Heart Attack Occurrence by Lifestyle Factors (Smoking, Alcohol, Physical Activity, Diet Quality)</h3>
+<p>Lifestyle factors such as smoking, alcohol consumption, physical activity, and diet quality play a significant role in heart attack occurrences. This section visualizes how these factors interact with heart attack risk, providing insights into the relative contributions of each factor. This analysis shows us the importance of lifestyle modifications in preventing heart attacks.</p>
+</section>
+<section id="heart-attack-occurrence-by-medical-history-diabetes-hypertension-family-history-cholesterol-level" class="level3">
+<h3 class="anchored" data-anchor-id="heart-attack-occurrence-by-medical-history-diabetes-hypertension-family-history-cholesterol-level">5.1.3 Heart Attack Occurrence by Medical History (Diabetes, Hypertension, Family History, Cholesterol Level)</h3>
+<p>Medical history, including conditions like diabetes, hypertension, family history of heart disease, and high cholesterol, is a critical determinant of heart attack risk. This section aims to reveal which medical conditions are most strongly associated with an increased risk. For example, individuals with a family history of heart disease or high cholesterol levels may be more likely to experience a heart attack.</p>
+</section>
+</section>
+<section id="narrowing-down-risk-factors-and-their-impact" class="level2">
+<h2 class="anchored" data-anchor-id="narrowing-down-risk-factors-and-their-impact">5.2 Narrowing Down: Risk Factors and Their Impact</h2>
+<section id="smokings-impact-on-heart-attack-occurrence-by-age" class="level3">
+<h3 class="anchored" data-anchor-id="smokings-impact-on-heart-attack-occurrence-by-age"><strong>5.2.1 Smoking’s Impact on Heart Attack Occurrence by Age</strong></h3>
+</section>
+<section id="diabetes-hypertension-impact-by-age" class="level3">
+<h3 class="anchored" data-anchor-id="diabetes-hypertension-impact-by-age">5.2.2 <strong>Diabetes &amp; Hypertension Impact by Age</strong></h3>
+</section>
+<section id="bmi-vs.-heart-attack-with-physical-activity-levels" class="level3">
+<h3 class="anchored" data-anchor-id="bmi-vs.-heart-attack-with-physical-activity-levels">5.2.3 <strong>BMI vs.&nbsp;Heart Attack with Physical Activity Levels</strong></h3>
+</section>
+<section id="stress-vs.-heart-attack-by-gender-and-region" class="level3">
+<h3 class="anchored" data-anchor-id="stress-vs.-heart-attack-by-gender-and-region">5.2.4 <strong>Stress vs.&nbsp;Heart Attack by Gender and Region</strong></h3>
+</section>
+<section id="heart-rate-bp-comparison" class="level3">
+<h3 class="anchored" data-anchor-id="heart-rate-bp-comparison">5.2.5 <strong>Heart Rate &amp; BP Comparison</strong></h3>
+</section>
+<section id="lifestyle-risk-factor-combinations" class="level3">
+<h3 class="anchored" data-anchor-id="lifestyle-risk-factor-combinations">5.2.6 <strong>Lifestyle Risk Factor Combinations</strong></h3>
+</section>
+</section>
+<section id="clinical-insights" class="level2">
+<h2 class="anchored" data-anchor-id="clinical-insights">5.3 Clinical Insights</h2>
+<section id="correlation-between-bmi-and-heart-attack" class="level3">
+<h3 class="anchored" data-anchor-id="correlation-between-bmi-and-heart-attack">5.3.1 Correlation between BMI and Heart Attack</h3>
+</section>
+<section id="blood-pressure-vs.-heart-rate-among-heart-attack-patients-regression" class="level3">
+<h3 class="anchored" data-anchor-id="blood-pressure-vs.-heart-rate-among-heart-attack-patients-regression"><strong>5.3.2 Blood Pressure vs.&nbsp;Heart Rate Among Heart Attack Patients (Regression)</strong></h3>
 <hr>
+</section>
 </section>
 </section>
 <section id="summary" class="level1">
@@ -467,7 +704,10 @@ $ Extra_Column_15         &lt;dbl&gt; 0.061632229, 0.617825340, 0.974455410, 0.2
 </section>
 <section id="references" class="level1">
 <h1>References</h1>
+<p>Cohen, S. (1994).&nbsp;<em>Perceived Stress Scale</em>. Mind Garden. Retrieved from&nbsp;<a href="https://www.mindgarden.com/documents/PerceivedStressScale.pdf" class="uri">https://www.mindgarden.com/documents/PerceivedStressScale.pdf</a></p>
 <p>Iso H. (2011). Lifestyle and cardiovascular disease in Japan.&nbsp;<em>Journal of atherosclerosis and thrombosis</em>,&nbsp;<em>18</em>(2), 83–88. https://doi.org/10.5551/jat.6866</p>
+<p>Lauer, M. S., Okin, P. M., Larson, M. G., Evans, J. C., Levy, D. (2004). Impaired heart rate response to graded exercise: Prognostic implications of chronotropic incompetence in the Framingham Heart Study.&nbsp;<em>Circulation, 109</em>(7), 988–994.&nbsp;<a href="https://www.ahajournals.org/doi/10.1161/01.CIR.0000141564.89465.4E">https://doi.org/10.1161/01.CIR.0000141564.89465.4E</a></p>
+<p>Mayo Clinic. (n.d.).&nbsp;<em>What’s a normal resting heart rate?</em>&nbsp;Mayo Clinic. Retrieved February 3, 2025, from&nbsp;<a href="https://www.mayoclinic.org/healthy-lifestyle/fitness/expert-answers/heart-rate/faq-20057979" class="uri">https://www.mayoclinic.org/healthy-lifestyle/fitness/expert-answers/heart-rate/faq-20057979</a></p>
 
 
 </section>
