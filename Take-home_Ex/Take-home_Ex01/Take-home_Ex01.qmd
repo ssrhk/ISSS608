@@ -46,14 +46,14 @@ The following R packages will be used to achieve the objective.
 | tidyverse | to efficiently manipulate and clean data, utilizing functions from packages like `dplyr` and `tidyr` for data wrangling. |
 | ggplot2 | to create informative and aesthetically pleasing visualizations, such as histograms and boxplots, to analyze the data |
 | patchwork | to combine multiple ggplot2 plots into a cohesive layout, making it easier to present related visualizations side by side |
-|  |  |
-|  |  |
+| plotly |  |
+| ggstatsplot |  |
 |  |  |
 
 ## Code to Install and Launch
 
 ```{r}
-pacman::p_load(tidyverse,patchwork)
+pacman::p_load(tidyverse,patchwork,plotly,ggdist, ggridges,ggstatsplot)
 ```
 :::
 
@@ -96,23 +96,6 @@ heartattack_data <- heartattack_data %>% select(-c(18:32))
 ```
 
 We also notice that this dataset also contains data for people with no heart attack occurrence (in the Heart_Attack_Occurrence column). Since we are performing exploratory data analysis (EDA), it would be valuable to keep both groups, as this allows us to identify and compare characteristics like age, gender, lifestyle, or pre-existing conditions between those who had a heart attack and those who didn't, potentially letting us uncover patterns or trends that can inform your study.
-
-## 4.3 Convert Data Types
-
-We note that all variables are in the correct data types. However, we will convert the Binary columns (Yes/No) such as Smoking_History,Diabetes_History, Hypertension_History, Family_History and Heart_Attack_Occurrence as factor for better visualisation.
-
-```{r}
-heartattack_data$Smoking_History <- factor(heartattack_data$Smoking_History, levels = c("No", "Yes"))
-
-heartattack_data$Diabetes_History <- factor(heartattack_data$Diabetes_History, levels = c("No", "Yes"))
-
-heartattack_data$Hypertension_History <- factor(heartattack_data$Hypertension_History, levels = c("No", "Yes"))
-
-heartattack_data$Family_History <- factor(heartattack_data$Family_History, levels = c("No", "Yes"))
-
-heartattack_data$Heart_Attack_Occurrence <- factor(heartattack_data$Heart_Attack_Occurrence, levels = c("No", "Yes"))
-
-```
 
 ## 4.3 Checking for Duplicates and Missing values
 
@@ -195,9 +178,51 @@ heartattack_data <- heartattack_data %>%
       Heart_Rate >= 30.000 & Heart_Rate <= 59.99999 ~ "Low",
       Heart_Rate > 60.000 & Heart_Rate <= 99.99999 ~ "Normal",
       Heart_Rate > 100.000 & Heart_Rate <= 108.78217 ~ "High"
+    ),
+    BMICat = case_when(
+      BMI >= 0 & BMI <= 17.999999 ~ "Underweight",
+      BMI > 18 & BMI <= 24.999999 ~ "Normal",
+      BMI > 25 ~ "Overweight"
     )
   )
 
+```
+
+## 4.5 Deriving Interaction Variables
+
+### 4.5.1 Gender & Age
+
+```{r}
+heartattack_data$Gender_AgeCat_Interaction <- with(heartattack_data, 
+                                                         ifelse(Gender == "Female" & AgeCat == "Young", "YoungFemale", 
+                                                                ifelse(Gender == "Female" & AgeCat == "Middle-Aged", "Middle-AgedFemale", ifelse(Gender == "Female" & AgeCat == "Old", "OldFemale", 
+                                                                       ifelse(Gender == "Male" & AgeCat == "Young", "YoungMale",ifelse(Gender == "Male" & AgeCat == "Middle-Aged", "Middle-AgedMale", "OldMale"))))))
+```
+
+## 4.6 Convert Data Types
+
+We note that all variables are in the correct data types. However, we will convert the categorical columns such as Smoking_History,Diabetes_History, Hypertension_History, Family_History Heart_Attack_Occurrence, and our newly created columns as factor for better visualisation and to put the categories in order.
+
+```{r}
+heartattack_data <- heartattack_data %>%
+  mutate(
+    Smoking_History = factor(Smoking_History, levels = c("No", "Yes")),
+    Diabetes_History = factor(Diabetes_History, levels = c("No", "Yes")),
+    Hypertension_History = factor(Hypertension_History, levels = c("No", "Yes")),
+    Family_History = factor(Family_History, levels = c("No", "Yes")),
+    Heart_Attack_Occurrence = factor(Heart_Attack_Occurrence, levels = c("No", "Yes")),
+    
+    # Setting specific orders for more than 2 categorical factors
+    Alcohol_Consumption = factor(Alcohol_Consumption, levels = c("None", "Low", "Moderate", "High")),
+    Diet_Quality = factor(Diet_Quality, levels = c("Poor", "Average", "Good")),
+    Physical_Activity = factor(Physical_Activity, levels = c("Low", "Moderate", "High")),
+    AgeCat = factor(AgeCat, levels = c("Young", "Middle-Aged", "Old")),
+    Cholesterol = factor(Cholesterol, levels = c("Low", "Medium", "High")),
+    Stress = factor(Stress, levels = c("Low", "Medium", "High")),
+    HeartRate = factor(HeartRate, levels = c("Low", "Normal", "High")),
+    BMICat = factor(BMICat, levels = c("Underweight", "Normal", "Overweight")),
+    Gender_AgeCat_Interaction =factor(Gender_AgeCat_Interaction, levels = c("YoungFemale", "YoungMale", "Middle-AgedFemale","Middle-AgedMale","OldFemale","OldMale"))
+  )
 ```
 
 Lastly, save the prepared output to rds format using the following code chunk. We will use this newly prepared data from this point.
@@ -216,6 +241,29 @@ heartattack <- read_rds("data/rds/heartattack.rds")
 ```
 :::
 
+We will create a separate subset of the dataset for individuals who reported 'Yes' for Heart Attack Occurrence, enabling us to conduct further analysis on the distribution within this specific group.We will create a separate subset of the dataset for individuals who reported 'Yes' for Heart Attack Occurrence, enabling us to conduct further analysis on the distribution within this specific group.
+
+::: panel-tabset
+## Subset
+
+```{r}
+yesheartattack <- heartattack %>%
+  filter(Heart_Attack_Occurrence == "Yes")
+```
+
+## Save to .rds format
+
+```{r}
+write_rds(yesheartattack, file = "data/rds/yesheartattack.rds")
+```
+
+## Load the rds file
+
+```{r}
+yesheartattack <- read_rds("data/rds/yesheartattack.rds")
+```
+:::
+
 ------------------------------------------------------------------------
 
 # 5 Data Visualisation
@@ -227,182 +275,298 @@ heartattack <- read_rds("data/rds/heartattack.rds")
 We will first explore the distribution of heart attack occurrences across different age groups and genders in Japan. By categorizing individuals into age groups (Young, Middle-Aged, and Old), we can observe trends in heart attack prevalence, with particular focus on gender differences. This helps identify which demographic groups are more vulnerable and gives us the overview.
 
 ::: panel-tabset
-## Plot
+## The Plot
 
 ```{r}
 #| echo: False
-# Compute percentages within each AgeCat-Gender group
-heartattack_summary <- heartattack %>%
-  group_by(AgeCat, Gender, Heart_Attack_Occurrence) %>%
-  summarise(count = n(), .groups = 'drop') %>%
-  group_by(AgeCat, Gender) %>%
-  mutate(percentage = (count / sum(count)) * 100)
+# Compute percentage of Heart Attack Occurrence for each Age Category
+age_summary <- yesheartattack %>%
+  group_by(AgeCat) %>%
+  summarise(Percentage = (n() / nrow(yesheartattack)) * 100)
 
-# Histogram Plot
-histograms_age <- ggplot(heartattack_summary, aes(x = AgeCat, y = percentage, fill = Heart_Attack_Occurrence)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  facet_wrap(~Gender) + 
-  geom_text(aes(label = sprintf("%.1f%%", percentage)), 
-            position = position_dodge(width = 0.8), 
-            vjust = -0.2, size = 3) +  # Display percentages on top of bars
-  labs(x = "Age Category",
-       y = "Percentage of Individuals",
-       fill = "Heart Attack") +
-  scale_fill_manual(values = c("No" = "#d3d2d1", "Yes" = "#83bace")) + 
-  theme_minimal(base_size = 14) +
-  theme( 
-        axis.title = element_text(size = 10), 
-        axis.text = element_text(size = 9),
-        legend.key.size = unit(0.5, "cm"),  
-        legend.text = element_text(size = 10),
-        legend.title = element_text(size = 10),
-        strip.text = element_text(size = 10, face = "bold"))
+# Compute percentage of Heart Attack Occurrence for each Gender
+gender_summary <- yesheartattack %>%
+  group_by(Gender) %>%
+  summarise(Percentage = (n() / nrow(yesheartattack)) * 100)
 
-# Compute Mean Age to display on Boxplot
-mean_values <- heartattack %>%
-  group_by(Gender, Heart_Attack_Occurrence) %>%
-  summarise(mean_age = mean(Age, na.rm = TRUE), .groups = "drop")
+# Define custom colors
+custom_colors <- c("Young" = "#cfe7af", "Middle-Aged" = "#9cc567", "Old" = "#608e24")
 
-# Boxplot
-genderboxplots <- ggplot(heartattack, aes(x = Heart_Attack_Occurrence, y = Age, fill = Heart_Attack_Occurrence)) +
-  geom_boxplot(alpha = 0.7) +
-  facet_wrap(~Gender) +  
-  stat_summary(
-    aes(y = Age),
-    fun = mean,
-    geom = "point",
-    shape = 21, size = 2, color = "black", fill = "#b9d990"
-  ) + 
-  geom_text(
-    data = mean_values,
-    aes(x = Heart_Attack_Occurrence, y = mean_age, label = sprintf("Mean = %.1f", mean_age)),  
-    vjust = -0.5, size = 2, color = "black"
-  ) +
-  labs(title = "Age Distribution by Heart Attack Status & Gender",
-       x = "Heart Attack Occurrence") + 
-  scale_fill_manual(values = c("No" = "#d3d2d1", "Yes" = "#83bace")) + 
-  theme_minimal(base_size = 12) +
-  theme(
-    plot.title = element_text(size = 12, face = "bold"),
-    axis.title = element_text(size = 10),  
-    axis.text = element_text(size = 9), 
-    axis.title.y = element_blank(), 
-    legend.position = "none",
-    strip.text = element_text(size = 10, face = "bold")  
-  ) +
+# Plot 1: Heart Attack Occurrence by Age Category 
+p1 <- ggplot(age_summary, aes(x = AgeCat, y = Percentage, fill = AgeCat)) +
+  geom_bar(stat = "identity", color = "black") +
+  geom_text(aes(label = sprintf("%.1f%%", Percentage)), vjust = 1.5, size = 3) +  
+  scale_fill_manual(values = custom_colors) +
+  labs(x = "Age Category") +  
+  theme_minimal() +
+  theme(legend.position = "none", plot.title = element_blank(), axis.title.y = element_blank(),axis.title.x = element_blank())  
+
+# Plot 2: Heart Attack Occurrence by Gender 
+p2 <- ggplot(gender_summary, aes(x = Gender, y = Percentage, fill = Gender)) +
+  geom_bar(stat = "identity", color = "black") +
+  geom_text(aes(label = sprintf("%.1f%%", Percentage)), vjust = 1.5, size = 3) + 
+  labs(x = "Gender") +
+  theme_minimal() +
+  theme(legend.position = "none", plot.title = element_blank(), axis.title.y = element_blank(),axis.title.x = element_blank()) 
+
+# Plot 3: Heart Attack Occurrence by Age Category in Each Gender 
+p3 <- ggbarstats(
+  data = yesheartattack,
+  x = AgeCat,
+  y = Gender 
+) +
+  scale_fill_manual(values = custom_colors) +
+  theme(plot.title = element_blank()) +
   coord_flip()
 
-# Combine plots using patchwork
-genderboxplots / histograms_age + 
-  plot_layout(heights = c(1, 4))
+(p1 + p2)/ p3 + 
+  plot_layout(widths = c(1, 1, 1.5)) +  
+  plot_annotation(title = "Heart Attack Occurrence by Age Group and Gender")
+
 ```
 
-## Code
+## The Code
 
 ```{r}
 #| eval: False
-# Compute percentages within each AgeCat-Gender group
-heartattack_summary <- heartattack %>%
-  group_by(AgeCat, Gender, Heart_Attack_Occurrence) %>%
-  summarise(count = n(), .groups = 'drop') %>%
-  group_by(AgeCat, Gender) %>%
-  mutate(percentage = (count / sum(count)) * 100)
+# Compute percentage of Heart Attack Occurrence for each Age Category
+age_summary <- yesheartattack %>%
+  group_by(AgeCat) %>%
+  summarise(Percentage = (n() / nrow(yesheartattack)) * 100)
 
-# Histogram Plot
-histograms_age <- ggplot(heartattack_summary, aes(x = AgeCat, y = percentage, fill = Heart_Attack_Occurrence)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  facet_wrap(~Gender) + 
-  geom_text(aes(label = sprintf("%.1f%%", percentage)), 
-            position = position_dodge(width = 0.8), 
-            vjust = -0.2, size = 3) +  # Display percentages on top of bars
-  labs(x = "Age Category",
-       y = "Percentage of Individuals",
-       fill = "Heart Attack") +
-  scale_fill_manual(values = c("No" = "#d3d2d1", "Yes" = "#83bace")) + 
-  theme_minimal(base_size = 14) +
-  theme( 
-        axis.title = element_text(size = 10), 
-        axis.text = element_text(size = 9),
-        legend.key.size = unit(0.5, "cm"),  
-        legend.text = element_text(size = 10),
-        legend.title = element_text(size = 10),
-        strip.text = element_text(size = 10, face = "bold"))
+# Compute percentage of Heart Attack Occurrence for each Gender
+gender_summary <- yesheartattack %>%
+  group_by(Gender) %>%
+  summarise(Percentage = (n() / nrow(yesheartattack)) * 100)
 
-# Compute Mean Age to display on Boxplot
-mean_values <- heartattack %>%
-  group_by(Gender, Heart_Attack_Occurrence) %>%
-  summarise(mean_age = mean(Age, na.rm = TRUE), .groups = "drop")
+# Define custom colors
+custom_colors <- c("Young" = "#cfe7af", "Middle-Aged" = "#9cc567", "Old" = "#608e24")
 
-# Boxplot
-genderboxplots <- ggplot(heartattack, aes(x = Heart_Attack_Occurrence, y = Age, fill = Heart_Attack_Occurrence)) +
-  geom_boxplot(alpha = 0.7) +
-  facet_wrap(~Gender) +  
-  stat_summary(
-    aes(y = Age),
-    fun = mean,
-    geom = "point",
-    shape = 21, size = 2, color = "black", fill = "#b9d990"
-  ) + 
-  geom_text(
-    data = mean_values,
-    aes(x = Heart_Attack_Occurrence, y = mean_age, label = sprintf("Mean = %.1f", mean_age)),  
-    vjust = -0.5, size = 2, color = "black"
-  ) +
-  labs(title = "Age Distribution by Heart Attack Status & Gender",
-       x = "Heart Attack Occurrence") + 
-  scale_fill_manual(values = c("No" = "#d3d2d1", "Yes" = "#83bace")) + 
-  theme_minimal(base_size = 12) +
-  theme(
-    plot.title = element_text(size = 12, face = "bold"),
-    axis.title = element_text(size = 10),  
-    axis.text = element_text(size = 9), 
-    axis.title.y = element_blank(), 
-    legend.position = "none",
-    strip.text = element_text(size = 10, face = "bold")  
-  ) +
+# Plot 1: Heart Attack Occurrence by Age Category 
+p1 <- ggplot(age_summary, aes(x = AgeCat, y = Percentage, fill = AgeCat)) +
+  geom_bar(stat = "identity", color = "black") +
+  geom_text(aes(label = sprintf("%.1f%%", Percentage)), vjust = 1.5, size = 3) +  
+  scale_fill_manual(values = custom_colors) +
+  labs(x = "Age Category") +  
+  theme_minimal() +
+  theme(legend.position = "none", plot.title = element_blank(), axis.title.y = element_blank(),axis.title.x = element_blank())  
+
+# Plot 2: Heart Attack Occurrence by Gender 
+p2 <- ggplot(gender_summary, aes(x = Gender, y = Percentage, fill = Gender)) +
+  geom_bar(stat = "identity", color = "black") +
+  geom_text(aes(label = sprintf("%.1f%%", Percentage)), vjust = 1.5, size = 3) + 
+  labs(x = "Gender") +
+  theme_minimal() +
+  theme(legend.position = "none", plot.title = element_blank(), axis.title.y = element_blank(),axis.title.x = element_blank()) 
+
+# Plot 3: Heart Attack Occurrence by Age Category in Each Gender 
+p3 <- ggbarstats(
+  data = yesheartattack,
+  x = AgeCat,
+  y = Gender 
+) +
+  scale_fill_manual(values = custom_colors) +
+  theme(plot.title = element_blank()) +
   coord_flip()
 
-# Combine plots using patchwork
-genderboxplots / histograms_age + 
-  plot_layout(heights = c(1, 4))
+(p1 + p2)/ p3 + 
+  plot_layout(widths = c(1, 1, 1.5)) +  
+  plot_annotation(title = "Heart Attack Occurrence by Age Group and Gender")
+
 ```
 :::
 
 ::: {.callout-note style="color: black; background-color: #e0f3f9"}
 ## Insights
 
--   The **Middle-Aged Male** category shows the highest percentage of individuals who have had a heart attack, at **10.8%**.
+-   **Gender and Heart Attack Vulnerability**: Males are more prone to heart attacks compared to females, as observed in the dataset.
 
--   Both female and male have a similar mean of 48 years for those who have had heart attacks.
+-   **Statistical Association between Age Category and Gender**: At a 5% significance level, there is insufficient evidence to suggest a statistically significant association between Age Category and Gender in relation to heart attack occurrence. This means that, based on the data, age category and gender do not exhibit a strong statistical relationship in predicting heart attack occurrence.
+
+-   **Vulnerability Across Age Groups**: The Young Age Group (35.3%) emerges as the most vulnerable to heart attacks across both genders.
+
+    -   Among females, the Old Age Group is the second most vulnerable.
+
+    -   Among males, the Middle-Aged Age Group appears to be the second most vulnerable to heart attacks.
 :::
 
-### 5.1.2 Heart Attack Occurrence by Lifestyle Factors (Smoking, Alcohol, Physical Activity, Diet Quality)
+### 5.1.2 Heart Attack Occurrence by Lifestyle Factors & Medical History
 
-Lifestyle factors such as smoking, alcohol consumption, physical activity, and diet quality play a significant role in heart attack occurrences. This section visualizes how these factors interact with heart attack risk, providing insights into the relative contributions of each factor. This analysis shows us the importance of lifestyle modifications in preventing heart attacks.
+We will first conduct Chi-squared tests to test for association between each factor with heart attack occurrence to understand the relationships.
 
-### 5.1.3 Heart Attack Occurrence by Medical History (Diabetes, Hypertension, Family History, Cholesterol Level)
+::: panel-tabset
+## BMI Category
 
-Medical history, including conditions like diabetes, hypertension, family history of heart disease, and high cholesterol, is a critical determinant of heart attack risk. This section aims to reveal which medical conditions are most strongly associated with an increased risk. For example, individuals with a family history of heart disease or high cholesterol levels may be more likely to experience a heart attack.
+```{r}
+chisq.test(table(heartattack$BMICat, heartattack$Heart_Attack_Occurrence))
+```
 
-## 5.2 Narrowing Down: Risk Factors and Their Impact
+## Cholesterol
 
-### **5.2.1 Smoking’s Impact on Heart Attack Occurrence by Age**
+```{r}
+chisq.test(table(heartattack$Cholesterol, heartattack$Heart_Attack_Occurrence))
+```
 
-### 5.2.2 **Diabetes & Hypertension Impact by Age**
+## Stress Level
 
-### 5.2.3 **BMI vs. Heart Attack with Physical Activity Levels**
+```{r}
+chisq.test(table(heartattack$Stress, heartattack$Heart_Attack_Occurrence))
+```
 
-### 5.2.4 **Stress vs. Heart Attack by Gender and Region**
+## Alcohol Consumption
 
-### 5.2.5 **Heart Rate & BP Comparison**
+```{r}
+chisq.test(table(heartattack$Alcohol_Consumption, heartattack$Heart_Attack_Occurrence))
+```
 
-### 5.2.6 **Lifestyle Risk Factor Combinations**
+## Diabetes History
 
-## 5.3 Clinical Insights
+```{r}
+chisq.test(table(heartattack$Diabetes_History, heartattack$Heart_Attack_Occurrence))
+```
 
-### 5.3.1 Correlation between BMI and Heart Attack
+## Family History
 
-### **5.3.2 Blood Pressure vs. Heart Rate Among Heart Attack Patients (Regression)**
+```{r}
+chisq.test(table(heartattack$Family_History, heartattack$Heart_Attack_Occurrence))
+```
+:::
+
+From the Chi-squared test results, only **BMI Category** with a p-value = 0.04 indicate that there is a statistically significant relationship with heart attack occurrence at the 5% significance level.
+
+::: callout-important
+I have tested the relatioinship for all other lifestyle and medical factors and there seem to be no statistically significant relationship with heart attack occurrence for this particular dataset.
+:::
+
+To confirm this, we will visualize the rest.
+
+```{r}
+#| echo: False
+# Compute proportions for each factor level
+heartattack_lifestylesummary <- heartattack %>%
+  pivot_longer(cols = c(Smoking_History, Alcohol_Consumption, Physical_Activity, Stress), 
+               names_to = "LifestyleFactor", values_to = "Level") %>%
+  group_by(LifestyleFactor, Level, Heart_Attack_Occurrence) %>%
+  summarise(count = n(), .groups = 'drop') %>%
+  group_by(LifestyleFactor, Level) %>%
+  mutate(percentage = (count / sum(count)) * 100)
+
+# Histogram
+lifestylefacts <- ggplot(heartattack_lifestylesummary,
+            aes(x = Level, y = percentage, fill = Heart_Attack_Occurrence)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = paste0(round(percentage, 1), "%")), 
+            position = position_dodge(width = 0.8), 
+            vjust = 1.5, size = 3) + 
+  facet_wrap(~LifestyleFactor, scales = "free") +  
+  labs(title = "Heart Attack Occurrence by Lifestyle Factors",
+       x = "Lifestyle Factor Level",
+       y = NULL,
+       fill = "Heart Attack") +  # Removes Y-axis label
+  scale_fill_manual(values = c("No" = "#d3d2d1", "Yes" = "#83bace")) +
+  theme_minimal(base_size = 14) +
+  theme(
+        axis.title = element_text(size =9),
+        axis.text = element_text(size = 9),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        plot.title = element_text(size = 11, face = "bold"),
+        legend.text = element_text(size = 9), 
+        legend.key.size = unit(0.5, "cm"),
+        legend.title = element_text(size=9),
+        strip.text = element_text(size = 8, face = "bold"))
+
+lifestylefacts
+```
+
+::: {.callout-note style="color: black; background-color: #e0f3f9"}
+## Insights
+
+As anticipated, no clear relationship is observed between the levels of factors like alcohol consumption and heart attack occurrence. For example, low alcohol consumption does not correlate with a lower risk of heart attack, nor does high alcohol consumption correlate with a higher risk. However, we must note that a history of smoking appears to significantly increase the vulnerability to heart attack although test results suggest no association.
+:::
+
+## 5.2 Narrowing Down: BMI
+
+As we delve deeper into understanding heart attack occurrence, it's essential to focus on the specific risk factors that influence this outcome. This section aims to narrow our focus from a broad overview of heart attacks to the key health factors, BMI, that directly contribute to their occurrence. By investigating these factors in more detail, we aim to uncover how individual behaviors, medical histories, and other characteristics interact to influence heart attack risk.
+
+::: panel-tabset
+## The Plot
+
+```{r}
+#| echo: False
+
+ggbarstats(
+  data = heartattack,
+  x = BMICat,
+  y = Heart_Attack_Occurrence,
+  results.subtitle = FALSE
+) +
+  labs(title = NULL) +  # Remove subtitle
+  theme_minimal() +
+  theme(axis.title.y = element_blank(),
+        plot.title = element_text(hjust = 0.5)) + 
+  ggtitle("Heart Attack Occurrence by BMI") +
+  scale_fill_manual(values = c("Underweight" = "#d6f0f9", 
+                               "Normal" = "#83bace", 
+                               "Overweight" = "#0d8ab7")) 
+
+```
+
+## The Code
+
+```{r}
+#| eval: False
+
+ggbarstats(
+  data = heartattack,
+  x = BMICat,
+  y = Heart_Attack_Occurrence,
+  results.subtitle = FALSE
+) +
+  labs(title = NULL) +  # Remove subtitle
+  theme_minimal() +
+  theme(axis.title.y = element_blank(),
+        plot.title = element_text(hjust = 0.5)) + 
+  ggtitle("Heart Attack Occurrence by BMI") +
+  scale_fill_manual(values = c("Underweight" = "#d6f0f9", 
+                               "Normal" = "#83bace", 
+                               "Overweight" = "#0d8ab7")) 
+```
+:::
+
+::: {.callout-note style="color: black; background-color: #e0f3f9"}
+## Insights
+
+-   **Overweight and Normal categories** have a very similar distribution for both groups (those who had heart attacks and those who didn't), suggesting that **overweight individuals** are still more prevalent in both groups.
+-   **Vulnerability to heart attack based on BMI**:
+    -   The proportions of **overweight** and **normal weight** individuals are almost identical for both those who had a heart attack and those who did not.
+
+    -   However, the significance (p-value = 0.04) tells us that there might be a real association between **BMI category** and the likelihood of having a heart attack, but **overweight individuals** do not show a notably higher proportion of heart attack occurrence in this dataset compared to other categories.
+:::
+
+### 5.2.1 **BMI vs. Heart Attack by Gender**
+
+-   BMI Distribution (Boxplot + Violin Plot)
+
+-   
+
+### 5.2.2 **BMI vs. Heart Attack by Physical Activity**
+
+### 5.2.3 **Cholesterol Level**
+
+```{r}
+cho <- heartattack %>% 
+  mutate(Cho_bins = cut(Cholesterol_Level, 
+                        breaks = c(80, 150, 200, 240, 300),  
+                        labels = c("Low", "Desirable", "Borderline High", "High"),
+                        include.lowest = TRUE))
+
+ggbarstats(cho, 
+           x = Cho_bins, 
+           y = Heart_Attack_Occurrence)
+```
+
+## 
 
 ------------------------------------------------------------------------
 
