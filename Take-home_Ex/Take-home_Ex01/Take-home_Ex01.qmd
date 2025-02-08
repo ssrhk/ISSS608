@@ -24,15 +24,15 @@ Medical advancements and early interventions have improved survival rates, but t
 
 ## 1.2 Objectives
 
-This exercise aims to explore the patterns of heart attacks in Japan across different age groups and shedding light on key factors contributing to their occurrence. By examining trends, potential risk factors, and demographic variations, I seek to provide insights into how heart attack cases differ between youth and adults.
+This article aims to explore the patterns of heart attacks in Japan across different age groups and shedding light on key factors contributing to their occurrence. By examining trends, potential risk factors, and demographic variations, we seek to provide insights into how heart attack cases differ between youth and adults.
 
-Through data-driven visualizations, I will highlight the prevalence, underlying causes, and potential warning signs associated with heart attacks in Japan. The goal is to help healthcare professionals, policymakers, and the general public better understand the evolving landscape of cardiovascular health and to encourage proactive measures for prevention and early detection.
+Through data-driven visualizations, we will highlight the prevalence, underlying causes, and potential warning signs associated with heart attacks in Japan. The goal is to help healthcare professionals, policymakers, and the general public better understand the evolving landscape of cardiovascular health and to encourage proactive measures for prevention and early detection.
 
 ------------------------------------------------------------------------
 
 # 2 Methodology & R Packages Used
 
-I will follow the outlined methodology flow for this exercise, starting with data import, followed by data preparation, and concluding with statistical graphics, including exploratory analysis to draw insights.
+We will follow the outlined methodology flow for this exercise, starting with data import, followed by data preparation, and concluding with statistical graphics, including exploratory analysis to draw insights.
 
 ![](/Take-home_Ex/Methodology.png)
 
@@ -199,6 +199,36 @@ heartattack_data$Gender_AgeCat_Interaction <- with(heartattack_data,
                                                                        ifelse(Gender == "Male" & AgeCat == "Young", "YoungMale",ifelse(Gender == "Male" & AgeCat == "Middle-Aged", "Middle-AgedMale", "OldMale"))))))
 ```
 
+### 4.5.2 Gender & HeartAttack
+
+```{r}
+heartattack_data$Gender_HeartAttack_Interaction <- with(heartattack_data, 
+                                                         ifelse(Gender == "Female" & Heart_Attack_Occurrence == "Yes", "Female with HeartAttack", 
+                                                                ifelse(Gender == "Female" & Heart_Attack_Occurrence == "No", "Female without HeartAttack", 
+                                                                       ifelse(Gender == "Male" & Heart_Attack_Occurrence == "Yes", "Male with HeartAttack", "Male without HeartAttack"))))
+```
+
+### 4.5.3 Region & HeartAttack
+
+```{r}
+heartattack_data$Region_HeartAttack_Interaction <- with(heartattack_data, 
+                                                         ifelse(Region == "Urban" & Heart_Attack_Occurrence == "Yes", "Urban HeartAttack", 
+                                                                ifelse(Region == "Urban" & Heart_Attack_Occurrence == "No", "Urban No HeartAttack", 
+                                                                       ifelse(Region == "Rural" & Heart_Attack_Occurrence == "Yes", "Rural HeartAttack", "Rural No HeartAttack"))))
+```
+
+### 4.5.4 BMI & Stress
+
+```{r}
+heartattack_data$Stress_BMI_Interaction <- with(heartattack_data, 
+                                                         ifelse(BMICat == "Overweight" & Stress == "High", "HighStressOverweight", 
+                                                                ifelse(BMICat == "Overweight" & Stress == "Medium", "MedStressOverweight",  ifelse(BMICat == "Overweight" & Stress == "Low", "LowStressOverweight", 
+                                                                                                                                                   ifelse(BMICat == "Normal" & Stress == "High", "HighStressNormal", 
+                                                                ifelse(BMICat == "Normal" & Stress == "Medium", "MedStressNormal",  ifelse(BMICat == "Normal" & Stress == "Low", "LowStressNormal", 
+                                                                                                                                                   ifelse(BMICat == "Underweight" & Stress == "High", "HighStressUnderweight", 
+                                                                ifelse(BMICat == "Underweight" & Stress == "Medium", "MedStressUnderweight",  "LowStressUnderweight" )))))))))
+```
+
 ## 4.6 Convert Data Types
 
 We note that all variables are in the correct data types. However, we will convert the categorical columns such as Smoking_History,Diabetes_History, Hypertension_History, Family_History Heart_Attack_Occurrence, and our newly created columns as factor for better visualisation and to put the categories in order.
@@ -221,7 +251,9 @@ heartattack_data <- heartattack_data %>%
     Stress = factor(Stress, levels = c("Low", "Medium", "High")),
     HeartRate = factor(HeartRate, levels = c("Low", "Normal", "High")),
     BMICat = factor(BMICat, levels = c("Underweight", "Normal", "Overweight")),
-    Gender_AgeCat_Interaction =factor(Gender_AgeCat_Interaction, levels = c("YoungFemale", "YoungMale", "Middle-AgedFemale","Middle-AgedMale","OldFemale","OldMale"))
+    Gender_AgeCat_Interaction =factor(Gender_AgeCat_Interaction, levels = c("YoungFemale", "YoungMale", "Middle-AgedFemale","Middle-AgedMale","OldFemale","OldMale")),
+    Gender_HeartAttack_Interaction = factor(Gender_HeartAttack_Interaction, levels = c("Female with HeartAttack", "Female without HeartAttack", "Male with HeartAttack","Male without HeartAttack")),
+    Region_HeartAttack_Interaction = factor(Region_HeartAttack_Interaction, levels = c("Urban HeartAttack", "Urban No HeartAttack", "Rural HeartAttack","Rural No HeartAttack"))
   )
 ```
 
@@ -307,17 +339,23 @@ p2 <- ggplot(gender_summary, aes(x = Gender, y = Percentage, fill = Gender)) +
   geom_text(aes(label = sprintf("%.1f%%", Percentage)), vjust = 1.5, size = 3) + 
   labs(x = "Gender") +
   theme_minimal() +
-  theme(legend.position = "none", plot.title = element_blank(), axis.title.y = element_blank(),axis.title.x = element_blank()) 
+  theme(legend.position = "none", plot.title = element_blank(), axis.title.y = element_blank(),axis.title.x = element_blank())+
+  scale_fill_manual(values = c("Female" = "#f7a8b8", "Male" = "#83bace"))
 
 # Plot 3: Heart Attack Occurrence by Age Category in Each Gender 
-p3 <- ggbarstats(
-  data = yesheartattack,
-  x = AgeCat,
-  y = Gender 
-) +
+p3 <- ggplot(yesheartattack, aes(x = Gender, fill = AgeCat)) +
+  geom_bar(position = "fill", color = "black") +
+  geom_text(
+    aes(label = scales::percent(..count.. / tapply(..count.., ..x.., sum)[..x..], accuracy = 0.1)), 
+    stat = "count", 
+    position = position_fill(vjust = 0.5),
+    size = 3, color = "black"  
+  ) +
   scale_fill_manual(values = custom_colors) +
-  theme(plot.title = element_blank()) +
-  coord_flip()
+  coord_flip() +  
+  labs(x = "Gender", y = "Proportion of Heart Attack Occurrence", fill = "AgeCat") +
+  theme_minimal() +
+  theme(plot.title = element_blank())  
 
 (p1 + p2)/ p3 + 
   plot_layout(widths = c(1, 1, 1.5)) +  
@@ -360,14 +398,19 @@ p2 <- ggplot(gender_summary, aes(x = Gender, y = Percentage, fill = Gender)) +
   theme(legend.position = "none", plot.title = element_blank(), axis.title.y = element_blank(),axis.title.x = element_blank()) 
 
 # Plot 3: Heart Attack Occurrence by Age Category in Each Gender 
-p3 <- ggbarstats(
-  data = yesheartattack,
-  x = AgeCat,
-  y = Gender 
-) +
+p3 <- ggplot(yesheartattack, aes(x = Gender, fill = AgeCat)) +
+  geom_bar(position = "fill", color = "black") +
+  geom_text(
+    aes(label = scales::percent(..count.. / tapply(..count.., ..x.., sum)[..x..], accuracy = 0.1)), 
+    stat = "count", 
+    position = position_fill(vjust = 0.5),
+    size = 3, color = "black"  
+  ) +
   scale_fill_manual(values = custom_colors) +
-  theme(plot.title = element_blank()) +
-  coord_flip()
+  coord_flip() +  
+  labs(x = "Gender", y = "Proportion", fill = "AgeCat") +
+  theme_minimal() +
+  theme(plot.title = element_blank())  
 
 (p1 + p2)/ p3 + 
   plot_layout(widths = c(1, 1, 1.5)) +  
@@ -381,8 +424,6 @@ p3 <- ggbarstats(
 
 -   **Gender and Heart Attack Vulnerability**: Males are more prone to heart attacks compared to females, as observed in the dataset.
 
--   **Statistical Association between Age Category and Gender**: At a 5% significance level, there is insufficient evidence to suggest a statistically significant association between Age Category and Gender in relation to heart attack occurrence. This means that, based on the data, age category and gender do not exhibit a strong statistical relationship in predicting heart attack occurrence.
-
 -   **Vulnerability Across Age Groups**: The Young Age Group (35.3%) emerges as the most vulnerable to heart attacks across both genders.
 
     -   Among females, the Old Age Group is the second most vulnerable.
@@ -391,54 +432,6 @@ p3 <- ggbarstats(
 :::
 
 ### 5.1.2 Heart Attack Occurrence by Lifestyle Factors & Medical History
-
-We will first conduct Chi-squared tests to test for association between each factor with heart attack occurrence to understand the relationships.
-
-::: panel-tabset
-## BMI Category
-
-```{r}
-chisq.test(table(heartattack$BMICat, heartattack$Heart_Attack_Occurrence))
-```
-
-## Cholesterol
-
-```{r}
-chisq.test(table(heartattack$Cholesterol, heartattack$Heart_Attack_Occurrence))
-```
-
-## Stress Level
-
-```{r}
-chisq.test(table(heartattack$Stress, heartattack$Heart_Attack_Occurrence))
-```
-
-## Alcohol Consumption
-
-```{r}
-chisq.test(table(heartattack$Alcohol_Consumption, heartattack$Heart_Attack_Occurrence))
-```
-
-## Diabetes History
-
-```{r}
-chisq.test(table(heartattack$Diabetes_History, heartattack$Heart_Attack_Occurrence))
-```
-
-## Family History
-
-```{r}
-chisq.test(table(heartattack$Family_History, heartattack$Heart_Attack_Occurrence))
-```
-:::
-
-From the Chi-squared test results, only **BMI Category** with a p-value = 0.04 indicate that there is a statistically significant relationship with heart attack occurrence at the 5% significance level.
-
-::: callout-important
-I have tested the relatioinship for all other lifestyle and medical factors and there seem to be no statistically significant relationship with heart attack occurrence for this particular dataset.
-:::
-
-To confirm this, we will visualize the rest.
 
 ```{r}
 #| echo: False
@@ -479,36 +472,68 @@ lifestylefacts <- ggplot(heartattack_lifestylesummary,
 lifestylefacts
 ```
 
-::: {.callout-note style="color: black; background-color: #e0f3f9"}
-## Insights
+There is no clear logical relationship observed between the levels of factors like alcohol consumption and heart attack occurrence. For example, low alcohol consumption does not correlate with a lower risk of heart attack, nor does high alcohol consumption correlate with a higher risk. However, we must note that a history of smoking appears to significantly increase the vulnerability to heart attack although test results suggest no association.
 
-As anticipated, no clear relationship is observed between the levels of factors like alcohol consumption and heart attack occurrence. For example, low alcohol consumption does not correlate with a lower risk of heart attack, nor does high alcohol consumption correlate with a higher risk. However, we must note that a history of smoking appears to significantly increase the vulnerability to heart attack although test results suggest no association.
-:::
+## 5.2 Zooming in Deeper
 
-## 5.2 Narrowing Down: BMI
+To gain a deeper understanding of heart attack occurrence, it is crucial to focus on the specific risk factors that contribute to this outcome. This section narrows the scope from a general overview of heart attacks to the key health factors that directly influence their occurrence. By examining these factors more closely, we aim to uncover how individual behaviors, medical histories, and other characteristics interact to shape heart attack risk. Therefore from this point onwards, we will focus on the subset of the dataset who indicated "Yes" for having experienced heart attack.
 
-As we delve deeper into understanding heart attack occurrence, it's essential to focus on the specific risk factors that influence this outcome. This section aims to narrow our focus from a broad overview of heart attacks to the key health factors, BMI, that directly contribute to their occurrence. By investigating these factors in more detail, we aim to uncover how individual behaviors, medical histories, and other characteristics interact to influence heart attack risk.
+### 5.2.1 Vulnerability in Young Individuals: Focusing on BMI and Stress
+
+In this section, we delve deeper into the factors influencing heart attack risk among young individuals, as this age group has the highest prevalence of heart attack cases across both genders. As identified in section 5.1.2, BMI plays a crucial role in heart attack occurrences, making it one of the most significant risk factors. Therefore, we now narrow our focus on the distribution of BMI categories within this young demographic, as it offers vital insights into how body weight and composition influence heart attack risk among younger populations.
+
+Furthermore, we examine the interplay between stress levels and BMI, particularly within the "Overweight" category. Individuals classified as overweight may face an increased vulnerability to stress-related health risks, such as heart attacks. By analyzing how stress levels (Low, Medium, and High) are distributed within the Overweight BMI category, we gain a clearer understanding of how stress contributes to heart attack risk for this group.
+
+The decision to focus specifically on the "Overweight" BMI category is driven by its higher prevalence in the data, which provides a more robust and statistically meaningful foundation for analysis. By concentrating on this group, we are able to explore a critical intersection of BMI and stress, which are significant contributors to heart attack occurrences in young individuals.
 
 ::: panel-tabset
 ## The Plot
 
 ```{r}
 #| echo: False
+young_data <- yesheartattack %>% filter(AgeCat == "Young")
 
-ggbarstats(
-  data = heartattack,
-  x = BMICat,
-  y = Heart_Attack_Occurrence,
-  results.subtitle = FALSE
-) +
-  labs(title = NULL) +  # Remove subtitle
+# Calculate the proportion of each BMI category in young_data
+bmi_proportion_data <- young_data %>%
+  count(BMICat) %>%
+  mutate(Proportion = n / sum(n))
+
+# Distribution of BMI in Young group
+bmi_young <- ggplot(bmi_proportion_data, aes(x = BMICat, y = Proportion, fill = BMICat)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = scales::percent(Proportion, accuracy = 1)), vjust = 1.5, size = 4) + 
+  labs(
+       y = "Proportion") +  
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_fill_manual(values = c("Underweight" = "#9ddcf2", "Normal" = "#83bace", "Overweight" = "#0d8ab7")) +  
   theme_minimal() +
-  theme(axis.title.y = element_blank(),
-        plot.title = element_text(hjust = 0.5)) + 
-  ggtitle("Heart Attack Occurrence by BMI") +
-  scale_fill_manual(values = c("Underweight" = "#d6f0f9", 
-                               "Normal" = "#83bace", 
-                               "Overweight" = "#0d8ab7")) 
+  theme(legend.position = "none", 
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 12), 
+        axis.title = element_text(size = 14, face = "bold"), 
+        plot.title = element_blank(),
+        axis.title.x = element_blank())  
+
+# Calculate the proportion of stress levels within the overweight group
+stress_overweight <- young_data %>%
+  count(Stress) %>%
+  mutate(Proportion = n / sum(n))  
+
+stress_overweight$Stress <- factor(stress_overweight$Stress, levels = c("High", "Medium", "Low"))
+
+# Create the stacked bar chart for just overweight
+stress_ow <- ggplot(stress_overweight, aes(x = "Overweight", y = Proportion, fill = Stress)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = scales::percent(Proportion, accuracy = 1)), position = position_stack(vjust = 0.5), size = 4) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_fill_manual(values = c("Low" = "#9cc567", "Medium" = "#83bace", "High" = "#f7a8b8")) +
+  labs(x = NULL, y = "Proportion", title = NULL) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size = 12), 
+        axis.title.y = element_blank())
+
+bmi_young + stress_ow +
+  plot_layout(widths = c(2, 1)) + 
+  plot_annotation(title = "Proportion of BMI and Stress Level in Young Individuals who had a Heart Attack")
 
 ```
 
@@ -516,57 +541,381 @@ ggbarstats(
 
 ```{r}
 #| eval: False
+young_data <- yesheartattack %>% filter(AgeCat == "Young")
 
-ggbarstats(
-  data = heartattack,
-  x = BMICat,
-  y = Heart_Attack_Occurrence,
-  results.subtitle = FALSE
-) +
-  labs(title = NULL) +  # Remove subtitle
+# Calculate the proportion of each BMI category in young_data
+bmi_proportion_data <- young_data %>%
+  count(BMICat) %>%
+  mutate(Proportion = n / sum(n))
+
+# Distribution of BMI in Young group
+bmi_young <- ggplot(bmi_proportion_data, aes(x = BMICat, y = Proportion, fill = BMICat)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = scales::percent(Proportion, accuracy = 1)), vjust = 1.5, size = 4) + 
+  labs(
+       y = "Proportion") +  
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_fill_manual(values = c("Underweight" = "#9ddcf2", "Normal" = "#83bace", "Overweight" = "#0d8ab7")) +  
   theme_minimal() +
+  theme(legend.position = "none", 
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 12), 
+        axis.title = element_text(size = 14, face = "bold"), 
+        plot.title = element_blank(),
+        axis.title.x = element_blank())  
+
+# Calculate the proportion of stress levels within the overweight group
+stress_overweight <- young_data %>%
+  count(Stress) %>%
+  mutate(Proportion = n / sum(n))  
+
+stress_overweight$Stress <- factor(stress_overweight$Stress, levels = c("High", "Medium", "Low"))
+
+# Create the stacked bar chart for just overweight
+stress_ow <- ggplot(stress_overweight, aes(x = "Overweight", y = Proportion, fill = Stress)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = scales::percent(Proportion, accuracy = 1)), position = position_stack(vjust = 0.5), size = 4) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_fill_manual(values = c("Low" = "#9cc567", "Medium" = "#83bace", "High" = "#f7a8b8")) +
+  labs(x = NULL, y = "Proportion", title = NULL) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size = 12), 
+        axis.title.y = element_blank())
+
+bmi_young + stress_ow +
+  plot_layout(widths = c(2, 1)) + 
+  plot_annotation(title = "Proportion of BMI and Stress Level in Young Individuals who had a Heart Attack")
+```
+:::
+
+::: {.callout-note style="color: black; background-color: #e0f3f9"}
+## Insight
+
+In young individuals, the Overweight BMI category with Medium stress levels shows the highest proportion of heart attack cases. This suggests a strong correlation between being overweight and experiencing medium levels of stress, which may exacerbate the likelihood of heart attacks. The visualization emphasizes the need for targeted interventions focusing on stress management and weight control in this demographic.
+:::
+
+### 5.2.2 Stress Levels in Gender and Regions
+
+Exploring the influence of both gender and region (urban vs. rural) on heart attack occurrence among overweight individuals with varying stress levels can provide valuable insights into disparities in cardiovascular risk. By examining how gender and region interact with different stress levels, we aim to uncover any significant patterns that may indicate higher vulnerability to heart attacks. Specifically, we will focus on comparing the Medium Stress group (which shows the highest proportion of heart attack cases) with the High Stress group to determine whether stress levels amplify the effects of gender and region in heart attack risk.
+
+::: panel-tabset
+## The Plot
+
+```{r}
+#| echo: False
+# Filter the data for Overweight individuals with Stress levels
+stress_overweight <- yesheartattack %>%
+  filter(BMICat == "Overweight" & Stress %in% c("High", "Medium"))
+
+# Calculate the proportion of Stress levels by Region
+proportion_region_stress <- stress_overweight %>%
+  group_by(Region, Stress) %>%
+  summarise(Proportion = n() / nrow(stress_overweight) * 100)
+
+# Region plot
+regions<- ggplot(proportion_region_stress, aes(x = Region, y = Proportion, fill = Region)) +
+  geom_bar(stat = "identity", show.legend = FALSE, color = "black") +
+  geom_text(aes(label = sprintf("%.1f%%", Proportion)), vjust = 1.5, size = 3) +
+  labs(x = "Region", y = "Proportion (%)") +
+  scale_fill_manual(values = c("Rural" = "#9cc567", "Urban" = "#e79251")) + 
+  facet_wrap(~ Stress, ncol = 2) + 
+  theme_minimal()+
   theme(axis.title.y = element_blank(),
-        plot.title = element_text(hjust = 0.5)) + 
-  ggtitle("Heart Attack Occurrence by BMI") +
-  scale_fill_manual(values = c("Underweight" = "#d6f0f9", 
-                               "Normal" = "#83bace", 
-                               "Overweight" = "#0d8ab7")) 
+        plot.title=element_blank())
+
+# Calculate the proportion within each Stress level group
+proportion_heartattack <- stress_overweight %>%
+  group_by(Stress, Gender) %>%
+  summarise(Proportion = n() / nrow(stress_overweight) * 100)
+
+# Gender plot
+gender<- ggplot(proportion_heartattack, aes(x = Gender, y = Proportion, fill = Gender)) +
+  geom_bar(stat = "identity", show.legend = FALSE, color = "black") +
+  geom_text(aes(label = sprintf("%.1f%%", Proportion)), vjust = 1.5, size = 3) +
+  labs(x = "Gender", y = "Proportion of Heart Attack Cases") +
+  scale_fill_manual(values = c("Female" = "#f7a8b8", "Male" = "#83bace")) + 
+  facet_wrap(~ Stress, ncol = 2) + 
+  theme_minimal()+
+  theme(axis.title.y = element_blank())
+
+# Filter the data for Overweight individuals
+overweight_data <- yesheartattack %>%
+  filter(BMICat == "Overweight")
+
+# Calculate the proportion of heart attack cases by Gender and Region
+proportion_heartattack_group <- overweight_data %>%
+  group_by(Gender, Region) %>%
+  summarise(Proportion = n() / nrow(overweight_data) * 100)
+
+# Create the bar plot
+gender_reg <- ggplot(proportion_heartattack_group, aes(x = interaction(Gender, Region), y = Proportion, fill = interaction(Gender, Region))) +
+  geom_bar(stat = "identity", show.legend = FALSE, color = "black") +
+  geom_text(aes(label = sprintf("%.1f%%", Proportion)), vjust = 1, size = 3,hjust=1.3) +
+  labs(x = "Gender-Region Group", y = "Proportion of Heart Attack Cases (%)", 
+       title = "Vulnerability to Heart Attacks by Gender and Region in Overweight Individuals") +
+  scale_fill_manual(values = c("Male.Urban" = "#0d8ab7", "Female.Urban" = "#e78090", "Male.Rural" = "#83bace", "Female.Rural" = "#f0c6c7")) +
+  theme_minimal()+
+  theme(axis.title.y = element_blank(),
+        axis.title.x = element_blank(),
+        plot.title = element_text(hjust = 0.5))+
+  coord_flip()
+
+
+ (gender + regions)/gender_reg + 
+  plot_annotation(title = "Proportion of HeartAttack among Stress Levels by Gender and Region")
+```
+
+## The Code
+
+```{r}
+#| eval: False
+# Filter the data for Overweight individuals with Stress levels
+region_stress_overweight <- yesheartattack %>%
+  filter(BMICat == "Overweight" & Stress %in% c("High", "Medium"))
+
+# Calculate the proportion of Stress levels by Region
+proportion_region_stress <- region_stress_overweight %>%
+  group_by(Region, Stress) %>%
+  summarise(Proportion = n() / nrow(region_stress_overweight) * 100)
+
+# Region plot
+regions<- ggplot(proportion_region_stress, aes(x = Region, y = Proportion, fill = Region)) +
+  geom_bar(stat = "identity", show.legend = FALSE, color = "black") +
+  geom_text(aes(label = sprintf("%.1f%%", Proportion)), vjust = 1.5, size = 3) +
+  labs(x = "Region", y = "Proportion (%)") +
+  scale_fill_manual(values = c("Rural" = "#9cc567", "Urban" = "#e79251")) + 
+  facet_wrap(~ Stress, ncol = 2) + 
+  theme_minimal()+
+  theme(axis.title.y = element_blank(),
+        plot.title=element_blank())
+
+# Calculate the proportion within each Stress level group
+proportion_heartattack <- high_medium_stress_overweight_yes %>%
+  group_by(Stress, Gender) %>%
+  summarise(Proportion = n() / nrow(high_medium_stress_overweight_yes) * 100)
+
+# Gender plot
+gender<- ggplot(proportion_heartattack, aes(x = Gender, y = Proportion, fill = Gender)) +
+  geom_bar(stat = "identity", show.legend = FALSE, color = "black") +
+  geom_text(aes(label = sprintf("%.1f%%", Proportion)), vjust = 1.5, size = 3) +
+  labs(x = "Gender", y = "Proportion of Heart Attack Cases") +
+  scale_fill_manual(values = c("Female" = "#f7a8b8", "Male" = "#83bace")) + 
+  facet_wrap(~ Stress, ncol = 2) + 
+  theme_minimal()+
+  theme(axis.title.y = element_blank())
+
+# Filter the data for Overweight individuals
+overweight_data <- yesheartattack %>%
+  filter(BMICat == "Overweight")
+
+# Calculate the proportion of heart attack cases by Gender and Region
+proportion_heartattack_group <- overweight_data %>%
+  group_by(Gender, Region) %>%
+  summarise(Proportion = n() / nrow(overweight_data) * 100)
+
+# Create the bar plot
+gender_reg <- ggplot(proportion_heartattack_group, aes(x = interaction(Gender, Region), y = Proportion, fill = interaction(Gender, Region))) +
+  geom_bar(stat = "identity", show.legend = FALSE, color = "black") +
+  geom_text(aes(label = sprintf("%.1f%%", Proportion)), vjust = 1, size = 3,hjust=1.3) +
+  labs(x = "Gender-Region Group", y = "Proportion of Heart Attack Cases (%)", 
+       title = "Vulnerability to Heart Attacks by Gender and Region in Overweight Individuals") +
+  scale_fill_manual(values = c("Male.Urban" = "#0d8ab7", "Female.Urban" = "#e78090", "Male.Rural" = "#83bace", "Female.Rural" = "#f0c6c7")) +
+  theme_minimal()+
+  theme(axis.title.y = element_blank(),
+        axis.title.x = element_blank(),
+        plot.title = element_text(hjust = 0.5))+
+  coord_flip()
+
+
+ (gender + regions)/gender_reg + 
+  plot_annotation(title = "Proportion of HeartAttack among Stress Levels by Gender and Region")
 ```
 :::
 
 ::: {.callout-note style="color: black; background-color: #e0f3f9"}
 ## Insights
 
--   **Overweight and Normal categories** have a very similar distribution for both groups (those who had heart attacks and those who didn't), suggesting that **overweight individuals** are still more prevalent in both groups.
--   **Vulnerability to heart attack based on BMI**:
-    -   The proportions of **overweight** and **normal weight** individuals are almost identical for both those who had a heart attack and those who did not.
+-   Among individuals with Medium and High stress levels, males appear to be more susceptible to heart attacks compared to females, indicating a possible gender-based disparity in how stress influences cardiovascular health. This suggests that men in these stress categories may face a heightened risk of heart disease due to stress.
 
-    -   However, the significance (p-value = 0.04) tells us that there might be a real association between **BMI category** and the likelihood of having a heart attack, but **overweight individuals** do not show a notably higher proportion of heart attack occurrence in this dataset compared to other categories.
+-   Individuals residing in urban areas are generally more vulnerable to heart attacks than their rural counterparts, regardless of their stress level.
+
+-   Notably, the group most at risk is urban-dwelling males, with a heart attack proportion of 36%. They are followed by urban females, with 33.2%. These findings emphasize the combined effect of gender and urban living on heart attack vulnerability, highlighting a need for targeted interventions for males, particularly in urban settings.
 :::
 
-### 5.2.1 **BMI vs. Heart Attack by Gender**
+### 5.2.3 Does Diet Quality and Cholesterol Level Matter?
 
--   BMI Distribution (Boxplot + Violin Plot)
+Building on the previous analysis of gender/region and its impact on heart attack occurrence, it is also crucial to explore the relationship between diet quality and cholesterol levels in the overweight category. Diet quality plays a significant role in influencing cholesterol levels, which in turn, affects the likelihood of heart attacks (Jung et al., 2022). By examining how poor and good diet quality influence cholesterol levels in overweight individuals, we aim to understand how dietary habits contribute to the risk of heart attacks in this group. This analysis will help uncover whether poor diet quality, characterized by higher cholesterol levels, serves as an additional risk factor for heart attacks in overweight individuals, potentially compounding the effects of other health conditions such as stress and gender.
 
--   
-
-### 5.2.2 **BMI vs. Heart Attack by Physical Activity**
-
-### 5.2.3 **Cholesterol Level**
+::: panel-tabset
+## The Plot
 
 ```{r}
-cho <- heartattack %>% 
-  mutate(Cho_bins = cut(Cholesterol_Level, 
-                        breaks = c(80, 150, 200, 240, 300),  
-                        labels = c("Low", "Desirable", "Borderline High", "High"),
-                        include.lowest = TRUE))
+#| echo: False
+# Filter data for Overweight and Normal BMI groups
+bmi_compare <- yesheartattack %>%
+  filter(BMICat %in% c("Overweight", "Normal"))
 
-ggbarstats(cho, 
-           x = Cho_bins, 
-           y = Heart_Attack_Occurrence)
+# Summarize Diet Quality proportions
+diet_proportion <- bmi_compare %>%
+  count(BMICat, Diet_Quality) %>%
+  group_by(BMICat) %>%
+  mutate(Proportion = n / sum(n))
+
+# Stacked Bar Chart for Diet Quality
+diet_plot <- ggplot(diet_proportion, aes(x = BMICat, y = Proportion, fill = Diet_Quality)) +
+  geom_bar(stat = "identity", position = "fill") +
+  geom_text(aes(label = scales::percent(Proportion, accuracy = 1)), 
+            position = position_stack(vjust = 0.5), size = 3) +
+  labs(title = "Comparison of Diet Quality by BMI Category",
+       x = NULL, y = "Proportion") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_fill_manual(values = c("Poor" = "#d73027", "Average" = "#fc8d59", "Good" = "#91cf60")) +
+  theme_minimal() +
+  coord_flip() +
+  theme(plot.margin = margin(0, 30, 0, 0),
+        axis.title.x = element_blank())
+
+
+# Filter data for Poor and Good Diet Quality groups
+diet_quality_compare <- yesheartattack %>%
+  filter(Diet_Quality %in% c("Poor", "Good"))
+
+# Calculate median, 25th percentile, and 75th percentile for each Diet Quality group
+cholesterol_stats <- diet_quality_compare %>%
+  group_by(Diet_Quality) %>%
+  summarise(
+    median = median(Cholesterol_Level, na.rm = TRUE),
+    p25 = quantile(Cholesterol_Level, 0.25, na.rm = TRUE),
+    p75 = quantile(Cholesterol_Level, 0.75, na.rm = TRUE)
+  )
+
+# Violin Plot for Cholesterol Levels by Diet Quality
+cholesterol_violin <- ggplot(diet_quality_compare, aes(x = Diet_Quality, y = Cholesterol_Level, fill = Diet_Quality)) +
+  geom_violin(alpha = 0.7) +  # Violin plot for distribution
+  geom_boxplot(width = 0.1, fill = "white", outlier.shape = NA) +  # Small boxplot inside violin
+  labs(x = NULL, y = "Cholesterol Level (mg/dL)") +
+  scale_fill_manual(values = c("Poor" = "#d73027", "Good" = "#91cf69")) +
+  theme_minimal() +
+  # Add text labels for median, 25th, and 75th percentiles
+  geom_text(data = cholesterol_stats, aes(x = Diet_Quality, y = median, label = sprintf("Median: %.1f", median)), 
+            color = "black", vjust = -1.5, size = 2) +
+  geom_text(data = cholesterol_stats, aes(x = Diet_Quality, y = p25, label = sprintf("%.1f", p25)), 
+            color = "black", vjust = 1.8, size = 2) +
+  geom_text(data = cholesterol_stats, aes(x = Diet_Quality, y = p75, label = sprintf("%.1f", p75)), 
+            color = "black", vjust = 1.8, size = 2) +
+  coord_flip()+
+  guides(fill = "none")
+
+# Density Plot for Cholesterol Levels by Diet Quality
+cholesterol_density_data <- yesheartattack %>%
+  filter(Diet_Quality %in% c("Poor", "Good")) %>%
+  ggplot(aes(x = Cholesterol_Level, color = Diet_Quality)) +
+  geom_density(size = 1.2) +  # Line density plot
+  labs(title = "Cholesterol Levels by Diet Quality",
+       x = "Cholesterol Level (mg/dL)", y = "Density",
+       color = "Diet Quality") +
+  scale_color_manual(values = c("Poor" = "#d73027", "Good" = "#91cf60")) +
+  theme_minimal() +
+  theme(legend.position = c(0, 1),           
+        legend.justification = c(0, 1),       
+        legend.title = element_blank(),  
+        plot.title = element_text(size = 13)) 
+
+
+diet_plot/(cholesterol_density_data + cholesterol_violin)+
+  plot_layout(widths = c(0.4, 2), heights = c(0.5, 2))
 ```
 
-## 
+## The Code
+
+```{r}
+#| eval: False
+# Filter data for Overweight and Normal BMI groups
+bmi_compare <- yesheartattack %>%
+  filter(BMICat %in% c("Overweight", "Normal"))
+
+# Summarize Diet Quality proportions
+diet_proportion <- bmi_compare %>%
+  count(BMICat, Diet_Quality) %>%
+  group_by(BMICat) %>%
+  mutate(Proportion = n / sum(n))
+
+# Stacked Bar Chart for Diet Quality
+diet_plot <- ggplot(diet_proportion, aes(x = BMICat, y = Proportion, fill = Diet_Quality)) +
+  geom_bar(stat = "identity", position = "fill") +
+  geom_text(aes(label = scales::percent(Proportion, accuracy = 1)), 
+            position = position_stack(vjust = 0.5), size = 3) +
+  labs(title = "Comparison of Diet Quality by BMI Category",
+       x = NULL, y = "Proportion") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_fill_manual(values = c("Poor" = "#d73027", "Average" = "#fc8d59", "Good" = "#91cf60")) +
+  theme_minimal() +
+  coord_flip() +
+  theme(plot.margin = margin(0, 30, 0, 0),
+        axis.title.x = element_blank())
+
+
+# Filter data for Poor and Good Diet Quality groups
+diet_quality_compare <- yesheartattack %>%
+  filter(Diet_Quality %in% c("Poor", "Good"))
+
+# Calculate median, 25th percentile, and 75th percentile for each Diet Quality group
+cholesterol_stats <- diet_quality_compare %>%
+  group_by(Diet_Quality) %>%
+  summarise(
+    median = median(Cholesterol_Level, na.rm = TRUE),
+    p25 = quantile(Cholesterol_Level, 0.25, na.rm = TRUE),
+    p75 = quantile(Cholesterol_Level, 0.75, na.rm = TRUE)
+  )
+
+# Violin Plot for Cholesterol Levels by Diet Quality
+cholesterol_violin <- ggplot(diet_quality_compare, aes(x = Diet_Quality, y = Cholesterol_Level, fill = Diet_Quality)) +
+  geom_violin(alpha = 0.7) +  # Violin plot for distribution
+  geom_boxplot(width = 0.1, fill = "white", outlier.shape = NA) +  # Small boxplot inside violin
+  labs(x = NULL, y = "Cholesterol Level (mg/dL)") +
+  scale_fill_manual(values = c("Poor" = "#d73027", "Good" = "#91cf69")) +
+  theme_minimal() +
+  # Add text labels for median, 25th, and 75th percentiles
+  geom_text(data = cholesterol_stats, aes(x = Diet_Quality, y = median, label = sprintf("Median: %.1f", median)), 
+            color = "black", vjust = -1.5, size = 2) +
+  geom_text(data = cholesterol_stats, aes(x = Diet_Quality, y = p25, label = sprintf("%.1f", p25)), 
+            color = "black", vjust = 1.8, size = 2) +
+  geom_text(data = cholesterol_stats, aes(x = Diet_Quality, y = p75, label = sprintf("%.1f", p75)), 
+            color = "black", vjust = 1.8, size = 2) +
+  coord_flip()+
+  guides(fill = "none")
+
+# Density Plot for Cholesterol Levels by Diet Quality
+cholesterol_density_data <- yesheartattack %>%
+  filter(Diet_Quality %in% c("Poor", "Good")) %>%
+  ggplot(aes(x = Cholesterol_Level, color = Diet_Quality)) +
+  geom_density(size = 1.2) +  # Line density plot
+  labs(title = "Cholesterol Levels by Diet Quality",
+       x = "Cholesterol Level (mg/dL)", y = "Density",
+       color = "Diet Quality") +
+  scale_color_manual(values = c("Poor" = "#d73027", "Good" = "#91cf60")) +
+  theme_minimal() +
+  theme(legend.position = c(0, 1),           
+        legend.justification = c(0, 1),       
+        legend.title = element_blank(),  
+        plot.title = element_text(size = 13)) 
+
+
+diet_plot/(cholesterol_density_data + cholesterol_violin)+
+  plot_layout(widths = c(0.4, 2), heights = c(0.5, 2))
+```
+:::
+
+::: {.callout-note style="color: black; background-color: #e0f3f9"}
+## Insights
+
+-   Poor diet quality is linked to a higher proportion of heart attack cases, with 21% of individuals in the overweight category experiencing heart attacks compared to 18% in the normal weight category. This suggests that individuals with poor diet quality in the overweight group are at a slightly higher risk of heart attacks.
+
+-   Cholesterol levels tend to be more concentrated around the median in individuals with poor diet quality, indicating a higher density of cholesterol around the middle range. In contrast, good diet quality shows a more even spread of cholesterol levels.
+
+-   Individuals with poor diet quality generally have slightly higher cholesterol levels, with a distribution skewed towards higher values, indicating a potential risk for cardiovascular diseases. In contrast, good diet quality tends to have a more balanced cholesterol distribution.
+
+-   These factors suggest that elevated cholesterol levels due to poor diet quality may contribute to the increased heart attack risk observed in the overweight group.
+:::
 
 ------------------------------------------------------------------------
 
@@ -579,6 +928,8 @@ ggbarstats(cho,
 Cohen, S. (1994). *Perceived Stress Scale*. Mind Garden. Retrieved from <https://www.mindgarden.com/documents/PerceivedStressScale.pdf>
 
 Iso H. (2011). Lifestyle and cardiovascular disease in Japan. *Journal of atherosclerosis and thrombosis*, *18*(2), 83–88. https://doi.org/10.5551/jat.6866
+
+Jung, E., Kong, S. Y., Ro, Y. S., Ryu, H. H., & Shin, S. D. (2022). Serum Cholesterol Levels and Risk of Cardiovascular Death: A Systematic Review and a Dose-Response Meta-Analysis of Prospective Cohort Studies. *International journal of environmental research and public health*, *19*(14), 8272. https://doi.org/10.3390/ijerph19148272
 
 Lauer, M. S., Okin, P. M., Larson, M. G., Evans, J. C., Levy, D. (2004). Impaired heart rate response to graded exercise: Prognostic implications of chronotropic incompetence in the Framingham Heart Study. *Circulation, 109*(7), 988–994. [https://doi.org/10.1161/01.CIR.0000141564.89465.4E](https://www.ahajournals.org/doi/10.1161/01.CIR.0000141564.89465.4E)
 

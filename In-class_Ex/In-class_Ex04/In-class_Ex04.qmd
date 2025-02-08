@@ -1,5 +1,5 @@
 ---
-title: "In-class Exercise 2"
+title: "In-class Exercise 4"
 format: html
 author: "Sei Sar Hla Kyi"
 date: "`r Sys.Date()`"
@@ -14,12 +14,129 @@ execute:
 
 # 1 Installing and Loading Packages
 
+tidyverse loose coupling approach (each of the packages upgrade independently), don't have to upgrade and rewrap like panda
+
+-   dplyr: data transformation
+
+-   ggplot2: build statistical plots
+
 ```{r}
-pacman::p_load(tidyverse)
+pacman::p_load(ggdist, ggridges, ggthemes,
+               colorspace, tidyverse,ggstatsplot)
 ```
 
 # 2 Importing Data
 
 ```{r}
+exam <- read_csv("data/Exam_data.csv")
+```
 
+# 3 Distribution of English Grades by Class 
+
+## 3.1 Boxplot
+
+-   Data and Aes block: Include data and mapping the dimensions(x/y)
+
+-   Add in geom after +
+
+```{r}
+ggplot(exam,
+       aes(x= ENGLISH,
+           y= CLASS)) +
+    geom_boxplot()
+```
+
+## 3.2 Density Ridges
+
+```{r}
+ggplot(exam, 
+       aes(x = ENGLISH, 
+           y = CLASS)) +
+  geom_density_ridges(
+    scale = 3,
+    rel_min_height = 0.01,
+    bandwidth = 3.4,
+    fill = lighten("#7097BB", .3),
+    color = "white"
+  ) +
+  scale_x_continuous(
+    name = "English grades",
+    expand = c(0, 0)
+    ) +
+  scale_y_discrete(name = NULL, expand = expansion(add = c(0.2, 2.6))) +
+  theme_ridges()
+```
+
+## 3.3 Halfeye
+
+```{r}
+ggplot(exam, 
+       aes(x = RACE, 
+           y = ENGLISH)) +
+  stat_halfeye(adjust = 0.5,
+               justification = -0.2,
+               .width = 0,
+               point_colour = NA) +
+  geom_boxplot(width = .20,
+               outlier.shape = NA) +
+  stat_dots(side = "left", 
+            justification = 1.2, 
+            binwidth = .5,
+            dotsize = 2)
+```
+
+# 4 Statistical Analysis (Confirmatory Data Analysis)
+
+-   ggstatsplot - combine EDA and CDA
+
+## 4.1 Two-sample mean test: *ggbetweenstats()* method
+
+-   np - nonparametric for Non Normal Distribution
+
+-   Assuming unequal variance
+
+```{r}
+ggbetweenstats(
+  data = exam,
+  x = GENDER, 
+  y = MATHS,
+  type = "np",
+  messages = FALSE
+)
+```
+
+## 4.2 One way ANOVA test: *ggbetweenstats()* method
+
+-   p- for Normal distribution
+
+```{r}
+ggbetweenstats(
+  data = exam,
+  x = RACE, 
+  y = ENGLISH,
+  type = "p",
+  mean.ci = TRUE, 
+  pairwise.comparisons = TRUE, 
+  pairwise.display = "s",
+  p.adjust.method = "fdr",
+  messages = FALSE
+)
+```
+
+## 4.3 Significant test of Association (Dependence): *ggbarstats()* method
+
+-   Cons: can't really test association with ggstatsplot so make a stacked bar chart with 100% proportion
+
+```{r}
+exam1 <- exam %>% 
+  mutate(MATHS_bins = 
+           cut(MATHS, 
+               breaks = c(0,60,75,85,100))
+)
+```
+
+```{r}
+ggbarstats(exam1, 
+           x = MATHS_bins, 
+           y = GENDER)
 ```
