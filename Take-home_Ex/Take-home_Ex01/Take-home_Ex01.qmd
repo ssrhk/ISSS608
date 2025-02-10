@@ -300,19 +300,15 @@ stress_proportion <- heartattack %>%
   count(Stress) %>%
   mutate(Proportion = n / sum(n))
 
-bmi_proportion <- heartattack %>%
-  count(BMICat) %>%
-  mutate(Proportion = n / sum(n))
-
 # Create pie charts
 heart_attack_pie <- create_pie_chart(heart_attack_proportion, "Heart_Attack_Occurrence", "Heart Attack Occurrence", "Heart Attack")
 gender_pie <- create_pie_chart(gender_proportion, "Gender", "Gender Distribution", "Gender")
 region_pie <- create_pie_chart(region_proportion, "Region", "Region Distribution", "Region")
 age_pie <- create_pie_chart(age_proportion, "AgeCat", "Age Distribution", "AgeCat")
 stress_pie <- create_pie_chart(stress_proportion, "Stress", "Stress Distribution", "Stress")
-bmi_pie <- create_pie_chart(bmi_proportion, "BMICat", "BMI Distribution", "BMICat")
 
-(heart_attack_pie + gender_pie + region_pie)/ (age_pie + stress_pie +bmi_pie)
+
+(heart_attack_pie + gender_pie + region_pie) / (age_pie + stress_pie) + 
   plot_annotation(title = "Proportion of Heart Attack Occurrence, Gender, and Region")
 ```
 
