@@ -42,18 +42,19 @@ The following R packages will be used to achieve the objective.
 ## Packages Used
 
 | Package | Explanation |
-|------------------------------------|------------------------------------|
+|------------------|----------------------------------------------------------|
 | tidyverse | to efficiently manipulate and clean data, utilizing functions from packages like `dplyr` and `tidyr` for data wrangling. |
 | ggplot2 | to create informative and aesthetically pleasing visualizations, such as histograms and boxplots, to analyze the data |
 | patchwork | to combine multiple ggplot2 plots into a cohesive layout, making it easier to present related visualizations side by side |
-| plotly |  |
-| ggstatsplot |  |
-| ggthemes |  |
+| ggdist | for visualizing distributions and uncertainty in data, particularly helpful for displaying probability distributions, densities, and interval estimates in an intuitive way. |
+| ggridges | for visualizing the distribution of a numerical variable across different categories in a compact and aesthetically appealing manner. |
+| ggstatsplot | to enhance ggplot2 by incorporating statistical tests directly into visualizations, providing plots with annotations for effect sizes, p-values, confidence intervals, and other relevant statistical metrics. |
+| ggthemes | for additional themes and color palettes for ggplot2, allowing for more customization and better aesthetics |
 
 ## Code to Install and Launch
 
 ```{r}
-pacman::p_load(tidyverse,patchwork,plotly,ggdist, ggridges,ggstatsplot,ggthemes)
+pacman::p_load(tidyverse,patchwork, ggdist, ggridges,ggstatsplot,ggthemes)
 ```
 :::
 
@@ -95,7 +96,7 @@ We notice that there were certain columns titled "Extra_Column\_" from column nu
 heartattack_data <- heartattack_data %>% select(-c(18:32))
 ```
 
-We also notice that this dataset also contains data for people with no heart attack occurrence (in the Heart_Attack_Occurrence column). Since we are performing exploratory data analysis (EDA), it would be valuable to keep both groups, as this allows us to identify and compare characteristics like age, gender, lifestyle, or pre-existing conditions between those who had a heart attack and those who didn't, potentially letting us uncover patterns or trends that can inform your study.
+We also notice that this dataset also contains data for people with no heart attack occurrence (in the Heart_Attack_Occurrence column). Since we are performing exploratory data analysis (EDA), it would be valuable to keep both groups, as this allows us to identify and compare characteristics like age, gender, lifestyle, or pre-existing conditions between those who had a heart attack and those who didn't, potentially letting us uncover patterns or trends that can inform the study.
 
 ## 4.3 Checking for Duplicates and Missing values
 
@@ -119,7 +120,7 @@ colSums(is.na(heartattack_data))
 ```
 :::
 
-There are no duplicates and missing values in this dataset.
+We have confirmed that there are no duplicates and missing values in this dataset.
 
 ## 4.4 Grouping Variables into Categories
 
@@ -133,25 +134,11 @@ Some numerical variables (represented as "dbl" when we checked data structure in
 
     -   **Old**: 60–79
 
--   **Cholesterol Level:** According to guidelines from the American Heart Association (AHA) and National Heart, Lung, and Blood Institute (NHLBI) (Lauer et al, 2004), a desirable low cholesterol level is Below 200 mg/dL, a borderline high medium would be between 200 to 239 mg/dL and high cholesterol level is considered as 240 mg/dL and above.To align with this finding, we will categorize as:
-
-    -   **Low:** 80–199 mg/dL
-    -   **Medium:** 200–239 mg/dL
-    -   **High:** 240–336 mg/dL
-
--   **Stress Level:** A common method to measure stress is the Perceived Stress Scale (Cohen,1994) where individuals rate their stress from 0 (no stress) to 10 (extreme stress). Since our dataset usesa 0 to 10 range, it's likely a self-reported scale, where 0-3 represents minimal or manageable stress, 4-6 represents moderate stress and 7-10 represents high to extreme stress, with potential health risks. Therefore, we will categorize the stress levels as:
+-   **Stress Level:** A common method to measure stress is the Perceived Stress Scale (Cohen,1994) where individuals rate their stress from 0 (no stress) to 10 (extreme stress). Since our dataset uses a 0 to 10 range, it's likely a self-reported scale, where 0-3 represents minimal or manageable stress, 4-6 represents moderate stress and 7-10 represents high to extreme stress, with potential health risks. Therefore, we will categorize the stress levels as:
 
     -   **Low:** 0.000–3.999
     -   **Medium:** 4.000–6.999
     -   **High:** 7.000–10.000
-
--   **Heart Rate:** According to Mayo Clinic, low/below normal heart rate is below 60 bpm, a normal healthy range is 60–100 bpm, and above normal is above 100 bpm. Aligning with this, our categories will be:
-
-    -   **Low:** 30.000–59.999 bpm
-
-    -   **Normal:** 60.000–99.999 bpm
-
-    -   **High:** 100.000–108.7812 bpm
 
 ```{r}
 heartattack_data <- heartattack_data %>%
@@ -162,27 +149,11 @@ heartattack_data <- heartattack_data %>%
       Age >= 60 & Age <= 79 ~ "Old"
     ),
     
-    Cholesterol = case_when(
-      Cholesterol_Level >= 80.0000 & Cholesterol_Level  <= 199.9999 ~ "Low",
-      Cholesterol_Level  >= 200.0000 & Cholesterol_Level  <= 239.9999 ~ "Medium",
-      Cholesterol_Level  >= 240.0000 & Cholesterol_Level  <= 336.9999 ~ "High"
-    ),
     
     Stress = case_when(
       Stress_Levels >= 0.000 & Stress_Levels <= 3.999999 ~ "Low",
       Stress_Levels > 4.000 & Stress_Levels <= 6.999999 ~ "Medium",
       Stress_Levels > 7.000 & Stress_Levels <= 10.000 ~ "High"
-    ),
-    
-    HeartRate = case_when(
-      Heart_Rate >= 30.000 & Heart_Rate <= 59.99999 ~ "Low",
-      Heart_Rate > 60.000 & Heart_Rate <= 99.99999 ~ "Normal",
-      Heart_Rate > 100.000 & Heart_Rate <= 108.78217 ~ "High"
-    ),
-    BMICat = case_when(
-      BMI >= 0 & BMI <= 17.999999 ~ "Underweight",
-      BMI > 18 & BMI <= 24.999999 ~ "Normal",
-      BMI > 25 ~ "Overweight"
     )
   )
 
@@ -190,7 +161,7 @@ heartattack_data <- heartattack_data %>%
 
 ## 4.5 Convert Data Types
 
-We note that all variables are in the correct data types. However, we will convert the categorical columns such as Smoking_History,Diabetes_History, Hypertension_History, Family_History Heart_Attack_Occurrence, and our newly created columns as factor for better visualisation and to put the categories in order.
+We note that all variables are in the correct data types. However, we will convert the categorical columns such as Smoking_History, Diabetes_History, Hypertension_History, Family_History Heart_Attack_Occurrence, and our newly created columns as factor for better visualisation and to put the categories in order.
 
 ```{r}
 heartattack_data <- heartattack_data %>%
@@ -206,10 +177,7 @@ heartattack_data <- heartattack_data %>%
     Diet_Quality = factor(Diet_Quality, levels = c("Poor", "Average", "Good")),
     Physical_Activity = factor(Physical_Activity, levels = c("Low", "Moderate", "High")),
     AgeCat = factor(AgeCat, levels = c("Young", "Middle-Aged", "Old")),
-    Cholesterol = factor(Cholesterol, levels = c("Low", "Medium", "High")),
-    Stress = factor(Stress, levels = c("Low", "Medium", "High")),
-    HeartRate = factor(HeartRate, levels = c("Low", "Normal", "High")),
-    BMICat = factor(BMICat, levels = c("Underweight", "Normal", "Overweight"))
+    Stress = factor(Stress, levels = c("Low", "Medium", "High"))
   )
 ```
 
@@ -229,7 +197,7 @@ heartattack <- read_rds("data/rds/heartattack.rds")
 ```
 :::
 
-We will create a separate subset of the dataset for individuals who reported 'Yes' for Heart Attack Occurrence, enabling us to conduct further analysis on the distribution within this specific group.We will create a separate subset of the dataset for individuals who reported 'Yes' for Heart Attack Occurrence, enabling us to conduct further analysis on the distribution within this specific group.
+We will also create a separate subset of the dataset for individuals who reported 'Yes' for Heart Attack Occurrence, enabling us to conduct further analysis and visualisations on the distribution with a focus on this specific group.
 
 ::: panel-tabset
 ## Subset
@@ -260,24 +228,30 @@ yesheartattack <- read_rds("data/rds/yesheartattack.rds")
 
 To begin, we first assess the distribution of heart attack occurrences in our dataset, which consists of 30,000 records. How many individuals experienced a heart attack? Is the dataset balanced in terms of heart attack cases versus non-cases?
 
-Next, we examine the distribution of gender—are males and females equally represented? Similarly, we analyze the regional distribution to determine whether rural and urban populations are proportionally represented.
+Next, we examine the distribution of gender—are males and females equally represented? Similarly, we analyze the regional distribution to determine whether rural and urban populations are proportionally sampled in the data.
 
 Understanding these proportions is crucial, as any significant imbalance could influence our analysis and the generalizability of our findings. By exploring these distributions, we can better assess potential biases and determine whether adjustments, such as weighting or stratified analysis, may be necessary moving forward.
+
+Let's start by visualizing pie charts of the categorical variables in our full dataset.
 
 ```{r}
 #| echo: False
 # Function to create a pie chart
-create_pie_chart <- function(data, fill_var, title, fill_label) {
+create_pie_chart <- function(data, fill_var, title, fill_label, colors) {
   ggplot(data, aes_string(x = "''", y = "Proportion", fill = fill_var)) +
     geom_bar(stat = "identity", width = 1) +
     coord_polar(theta = "y") +
     geom_text(aes_string(label = "scales::percent(Proportion, accuracy = 1)"), 
-              position = position_stack(vjust = 0.5), size = 4) +
+              position = position_stack(vjust = 0.5), size = 3) +
+    scale_fill_manual(values = colors) + 
     labs(title = title, fill = fill_label, x = NULL, y = NULL) +
     theme_void() + 
-    theme(plot.title = element_text(size=8),
-      legend.title = element_text(size = 12, face = "bold"))
+    theme(plot.title = element_text(size=10),
+      legend.title = element_text(size = 8, face = "bold"))
 }
+
+two_colors <- c("#9cc567", "#fcadb9")
+three_colors <- c("#9cc567", "#83bace", "#fcadb9")
 
 # Compute proportions
 heart_attack_proportion <- heartattack %>%
@@ -300,19 +274,21 @@ stress_proportion <- heartattack %>%
   count(Stress) %>%
   mutate(Proportion = n / sum(n))
 
-# Create pie charts
-heart_attack_pie <- create_pie_chart(heart_attack_proportion, "Heart_Attack_Occurrence", "Heart Attack Occurrence", "Heart Attack")
-gender_pie <- create_pie_chart(gender_proportion, "Gender", "Gender Distribution", "Gender")
-region_pie <- create_pie_chart(region_proportion, "Region", "Region Distribution", "Region")
-age_pie <- create_pie_chart(age_proportion, "AgeCat", "Age Distribution", "AgeCat")
-stress_pie <- create_pie_chart(stress_proportion, "Stress", "Stress Distribution", "Stress")
+heart_attack_pie <- create_pie_chart(heart_attack_proportion, "Heart_Attack_Occurrence", "Heart Attack Occurrence", "Heart Attack", two_colors)
+gender_pie <- create_pie_chart(gender_proportion, "Gender", "Gender Distribution", "Gender", two_colors)
+region_pie <- create_pie_chart(region_proportion, "Region", "Region Distribution", "Region", two_colors)
+age_pie <- create_pie_chart(age_proportion, "AgeCat", "Age Distribution", "AgeCat", three_colors)
+stress_pie <- create_pie_chart(stress_proportion, "Stress", "Stress Distribution", "Stress", three_colors)
 
 
 (heart_attack_pie + gender_pie + region_pie) / (age_pie + stress_pie) + 
-  plot_annotation(title = "Proportion of Heart Attack Occurrence, Gender, and Region")
+  plot_annotation(
+    title = "Proportion of Heart Attack Occurrence, Gender, and Region")
 ```
 
--   Only **10%** of individuals in the dataset have experienced a heart attack, while **90%** have not. This suggests an **imbalance** in the dataset, where heart attack cases are much fewer than non-cases.
+From the pie charts, we saw that:
+
+-   Only **10%** of individuals in the dataset have experienced a heart attack, while **90%** have not. This suggests an **imbalance** in the dataset, where heart attack cases are sampled much fewer than non-cases.
 
 -   The dataset has an equal representation of **males (50%) and females (50%)**.This balance ensures that gender-related analyses are not biased toward one group over the other.
 
@@ -322,19 +298,17 @@ stress_pie <- create_pie_chart(stress_proportion, "Stress", "Stress Distribution
 
 -   In stress categories is the medium level is over represented as well. Since this may overemphasize the medium stress level, we will have to adjust this Stress variable for further analysis as shown in section 5.3.1.
 
--   
-
 ## 5.2 Starting Big: Overview of Heart Attack Occurrence in Japan
 
 ### 5.2.1 Association of Heart Attack Occurrence with Continuous Factors
 
-To determine whether numerical factors are associated with heart attack occurrence, we will first assess the distribution of each numerical variable. The following will be tested:
+To determine whether numerical factors are associated with heart attack occurrence, we will first assess the distribution of each continuous variable. The following will be tested:
 
--   **Hypothesis:**There is no significant difference in numerical factors between individuals with and without a heart attack.
+-   **Null Hypothesis:** There is no significant difference in continuous factors between individuals with and without a heart attack.
 
--   **Alternative Hypothesis**: There is a significant difference in numerical factors between individuals with and without a heart attack.
+-   **Alternative Hypothesis**: There is a significant difference in continuous factors between individuals with and without a heart attack.
 
-To decide whether to use the **Welch’s t-test** (for normally distributed data) or the **Mann-Whitney U test** (for non-normally distributed data), we will first check the normality of each numerical variable.
+To decide whether to use the **Welch’s t-test** (for normally distributed data) or the **Mann-Whitney U test** (for non-normally distributed data), we will first check the normality of each continuous variable by plotting histograms as shown below. **`geom_histogram()`** from **ggplot2** package to plot the histograms.
 
 ```{r}
 #| echo: False
@@ -343,7 +317,7 @@ plot_histogram <- function(data, variable, binwidth = NULL) {
   ggplot(data, aes_string(x = variable)) +
     geom_histogram(aes(y = ..density..), 
                    binwidth = binwidth, 
-                   color = "black", fill = "steelblue", alpha = 0.7) +
+                   color = "black", fill = "#9ddcf2", alpha = 0.7) +
     geom_density(color = "red", size = 1) +
     labs(title = paste("Histogram of", variable), x = variable, y = "Density") +
     theme_minimal()
@@ -361,7 +335,7 @@ p6 <- plot_histogram(heartattack, "Diastolic_BP", binwidth = 1)
 
 ```
 
-Since all 6 continuous variables represent normal distribution, we will use Welch test which is type = "p".
+Since all six continuous variables follow a normal distribution, we will use the **Welch’s t-test** for comparing means between groups. The **`ggbetweenstats()`** function from the **ggstatsplot** package allows us to visualize the distribution of a continuous variable across categorical groups while simultaneously performing statistical test to test our hypothesis. In this case, we will specify **Welch’s t-test** using `type = "p"` within `ggbetweenstats()`.
 
 ::: panel-tabset
 ## BMI + Stress
@@ -434,19 +408,9 @@ pp5+pp6
 ```
 :::
 
-::: {.callout-note style="color: black; background-color: #e0f3f9"}
-## Insights
-
--   The Welch’s t-test for Stress Level has a p-value of 0.04, indicating a statistically significant difference in stress levels between individuals with and without a heart attack.
-
--   The mean stress level is slightly lower for individuals who had a heart attack (4.93) compared to those who did not (5.01), but the effect size (g hedges​=0.04) suggests a very small difference. While statistically significant, this difference may not be clinically meaningful.
-
--   BMI, Cholesterol Level, Heart Rate, Systolic BP, and Diastolic BP all had p-values greater than 0.05, indicating no significant differences between individuals with and without a heart attack. This suggests that these factors, in isolation, do not show strong evidence of a direct association with heart attack occurrence in this dataset.
-
--   Apart from Stress, we **fail to reject** the null hypothesis that there is no significant difference between individuals with and without a heart attack for the rest of the variables.
-:::
-
 ### 5.2.2 Association of Heart Attack Occurrence with Categorical Factors
+
+Next, we will conduct hypothesis testing for the categorical variables as well. We will use **`ggbarstats()`** from the **ggstatsplot** package to assess statistical significance while visualizing the proportions and distribution of categorical factors in a stacked bar chart. This function performs appropriate statistical tests to determine associations between categorical variables.
 
 ::: panel-tabset
 ## Diabetes + Alcohol Consumption
@@ -479,7 +443,7 @@ alcohol <- ggbarstats(
 
 
 diabetes_history/alcohol + 
-  plot_annotation(title = "Statistical Association Between Categorical Factors & Having Experienced Heart Attack")
+  plot_annotation(title = "Statistical Association Between Categorical Factors & Having Had Heart Attack (Yes/No)")
 ```
 
 ## Smoking + Family History
@@ -510,7 +474,7 @@ family_history <- ggbarstats(
   coord_flip()
 
 smoking/family_history+ 
-  plot_annotation(title = "Statistical Association Between Categorical Factors & Having Experienced Heart Attack")
+  plot_annotation(title = "Statistical Association Between Categorical Factors & Having Had Heart Attack (Yes/No)")
 ```
 
 ## Diet Quality + Physical Activity
@@ -543,27 +507,27 @@ physical_act <- ggbarstats(
 
 
 diet/physical_act + 
-  plot_annotation(title = "Statistical Association Between Categorical Factors & Having Experienced Heart Attack")
+  plot_annotation(title = "Statistical Association Between Categorical Factors & Having Had Heart Attack(Yes/No)")
 ```
 :::
 
 ::: {.callout-note style="color: black; background-color: #e0f3f9"}
-## Insights from Two Sample Mean Tests
+## Insights
 
 -   The Welch’s t-test for Stress Level has a p-value of 0.04, indicating a statistically significant difference in stress levels between individuals with and without a heart attack.
 
 -   The mean stress level is slightly lower for individuals who had a heart attack (4.93) compared to those who did not (5.01), but the effect size (g hedges​=0.04) suggests a very small difference. While statistically significant, this difference may not be clinically meaningful.
 
--   BMI, Cholesterol Level, Heart Rate, Systolic BP, and Diastolic BP all had p-values greater than 0.05, indicating no significant differences between individuals with and without a heart attack. This suggests that these factors, in isolation, do not show strong evidence of a direct association with heart attack occurrence in this dataset.
+-   BMI, Cholesterol Level, Heart Rate, Systolic BP, Diastolic BP and all categorical variables had p-values greater than 0.05, indicating no significant differences between individuals with and without a heart attack. This suggests that these factors, in isolation, do not show strong evidence of a direct association with heart attack occurrence in this dataset.
 
--   There is no clear association observed between the levels of categorical factors like alcohol consumption and heart attack occurrence at a significance level of 5%. For example, low alcohol consumption does not correlate with a lower risk of heart attack, nor does high alcohol consumption correlate with a higher risk for this particular dataset.
+-   Apart from Stress, we **fail to reject** the null hypothesis that there is no significant difference between individuals with and without a heart attack for the rest of the variables.
 :::
 
 ### 5.2.3 Overview of Heart Attack Cases: The Demographics
 
-We will first explore the distribution of heart attack occurrences across different age groups and genders in Japan. By categorizing individuals into age groups (Young, Middle-Aged, and Old), we can observe trends in heart attack prevalence, with particular focus on gender differences. This helps identify which demographic groups are more vulnerable and gives us the overview.
+Now that we have an understanding of the distributions and significance of the variables against heart attack occurrence, we will first explore the distribution of heart attack occurrences across different age groups and genders in Japan. By categorizing individuals into age groups (Young, Middle-Aged, and Old), we can observe trends in heart attack prevalence, with particular focus on gender differences. This helps identify which demographic groups are more vulnerable and gives us the overview.
 
-::: callout-important
+::: {.callout-important style="color: black; background-color: #f0dcdc"}
 ## Adjustment for Age Category Imbalance
 
 In section 5.1, it was observed that the Young Age Group (36%) is naturally more represented in the dataset. If we analyze the data without adjustment, this could lead to an overemphasis on the risk of heart attacks among young individuals. To mitigate this potential bias, we will normalize the prevalence of heart attacks within each age group by accounting for their overall representation in the dataset.
@@ -575,6 +539,8 @@ $PrevalenceAgeCat$ = Number of Heart Attack Cases in Age Group/ Total Individual
 This adjustment ensures that the analysis of heart attack risk is proportionate to the actual representation of each age group in the dataset, providing more accurate insights into the relationship between age and heart attack prevalence.
 :::
 
+For this visualization, we will use **`geom_bar()`** from the **ggplot2** package to create bar charts and leverage the **patchwork** package to seamlessly combine multiple bar charts into a cohesive layout.
+
 ::: panel-tabset
 ## The Plot
 
@@ -590,14 +556,14 @@ age_summary <- yesheartattack %>%
   group_by(AgeCat) %>%
   summarise(HeartAttackCases = n()) %>%
   left_join(total_age_counts, by = "AgeCat") %>%
-  mutate(Prevalence = (HeartAttackCases / TotalCount) * 100)
+  mutate(PrevalenceAgeCat = (HeartAttackCases / TotalCount) * 100)
 
 custom_colors <- c("Young" = "#ffe372", "Middle-Aged" = "#9cc567", "Old" = "#e79251")
 
 # Plot 1: Heart Attack Occurrence by Age Category 
-p1 <- ggplot(age_summary, aes(x = AgeCat, y = Prevalence, fill = AgeCat)) +
+p1 <- ggplot(age_summary, aes(x = AgeCat, y = PrevalenceAgeCat, fill = AgeCat)) +
   geom_bar(stat = "identity", color = "black") +
-  geom_text(aes(label = sprintf("%.2f%%", Prevalence)), vjust = 1.5, size = 3) +  
+  geom_text(aes(label = sprintf("%.2f%%", PrevalenceAgeCat)), vjust = 1.5, size = 3) +  
   scale_fill_manual(values = custom_colors) +
   labs(x = "Age Category") +  
   theme_minimal() +
@@ -628,12 +594,12 @@ gender_age_summary <- yesheartattack %>%
   group_by(Gender, AgeCat) %>%
   summarise(HeartAttackCases = n()) %>%
   left_join(total_gender_age_counts, by = c("Gender", "AgeCat")) %>%
-  mutate(Prevalence = (HeartAttackCases / TotalCount) * 100)
+  mutate(PrevalenceAgeCat = (HeartAttackCases / TotalCount) * 100)
 
 # Gender-Age Barplot
-p3 <- ggplot(gender_age_summary, aes(x = Gender, y = Prevalence, fill = AgeCat)) +
+p3 <- ggplot(gender_age_summary, aes(x = Gender, y = PrevalenceAgeCat, fill = AgeCat)) +
   geom_bar(stat = "identity", position = "dodge", color = "black") +  
-  geom_text(aes(label = sprintf("%.1f%%", Prevalence)), 
+  geom_text(aes(label = sprintf("%.1f%%", PrevalenceAgeCat)), 
             position = position_dodge(width = 0.9), vjust = 1.5, size = 3) + 
   scale_fill_manual(values = custom_colors) +
   labs(x = "Gender", y = "Prevalence of Heart Attack Cases (%)", fill = "Age Category") +
@@ -646,7 +612,7 @@ p3 <- ggplot(gender_age_summary, aes(x = Gender, y = Prevalence, fill = AgeCat))
 
 (p1 + p2)/ p3 + 
   plot_layout(widths = c(1, 1, 1.5)) +  
-  plot_annotation(title = "Heart Attack Occurrence by Age Group and Gender")
+  plot_annotation(title = "Proportion of Heart Attack Cases in Age Groups and Gender")
 ```
 
 ## The Code
@@ -663,14 +629,14 @@ age_summary <- yesheartattack %>%
   group_by(AgeCat) %>%
   summarise(HeartAttackCases = n()) %>%
   left_join(total_age_counts, by = "AgeCat") %>%
-  mutate(Prevalence = (HeartAttackCases / TotalCount) * 100)
+  mutate(PrevalenceAgeCat = (HeartAttackCases / TotalCount) * 100)
 
 custom_colors <- c("Young" = "#ffe372", "Middle-Aged" = "#9cc567", "Old" = "#e79251")
 
 # Plot 1: Heart Attack Occurrence by Age Category 
-p1 <- ggplot(age_summary, aes(x = AgeCat, y = Prevalence, fill = AgeCat)) +
+p1 <- ggplot(age_summary, aes(x = AgeCat, y = PrevalenceAgeCat, fill = AgeCat)) +
   geom_bar(stat = "identity", color = "black") +
-  geom_text(aes(label = sprintf("%.2f%%", Prevalence)), vjust = 1.5, size = 3) +  
+  geom_text(aes(label = sprintf("%.2f%%", PrevalenceAgeCat)), vjust = 1.5, size = 3) +  
   scale_fill_manual(values = custom_colors) +
   labs(x = "Age Category") +  
   theme_minimal() +
@@ -701,12 +667,12 @@ gender_age_summary <- yesheartattack %>%
   group_by(Gender, AgeCat) %>%
   summarise(HeartAttackCases = n()) %>%
   left_join(total_gender_age_counts, by = c("Gender", "AgeCat")) %>%
-  mutate(Prevalence = (HeartAttackCases / TotalCount) * 100)
+  mutate(PrevalenceAgeCat = (HeartAttackCases / TotalCount) * 100)
 
 # Gender-Age Barplot
-p3 <- ggplot(gender_age_summary, aes(x = Gender, y = Prevalence, fill = AgeCat)) +
+p3 <- ggplot(gender_age_summary, aes(x = Gender, y = PrevalenceAgeCat, fill = AgeCat)) +
   geom_bar(stat = "identity", position = "dodge", color = "black") +  
-  geom_text(aes(label = sprintf("%.1f%%", Prevalence)), 
+  geom_text(aes(label = sprintf("%.1f%%", PrevalenceAgeCat)), 
             position = position_dodge(width = 0.9), vjust = 1.5, size = 3) + 
   scale_fill_manual(values = custom_colors) +
   labs(x = "Gender", y = "Prevalence of Heart Attack Cases (%)", fill = "Age Category") +
@@ -719,7 +685,7 @@ p3 <- ggplot(gender_age_summary, aes(x = Gender, y = Prevalence, fill = AgeCat))
 
 (p1 + p2)/ p3 + 
   plot_layout(widths = c(1, 1, 1.5)) +  
-  plot_annotation(title = "Heart Attack Occurrence by Age Group and Gender")
+  plot_annotation(title = "Proportion of Heart Attack Cases in Age Groups and Gender")
 ```
 :::
 
@@ -727,11 +693,7 @@ p3 <- ggplot(gender_age_summary, aes(x = Gender, y = Prevalence, fill = AgeCat))
 ## Insights
 
 -   **Males have a slightly higher proportion of heart attack cases than females**, suggesting gender may be a factor.
-
-<!-- -->
-
 -   **Among those who experienced heart attacks**, a higher percentage are in the **Middle Aged Group (10.0%)**.
-
     -   Among females, the Old Age Group is the most vulnerable.
 
     -   Among males, the Middle-Aged Age Group appears to be the most vulnerable to heart attacks.
@@ -743,13 +705,15 @@ Understanding heart attack vulnerability requires examining how risk factors dif
 
 By focusing on these two age groups, we aim to uncover key differences in how heart attacks manifest and what factors contribute most significantly to their occurrence. This targeted approach allows us to explore whether certain risk factors, such as stress, have a stronger impact in one group over the other, ultimately providing more age-specific insights into heart attack prevention and management.
 
-### 5.3.1 Focusing on Stress
+### 5.3.1 Focusing on Stress among Heart Attack Cases
 
 Stress is a well known contributor to heart disease, but its impact may vary depending on age. In young individuals, stressors such as work pressure, financial concerns, and lifestyle choices may lead to sudden cardiovascular strain, increasing heart attack risk. In contrast, for older individuals, chronic stress and cumulative health burdens can contribute to long-term cardiovascular deterioration.
 
-Given the significance of stress in heart attack occurrences, as identified in Section 5.1.2, this section examines how stress levels differ between young and old individuals and whether these variations influence heart attack vulnerability. By analyzing these distinctions, we can better understand whether stress acts as a more immediate or gradual risk factor across different age demographics.Adjustment for Stress Category Imbalance
+Given the significance of stress in heart attack occurrences, as identified in Section 5.1.2, this section examines how stress levels differ between young and old individuals and whether these variations influence heart attack vulnerability. By analyzing these distinctions, we can better understand whether stress acts as a more immediate or gradual risk factor across different age demographics.
 
-::: callout-important
+::: {.callout-important style="color: black; background-color: #f0dcdc"}
+## Adjustment for Stress Category Imbalance
+
 As found in section 5.1, in our dataset, the Stress category distribution is imbalanced, with the following proportions:
 
 -   Medium: 53%
@@ -758,12 +722,14 @@ As found in section 5.1, in our dataset, the Stress category distribution is imb
 
 -   High: 16%
 
-If we use the Stress categories as they are, the medium category would be disproportionately represented. To ensure more accurate insights and avoid overemphasizing the medium stress group, we will normalize the data before visualizing. This normalization will be done using the following formula:
+If we use the Stress categories as they are, the medium category would be disproportionately represented. To ensure more accurate insights and prevent overemphasis on the medium stress group, we will first analyze within each stress category before visualizing the results.
 
-$NormalizedStress$ = Young (or Old) in each Stress Category with experience of Heart Attack​/ Total Number of each Stress Category in those who have experienced Heart Attack
+To achieve this, we introduce a new variable, **NormalizedStress**, calculated as follows:
 
-By applying this normalization, we adjust for the imbalances in Stress category distributions and ensure that each age group’s Stress categories are represented proportionally within the context of heart attack cases.
+$NormalizedStress$ = Number of Young (or Old) individuals in each Stress Category who experienced Heart Attack​/ Total Number of Invidividuals in each Stress Category who experienced Heart Attack
 :::
+
+For this visualization, we will use **`ggbetweenstats()`** to test whether there is a significant association between age categories and stress levels. Additionally, **`geom_boxplot()`** will be used to compare stress levels between younger and older individuals, while **`geom_bar()`** from the **ggplot2** package will create bar charts to display the distribution of stress levels across age categories. Finally, the **patchwork** package will be used to combine these plots into a cohesive and structured layout.
 
 ::: panel-tabset
 ## The Plot
@@ -784,18 +750,18 @@ age_stress_counts <- yesheartattack %>%
 # Join the counts with the total Stress counts to calculate normalized proportions
 normalized_stress <- age_stress_counts %>%
   left_join(total_stress_counts, by = "Stress") %>%
-  mutate(NormalizedStressProportion = Count / TotalCount)
+  mutate(NormalizedStress = Count / TotalCount)
 
 # Plot normalized Stress proportions for each AgeCat
-stressplot <- ggplot(normalized_stress, aes(x = AgeCat, y = NormalizedStressProportion, fill = Stress)) +
+stressplot <- ggplot(normalized_stress, aes(x = AgeCat, y = NormalizedStress, fill = Stress)) +
   geom_bar(stat = "identity", position = "dodge") +  
-  geom_text(aes(label = sprintf("%.1f%%", NormalizedStressProportion * 100)), 
+  geom_text(aes(label = sprintf("%.1f%%", NormalizedStress * 100)), 
             position = position_dodge(width = 0.8), vjust = 1.5, size = 2) +  
   scale_fill_manual(values = c("Low" = "#ffcccc", "Medium" = "#83bace", "High" = "#608e24")) +
   labs(x = "Age Category", y = "Normalized Stress Proportion") +
   theme_minimal() +
   theme(legend.position = "right",
-        legend.title= element_text(size=5),
+        legend.title= element_text(size=7),
         legend.text= element_text(size=5),
         plot.title = element_blank(),
         axis.text.y = element_blank(),
@@ -862,7 +828,7 @@ anova_stress <- ggbetweenstats(
 
 anova_stress+stress_box+stressplot + 
   plot_layout(widths = c(1, 0.8, 0.8)) +  
-  plot_annotation(title = "Stress Level in Young and Old Individuals who had a Heart Attack")
+  plot_annotation(title = "Stress Level of Heart Attack Cases by Age Category")
 ```
 
 ## The Code
@@ -883,18 +849,18 @@ age_stress_counts <- yesheartattack %>%
 # Join the counts with the total Stress counts to calculate normalized proportions
 normalized_stress <- age_stress_counts %>%
   left_join(total_stress_counts, by = "Stress") %>%
-  mutate(NormalizedStressProportion = Count / TotalCount)
+  mutate(NormalizedStress = Count / TotalCount)
 
 # Plot normalized Stress proportions for each AgeCat
-stressplot <- ggplot(normalized_stress, aes(x = AgeCat, y = NormalizedStressProportion, fill = Stress)) +
+stressplot <- ggplot(normalized_stress, aes(x = AgeCat, y = NormalizedStress, fill = Stress)) +
   geom_bar(stat = "identity", position = "dodge") +  
-  geom_text(aes(label = sprintf("%.1f%%", NormalizedStressProportion * 100)), 
+  geom_text(aes(label = sprintf("%.1f%%", NormalizedStress * 100)), 
             position = position_dodge(width = 0.8), vjust = 1.5, size = 2) +  
   scale_fill_manual(values = c("Low" = "#ffcccc", "Medium" = "#83bace", "High" = "#608e24")) +
   labs(x = "Age Category", y = "Normalized Stress Proportion") +
   theme_minimal() +
   theme(legend.position = "right",
-        legend.title= element_text(size=5),
+        legend.title= element_text(size=7),
         legend.text= element_text(size=5),
         plot.title = element_blank(),
         axis.text.y = element_blank(),
@@ -961,7 +927,7 @@ anova_stress <- ggbetweenstats(
 
 anova_stress+stress_box+stressplot + 
   plot_layout(widths = c(1, 0.8, 0.8)) +  
-  plot_annotation(title = "Stress Level in Young and Old Individuals who had a Heart Attack")
+  plot_annotation(title = "Stress Level of Heart Attack Cases by Age Category")
 ```
 :::
 
@@ -975,33 +941,142 @@ anova_stress+stress_box+stressplot +
 -   When examining stress categories, young heart attack patients were most commonly found in the Low Stress category, with 38.2% of cases. In contrast, older individuals had a greater proportion of heart attack cases in the Medium and High Stress categories. This aligns with the boxplot observations, reinforcing that older heart attack patients generally experience higher stress levels compared to younger patients.
 :::
 
-### 5.3.2 Stress Levels in Blood Pressure
+### 5.3.2 Stress Levels in Systolic vs Diastolic Blood Pressure 
 
-Blood pressure is a critical indicator of cardiovascular health, and its relationship with stress is well-documented in medical research. Higher stress levels have been associated with fluctuations in blood pressure, which can increase the risk of heart-related complications, including heart attacks (Gordon & Mendes,2021).
+Blood pressure (BP) is a critical indicator of cardiovascular health, with fluctuations often linked to stress levels. Research has shown that prolonged exposure to stress can contribute to blood pressure dysregulation, increasing the risk of cardiovascular events, including heart attacks (Gordon & Mendes, 2021).
 
-In this section, we examine how diastolic blood pressure varies across different stress levels among young and old individuals. By analyzing these patterns, we aim to understand whether stress contributes differently to blood pressure changes across age groups. Identifying such differences can provide insights into the physiological impact of stress and its potential role in heart attack risk.
+Systolic blood pressure (SBP) measures the pressure exerted on artery walls when the heart contracts, while diastolic blood pressure (DBP) reflects the pressure during heart relaxation. Understanding the relationship between stress and both BP components helps assess how stress-induced cardiovascular responses vary between individuals.
 
-::: callout-important
-## FYI! Why Diastolic BP is important
+We will visualize both SBP and DBP using `geom_boxplot()` from the **ggplot2** package, with the plots faceted by stress levels. This approach allows for a clear comparison of different age categories within each stress level.
+
+::: panel-tabset
+## The Plot
+
+```{r}
+#| echo: False
+# Boxplot to compare diastolic BP distribution by stress level and age group
+dia <- ggplot(yesheartattack, aes(x = AgeCat, y = Diastolic_BP, fill = AgeCat)) +
+  geom_boxplot() +
+  facet_wrap(~ Stress) +  # Remove scales = 'free' to make y-axis same for all facets
+  stat_summary(fun = median, geom = "text", aes(label = round(..y.., 2)), 
+               vjust = -0.5, color = "black", size = 3) +  # Add median text
+  labs(title = "Distribution of Diastolic BP and Systolic BP by Stress Level and Age Group",
+       x = "Age Group",
+       y = "Diastolic BP (mmHg)") +
+  scale_fill_manual(values = c("Young" = "#ffde59", "Middle-Aged" = "#9cc567", "Old" = "#fcadb9")) +
+  theme_minimal() +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        legend.position = "none")
+
+# Boxplot to compare systolic BP distribution by stress level and age group
+sys <- ggplot(yesheartattack, aes(x = AgeCat, y = Systolic_BP, fill = AgeCat)) +
+  geom_boxplot() +
+  facet_wrap(~ Stress) +  # Remove scales = 'free' to make y-axis same for all facets
+  stat_summary(fun = median, geom = "text", aes(label = round(..y.., 2)), 
+               vjust = -0.5, color = "black", size = 3) +  # Add median text
+  labs(x = "Age Group",
+       y = "Systolic BP (mmHg)") +
+  scale_fill_manual(values = c("Young" = "#ffde59", "Middle-Aged" = "#9cc567", "Old" = "#fcadb9")) +
+  theme_minimal() +
+  theme(axis.title.x = element_blank(),
+        plot.title = element_blank(),
+        strip.text = element_blank(),  # Removes "Low," "Medium," "High" labels
+        legend.position = "none")
+
+dia / sys
+
+```
+
+## The Code
+
+```{r}
+#| eval: False
+# Boxplot to compare diastolic BP distribution by stress level and age group
+dia <- ggplot(yesheartattack, aes(x = AgeCat, y = Diastolic_BP, fill = AgeCat)) +
+  geom_boxplot() +
+  facet_wrap(~ Stress) +  # Remove scales = 'free' to make y-axis same for all facets
+  stat_summary(fun = median, geom = "text", aes(label = round(..y.., 2)), 
+               vjust = -0.5, color = "black", size = 3) +  # Add median text
+  labs(title = "Distribution of Diastolic BP and Systolic BP by Stress Level and Age Group",
+       x = "Age Group",
+       y = "Diastolic BP (mmHg)") +
+  scale_fill_manual(values = c("Young" = "#ffde59", "Middle-Aged" = "#9cc567", "Old" = "#fcadb9")) +
+  theme_minimal() +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        legend.position = "none")
+
+# Boxplot to compare systolic BP distribution by stress level and age group
+sys <- ggplot(yesheartattack, aes(x = AgeCat, y = Systolic_BP, fill = AgeCat)) +
+  geom_boxplot() +
+  facet_wrap(~ Stress) +  # Remove scales = 'free' to make y-axis same for all facets
+  stat_summary(fun = median, geom = "text", aes(label = round(..y.., 2)), 
+               vjust = -0.5, color = "black", size = 3) +  # Add median text
+  labs(x = "Age Group",
+       y = "Systolic BP (mmHg)") +
+  scale_fill_manual(values = c("Young" = "#ffde59", "Middle-Aged" = "#9cc567", "Old" = "#fcadb9")) +
+  theme_minimal() +
+  theme(axis.title.x = element_blank(),
+        plot.title = element_blank(),
+        strip.text = element_blank(),  # Removes "Low," "Medium," "High" labels
+        legend.position = "none")
+
+dia / sys
+```
+:::
+
+::: {.callout-note style="color: black; background-color: #e0f3f9"}
+## Insights
+
+-   Both SBP and DBP appear to be relatively stable across stress levels, with only slight variations.
+
+-   Older individuals tend to have higher median SBP and DBP, likely due to reduced arterial elasticity and increased vascular resistance with aging.
+
+-   Diastolic BP:
+
+    -   Young individuals exhibited a decline in median DBP with increasing stress, suggesting possible acute stress adaptation or a physiological response.
+
+    -   Older individuals showed a slight increase in DBP with higher stress, which could be attributed to chronic stress effects.
+
+-   Systolic BP:
+
+    -   Young individuals also show a slight decrease in SBP under high stress, reinforcing the idea that they may have better cardiovascular adaptability.
+
+    -   Older individuals see a moderate rise in SBP with high stress, which aligns with the DBP trend, suggesting stress-induced hypertension risk.
+
+-   Middle-aged individuals exhibit the most stable blood pressure across stress levels, possibly due to adaptation mechanisms.
+
+-   Diastolic BP shows a stronger age-dependent variation under stress than Systolic BP.
+:::
+
+### 5.3.3 Stress Levels in Diastolic Blood Pressure
+
+Among the two blood pressure metrics, diastolic BP demonstrated a stronger and statistically significant correlation with stress levels. This finding motivated a more in-depth analysis of DBP in response to stress across different age groups.
+
+This section examines the variations in DBP across different stress levels, comparing young and old individuals. By analyzing these patterns, we aim to determine whether stress contributes differently to blood pressure fluctuations across age groups, which could have implications for heart attack risk.
+
+::: {.callout-important style="color: black; background-color: #f0dcdc"}
+## Why Diastolic BP is important
 
 Systolic blood pressure reflects the pressure in the arteries when the heart beats, while diastolic blood pressure reflects the pressure between beats when the heart is at rest. Diastolic pressure is often used in clinical settings to gauge the health of the blood vessels and heart's ability to relax. Given the context of this study, which seeks to explore the impact of stress on heart function, diastolic blood pressure provides a more relevant and sensitive measure of how stress affects the body's ability to regulate blood flow.
 :::
 
+We will first use **`ggscatterstats()`** to examine whether there is a significant correlation between **DBP** and **stress levels**. Then, we will visualize the distribution of **DBP** across different stress levels using a combination of **`stat_halfeye()`** and **`geom_boxplot()`** from the **ggplot2** package, providing a detailed view of the data distribution and variability.
+
 ::: panel-tabset
-## Correlation Analysis - BP vs Stress
+## Correlation Analysis - DBP vs Stress
 
 ```{r}
-#| echo: False
 ggscatterstats(
   data = yesheartattack,
   x = Stress_Levels,
   y = Diastolic_BP,
   marginal = FALSE,
   )
-
 ```
 
-## Distribution of Diastolic BP in Age
+## The Plot: Distribution of Diastolic BP
 
 ```{r}
 #| echo: False
@@ -1030,241 +1105,209 @@ ggplot(heartattack_filtered, aes(x = Stress, y = Diastolic_BP, fill = AgeCat)) +
   theme_economist() + 
   theme(legend.position = "top",
         legend.text=element_text(size=8),
-        legend.title=element_blank())
+        legend.title=element_blank(),
+        axis.title.y = element_blank())
 
-```
-:::
-
-::: {.callout-note style="color: black; background-color: #e0f3f9"}
-## Insights
-
--   The spread (IQR) of diastolic BP is wider for young individuals across all stress levels, meaning their BP varies more compared to older individuals. The density plots (overlaid KDE) show that the diastolic BP distribution is slightly more concentrated for older individuals, suggesting more consistency in their BP readings.
-
-<!-- -->
-
--   The analysis reveals a significant correlation between stress and diastolic blood pressure (DBP), with a p-value of 0.02 indicating that stress levels do indeed have an effect on DBP. The correlation coefficient (R) of -0.04 suggests a very weak negative relationship between stress and DBP, implying that, on the whole, higher stress levels are slightly associated with lower diastolic blood pressure. However, looking at the 95% confidence interval for the correlation, which ranges from -0.08 to -0.008, we can conclude that while the relationship between stress and DBP is statistically significant, its strength is not substantial.
-
--   When delving into the distribution of DBP across stress levels in different age categories, there are interesting patterns:
-
-    -   For young individuals, there is no clear increasing or decreasing trend in median BP across stress levels. The median BP remains relatively stable (around 79-80 mmHg).
-
-    <!-- -->
-
-    -   For older individuals, there is an inverse relationship between stress and diastolic BP:
-
-        -   Older individuals with low stress have the highest median BP (81.2 mmHg).
-
-        -   Those with high stress have a lower median BP (79 mmHg).
-
-        -   This could suggest that older individuals under stress might have physiological or behavioral responses (e.g., lifestyle changes, medication adherence) that lower BP.
-
-        -   In elderly individuals, very low DBP (\<60 mmHg) is linked to an increased risk of heart failure because the heart may not get enough oxygenated blood.
-:::
-
-### 5.3.3 Does Gender and Regions Matter in Stress?
-
-Exploring the influence of both gender and region (urban vs. rural) on heart attack occurrence with varying stress levels can provide valuable insights into disparities in cardiovascular risk. By examining how gender and region interact with different stress levels, we aim to uncover any significant patterns that may indicate higher vulnerability to heart attacks.
-
-Let's first see the distribution of gender and region proportions in each stress level.
-
-```{r}
-#| echo: False
-# Gender proportions by Stress level
-gender_proportions <- yesheartattack %>%
-  group_by(Stress, Gender) %>%
-  summarise(HeartAttackCases = n()) %>%
-  group_by(Stress) %>%
-  mutate(TotalHeartAttackCasesStress = sum(HeartAttackCases)) %>%
-  ungroup() %>%
-  mutate(Proportion = HeartAttackCases / TotalHeartAttackCasesStress * 100)
-
-# Gender Pie charts by Stress level
-gender_pie <- ggplot(gender_proportions, aes(x = "", y = Proportion, fill = Gender)) +
-  geom_bar(stat = "identity", width = 1, color = "black") +
-  coord_polar(theta = "y") +
-  facet_wrap(~ Stress) +
-  geom_text(aes(label = sprintf("%.1f%%", Proportion)), position = position_stack(vjust = 0.5), size = 3) +
-  labs(title = "Gender Proportions by Stress Level", fill = "Gender") +
-  scale_fill_manual(values = c("Female" = "#f7a8b8", "Male" = "#83bace")) +
-  theme_void() +
-  theme(legend.position = "bottom", plot.title = element_blank())
-
-
-
-# Region proportions by Stress level
-region_proportions <- yesheartattack %>%
-  group_by(Stress, Region) %>%
-  summarise(HeartAttackCases = n()) %>%
-  group_by(Stress) %>%
-  mutate(TotalHeartAttackCasesStress = sum(HeartAttackCases)) %>%
-  ungroup() %>%
-  mutate(Proportion = HeartAttackCases / TotalHeartAttackCasesStress * 100)
-
-# Region Pie charts by Stress level
-region_pie <- ggplot(region_proportions, aes(x = "", y = Proportion, fill = Region)) +
-  geom_bar(stat = "identity", width = 1, color = "black") +
-  coord_polar(theta = "y") +
-  facet_wrap(~ Stress) +
-  geom_text(aes(label = sprintf("%.1f%%", Proportion)), position = position_stack(vjust = 0.5), size = 3) +
-  labs(title = "Region Proportions by Stress Level", fill = "Region") +
-  scale_fill_manual(values = c("Rural" = "#9cc567", "Urban" = "#e79251")) +
-  theme_void() +
-  theme(legend.position = "bottom", plot.title = element_blank())
-
-
-gender_pie + region_pie+
-  plot_annotation(title = "Gender and Region Proportions in Stress Levels")
-```
-
-::: callout-note
-## Adjustment for class imbalances in Gender and Region of Stress Levels
-
-As found above, if we use the Region and Gender as it are, the Male and Urban category would be disproportionately represented. To ensure more accurate insights and avoid overemphasizing certain groups, we will normalize the data before visualizing. This normalization will be done using the following formulas:
-
-$StressRegion$ = Number of heart attack cases in each Stress-Region group/ Total number of cases in the same stress category
-
-$StressAge$ = Number of heart attack cases in each Stress-Age group/ Total number of cases in the same stress category
-
-$GenderRegion$= = Number of heart attack cases for each Gender-Region combination/ Total number of heart attack cases in that region
-
-This ensures that:
-
-1.  **Urban and Rural are weighted fairly** (not dominated by Urban cases).
-
-2.  **Gender imbalances within Urban vs. Rural are accounted for** (not dominated by Male)
-:::
-
-::: panel-tabset
-## The Plot
-
-```{r}
-#| echo: False
-# Normalize the proportion by Region and Gender
-normalized_proportion_heartattack_reg <- yesheartattack %>%
-  group_by(Stress, Region) %>%
-  summarise(HeartAttackCases = n()) %>%
-  group_by(Stress) %>%
-  mutate(TotalHeartAttackCasesStress = sum(HeartAttackCases)) %>%
-  ungroup() %>%
-  mutate(NormalizedProportion = HeartAttackCases / TotalHeartAttackCasesStress * 100)
-
-# Region plot with normalized proportions
-region <- ggplot(normalized_proportion_heartattack_reg, aes(x = Region, y = NormalizedProportion, fill = Region)) +
-  geom_bar(stat = "identity", show.legend = FALSE, color = "black") +
-  geom_text(aes(label = sprintf("%.1f%%", NormalizedProportion)), vjust = 1.5, size = 3) +
-  labs(x = "Region", y = "Normalized Proportion of Heart Attack Cases",
-       title = "Normalized Proportion of Heart Attack Cases among Stress Levels by Region") +
-  scale_fill_manual(values = c("Rural" = "#9cc567", "Urban" = "#e79251")) + 
-  facet_wrap(~ Stress, ncol = 3) + 
-  theme_minimal() +
-  theme(axis.title.y = element_blank(),
-        axis.text.y = element_blank(),
-        axis.title.x = element_blank(),
-        plot.title = element_blank())
-
-# Normalize the proportion by Stress and Gender
-normalized_proportion_heartattack <- yesheartattack %>%
-  group_by(Stress, Gender) %>%
-  summarise(HeartAttackCases = n()) %>%
-  group_by(Stress) %>%
-  mutate(TotalHeartAttackCasesStress = sum(HeartAttackCases)) %>%
-  ungroup() %>%
-  mutate(NormalizedProportion = HeartAttackCases / TotalHeartAttackCasesStress * 100)
-
-# Gender plot with normalized proportions
-gender <- ggplot(normalized_proportion_heartattack, aes(x = Gender, y = NormalizedProportion, fill = Gender)) +
-  geom_bar(stat = "identity", show.legend = FALSE, color = "black") +
-  geom_text(aes(label = sprintf("%.1f%%", NormalizedProportion)), vjust = 1.5, size = 3) +
-  labs(x = "Gender", y = "Normalized Proportion of Heart Attack Cases",
-       title = "Normalized Proportion of Heart Attack Cases among Stress Levels by Gender") +
-  scale_fill_manual(values = c("Female" = "#f7a8b8", "Male" = "#83bace")) + 
-  facet_wrap(~ Stress, ncol = 3) + 
-  theme_minimal() +
-  theme(axis.title.y = element_blank(),
-        axis.text.y = element_blank(),
-        axis.title.x = element_blank(),
-        plot.title = element_blank())
-
-# Normalize the proportion of heart attack cases by Gender and Region
-normalized_proportion_heartattack_group <- yesheartattack %>%
-  group_by(Gender, Region) %>%
-  summarise(HeartAttackCases = n()) %>%
-  group_by(Region) %>%
-  mutate(TotalHeartAttackCasesRegion = sum(HeartAttackCases)) %>%
-  ungroup() %>%
-  mutate(NormalizedProportion = HeartAttackCases / TotalHeartAttackCasesRegion * 100)
-
-# Create the bar plot with normalized proportions
-gender_reg <- ggplot(normalized_proportion_heartattack_group, aes(x = interaction(Gender, Region), y = NormalizedProportion, fill = interaction(Gender, Region))) +
-  geom_bar(stat = "identity", show.legend = FALSE, color = "black") +
-  geom_text(aes(label = sprintf("%.1f%%", NormalizedProportion)), vjust = 1, size = 3, hjust = 1.3) +
-  labs(x = "Gender-Region Group", y = "Normalized Proportion of Heart Attack Cases (%)") +
-  scale_fill_manual(values = c("Male.Urban" = "#0d8ab7", "Female.Urban" = "#e78090", "Male.Rural" = "#83bace", "Female.Rural" = "#f0c6c7")) +
-  theme_minimal() +
-  theme(axis.title.y = element_blank(),
-        axis.title.x = element_blank(),
-        plot.title = element_blank()) +
-  coord_flip()
-
-
-(gender + region) / gender_reg+
-  plot_annotation(title = "Proportion of Heart Attack Cases among Stress Levels by Gender and Region")
 ```
 
 ## The Code
 
 ```{r}
 #| eval: False
-# Normalize the proportion by Region and Gender
-normalized_proportion_heartattack_reg <- yesheartattack %>%
-  group_by(Stress, Region) %>%
-  summarise(HeartAttackCases = n()) %>%
-  group_by(Stress) %>%
-  mutate(TotalHeartAttackCasesStress = sum(HeartAttackCases)) %>%
-  ungroup() %>%
-  mutate(NormalizedProportion = HeartAttackCases / TotalHeartAttackCasesStress * 100)
+ggplot(heartattack_filtered, aes(x = Stress, y = Diastolic_BP, fill = AgeCat)) +
+  stat_halfeye(adjust = 0.5, 
+               justification = -0.2, 
+               .width = 0, 
+               point_colour = NA, 
+               alpha = 0.4) +  # Density plot
+  geom_boxplot(width = 0.2, 
+               outlier.shape = 16,  
+               outlier.color = "black", 
+               outlier.size = 1.5, 
+               alpha = 0.7) +  
+  stat_summary(fun = median, geom = "text",
+               aes(label = paste0("Median = ", round(..y.., 1))),
+               position = position_dodge(width = 0.8),
+               vjust = 0.3, size = 3, color = "black") +  # Add median text
+  coord_flip() +  # Flip for better readability
+  scale_fill_manual(values = c("Young" = "#63b2e3", "Old" = "#f1b6b1")) + 
+  scale_x_discrete(expand = expansion(mult = c(0.2, 0.8))) +
+  labs(title = "Diastolic BP Across Stress Levels",
+       x = "Stress Levels",
+       y = "Diastolic Blood Pressure (mmHg)",
+       fill = "Age Category") +
+  theme_economist() + 
+  theme(legend.position = "top",
+        legend.text=element_text(size=8),
+        legend.title=element_blank(),
+        axis.title.y = element_blank())
+```
+:::
 
-# Region plot with normalized proportions
-region <- ggplot(normalized_proportion_heartattack_reg, aes(x = Region, y = NormalizedProportion, fill = Region)) +
-  geom_bar(stat = "identity", show.legend = FALSE, color = "black") +
-  geom_text(aes(label = sprintf("%.1f%%", NormalizedProportion)), vjust = 1.5, size = 3) +
-  labs(x = "Region", y = "Normalized Proportion of Heart Attack Cases",
-       title = "Normalized Proportion of Heart Attack Cases among Stress Levels by Region") +
-  scale_fill_manual(values = c("Rural" = "#9cc567", "Urban" = "#e79251")) + 
-  facet_wrap(~ Stress, ncol = 3) + 
+::: {.callout-note style="color: black; background-color: #e0f3f9"}
+## Insights
+
+-   The analysis reveals a significant correlation between stress and diastolic blood pressure (DBP), with a p-value of 0.02 indicating that stress levels do indeed have an effect on DBP. The correlation coefficient (R) of -0.04 suggests a very weak negative relationship between stress and DBP, implying that, on the whole, higher stress levels are slightly associated with lower diastolic blood pressure. However, looking at the 95% confidence interval for the correlation, which ranges from -0.08 to -0.008, we can conclude that while the relationship between stress and DBP is statistically significant, its strength is not substantial.
+-   The spread (IQR) of diastolic BP is wider for young individuals across all stress levels, meaning their BP varies more compared to older individuals. The density plots show that the diastolic BP distribution is slightly more concentrated for older individuals, suggesting more consistency in their BP readings.
+-   For young individuals, the inverse relationship between stress and diastolic blood pressure is intriguing. Specifically, those experiencing higher levels of stress have lower median diastolic blood pressure. This could potentially be related to lifestyle factors common among younger populations, such as increased physical activity or lower levels of chronic conditions, which might help mitigate the expected increases in blood pressure with stress.
+-   For older individuals, there is an direct relationship between stress and diastolic BP:
+    -   Older individuals with low stress have the lowest median BP (79.5 mmHg).
+
+    -   Those with high stress have a higher median BP (80.4 mmHg).
+
+    -   This could suggest that older individuals under high stress might have increased risk of heart attack.
+:::
+
+### 5.3.4 Does Gender and Regions Matter?
+
+Exploring the impact of gender and region (urban vs. rural) on the occurrence of heart attacks in relation to varying stress levels can reveal important insights into cardiovascular risk disparities. By examining how gender and region interact with different stress levels, we aim to identify significant patterns that may highlight increased vulnerability to heart attacks.
+
+We will use a **`stat_halfeye()`** and **`geom_boxplot()`** from **ggplot2** to visualize gender differences, as well as a boxplot to compare differences between individuals with and without heart attacks. Similarly, we will apply the **`stat_halfeye()`** and **`geom_boxplot()`** to examine regional differences (urban vs. rural). Lastly, we will include an interaction term between gender and region (e.g., **Female.Urban** and **Male.Urban**) to visualize the proportions of heart attack cases within these groups, helping us identify which demographic groups may be more vulnerable.
+
+::: panel-tabset
+## Gender
+
+```{r}
+#| echo: False
+# Calculate summary statistics for Age vs Stress by Gender
+summary_stats_gen <- yesheartattack %>%
+  group_by(AgeCat, Gender) %>%
+  summarise(
+    Q25 = quantile(Stress_Levels, 0.25, na.rm = TRUE),
+    median_BP = median(Stress_Levels, na.rm = TRUE),
+    Q75 = quantile(Stress_Levels, 0.75, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    label = paste("25th: ", round(Q25, 1), 
+                  "\nMedian: ", round(median_BP, 1), 
+                  "\n75th: ", round(Q75, 1))
+  )
+
+# Half eye plot for Age vs Stress by Gender with adjusted text placement
+halfeyegen <- ggplot(yesheartattack, 
+       aes(x = AgeCat, 
+           y = Stress_Levels, 
+           fill = AgeCat)) +
+  stat_halfeye(adjust = 0.5,
+               justification = -0.2,
+               .width = 0,
+               point_colour = NA) +
+  geom_boxplot(width = .20,
+               outlier.shape = NA) +
+  facet_wrap(~ Gender) +
+  geom_text(data = summary_stats_gen, 
+            aes(x = AgeCat, 
+                y = Q25 - 2,  # Place 25th percentile lower
+                label = paste("25th: ", round(Q25, 1))), 
+            size = 3, color = "black", vjust = -4.5) +  
+  geom_text(data = summary_stats_gen, 
+            aes(x = AgeCat, 
+                y = median_BP,  # Place median in the middle
+                label = paste("Median: ", round(median_BP, 1))), 
+            size = 3, color = "black", vjust = -0.3) +  
+  geom_text(data = summary_stats_gen, 
+            aes(x = AgeCat, 
+                y = Q75 + 2,  # Place 75th percentile higher
+                label = paste("75th: ", round(Q75, 1))), 
+            size = 3, color = "black", vjust = 4.5) +  
+  labs(title = "Age vs Stress by Gender", 
+       x = "Age", 
+       y = "Stress")+
+  scale_fill_manual(values = c("Young" = "#ffde59", "Middle-Aged" = "#e79251", "Old" = "#fcadb9")) +
   theme_minimal() +
-  theme(axis.title.y = element_blank(),
-        axis.text.y = element_blank(),
-        axis.title.x = element_blank(),
-        plot.title = element_blank())
+  theme(axis.title.x = element_blank(),
+        legend.position = "none")
 
-# Normalize the proportion by Stress and Gender
-normalized_proportion_heartattack <- yesheartattack %>%
-  group_by(Stress, Gender) %>%
-  summarise(HeartAttackCases = n()) %>%
-  group_by(Stress) %>%
-  mutate(TotalHeartAttackCasesStress = sum(HeartAttackCases)) %>%
-  ungroup() %>%
-  mutate(NormalizedProportion = HeartAttackCases / TotalHeartAttackCasesStress * 100)
+# Summary stats for stress levels by heart attack occurrence
+summary_stats_heart <- heartattack %>%
+  group_by(Gender, Heart_Attack_Occurrence) %>%
+  summarise(
+    median_val = median(Stress_Levels, na.rm = TRUE),
+    .groups = "drop"
+  )
 
-# Gender plot with normalized proportions
-gender <- ggplot(normalized_proportion_heartattack, aes(x = Gender, y = NormalizedProportion, fill = Gender)) +
-  geom_bar(stat = "identity", show.legend = FALSE, color = "black") +
-  geom_text(aes(label = sprintf("%.1f%%", NormalizedProportion)), vjust = 1.5, size = 3) +
-  labs(x = "Gender", y = "Normalized Proportion of Heart Attack Cases",
-       title = "Normalized Proportion of Heart Attack Cases among Stress Levels by Gender") +
-  scale_fill_manual(values = c("Female" = "#f7a8b8", "Male" = "#83bace")) + 
-  facet_wrap(~ Stress, ncol = 3) + 
+# Boxplot for Stress Levels by Heart Attack Occurrence
+boxgen <- ggplot(heartattack, aes(x = Heart_Attack_Occurrence, y = Stress_Levels, fill = Heart_Attack_Occurrence)) +
+  geom_boxplot() +
+  geom_text(data = summary_stats_heart, 
+            aes(x = Heart_Attack_Occurrence, 
+                y = median_val, 
+                label = paste("Median: ", round(median_val, 2))), 
+            vjust = -0.5, size = 3) +
+  facet_wrap(~ Gender, scales = 'free') +  # Facet by gender
+  scale_fill_manual(values = c("Yes" = "#83bace", "No" = "#9cc567")) +
+  labs(title = "Stress Levels by Heart Attack Occurrence",
+       x = "Heart Attack",
+       y = "Stress Level") +
   theme_minimal() +
-  theme(axis.title.y = element_blank(),
-        axis.text.y = element_blank(),
+  theme(
         axis.title.x = element_blank(),
-        plot.title = element_blank())
+        legend.position = "none") +
+  coord_flip()
+
+# Combine plots with layout adjustments
+halfeyegen / boxgen + plot_layout(heights = c(1.5, 0.5))
+```
+
+## Region
+
+```{r}
+#| echo: False
+# Calculate the statistics for labels
+summary_stats <- yesheartattack %>%
+  group_by(AgeCat, Region) %>%
+  summarise(
+    median_BP = median(Stress_Levels, na.rm = TRUE),
+    Q25 = quantile(Stress_Levels, 0.25, na.rm = TRUE),
+    Q75 = quantile(Stress_Levels, 0.75, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    label = paste("25th: ", round(Q25, 1),
+                  "\nMedian: ", round(median_BP, 1),
+                  "\n75th: ", round(Q75, 1))
+  )
+
+# Half eye plot for Age vs Stress by Gender with adjusted text placement
+halfeyereg <- ggplot(yesheartattack, 
+       aes(x = AgeCat, 
+           y = Stress_Levels, 
+           fill = AgeCat)) +
+  stat_halfeye(adjust = 0.5,
+               justification = -0.2,
+               .width = 0,
+               point_colour = NA) +
+  geom_boxplot(width = .20,
+               outlier.shape = NA) +
+  facet_wrap(~ Region) +
+  geom_text(data = summary_stats, 
+            aes(x = AgeCat, 
+                y = Q25 - 2,  # Place 25th percentile lower
+                label = paste("25th: ", round(Q25, 1))), 
+            size = 3, color = "black", vjust = -4.5) +  
+  geom_text(data = summary_stats, 
+            aes(x = AgeCat, 
+                y = median_BP,  # Place median in the middle
+                label = paste("Median: ", round(median_BP, 1))), 
+            size = 3, color = "black", vjust = -0.3) +  
+  geom_text(data = summary_stats, 
+            aes(x = AgeCat, 
+                y = Q75 + 2,  # Place 75th percentile higher
+                label = paste("75th: ", round(Q75, 1))), 
+            size = 3, color = "black", vjust = 5) +  
+  labs(title = "Region vs Stress by Gender", 
+       x = "Region", 
+       y = "Stress") +
+  scale_fill_manual(values = c("Young" = "#ffde59", "Middle-Aged" = "#e79251", "Old" = "#9cc567")) +
+  theme_minimal() +
+  theme(axis.title.x = element_blank(),
+        legend.position = "none")
 
 # Normalize the proportion of heart attack cases by Gender and Region
 normalized_proportion_heartattack_group <- yesheartattack %>%
   group_by(Gender, Region) %>%
-  summarise(HeartAttackCases = n()) %>%
+  summarise(HeartAttackCases = n(), .groups = "drop") %>%
   group_by(Region) %>%
   mutate(TotalHeartAttackCasesRegion = sum(HeartAttackCases)) %>%
   ungroup() %>%
@@ -1273,30 +1316,62 @@ normalized_proportion_heartattack_group <- yesheartattack %>%
 # Create the bar plot with normalized proportions
 gender_reg <- ggplot(normalized_proportion_heartattack_group, aes(x = interaction(Gender, Region), y = NormalizedProportion, fill = interaction(Gender, Region))) +
   geom_bar(stat = "identity", show.legend = FALSE, color = "black") +
-  geom_text(aes(label = sprintf("%.1f%%", NormalizedProportion)), vjust = 1, size = 3, hjust = 1.3) +
-  labs(x = "Gender-Region Group", y = "Normalized Proportion of Heart Attack Cases (%)") +
+  geom_text(aes(label = sprintf("%.1f%%", NormalizedProportion)), vjust = 0.6, size = 3, hjust = 1.3) +
+  labs(x = "Gender-Region Group", y = "Proportion of Heart Attack Cases (%)") +
   scale_fill_manual(values = c("Male.Urban" = "#0d8ab7", "Female.Urban" = "#e78090", "Male.Rural" = "#83bace", "Female.Rural" = "#f0c6c7")) +
   theme_minimal() +
-  theme(axis.title.y = element_blank(),
-        axis.title.x = element_blank(),
-        plot.title = element_blank()) +
+  theme(axis.title.x= element_text(size=8),axis.title.y = element_blank(), plot.title = element_blank()) +
   coord_flip()
 
 
-(gender + region) / gender_reg+
-  plot_annotation(title = "Proportion of Heart Attack Cases among Stress Levels by Gender and Region")
+halfeyereg / gender_reg + plot_layout(heights = c(1.5, 0.5))
+
 ```
 :::
 
 ::: {.callout-note style="color: black; background-color: #e0f3f9"}
 ## Insights
 
--   Notably, the group most at risk is rural-dwelling males, with a heart attack proportion of 52.3%. They are followed by rural males, with 51.6%. These findings emphasize the combined effect of gender and urban living on heart attack vulnerability, highlighting a need for targeted interventions for males, particularly in rural settings.
+-   Stress levels increase slightly with age for both genders, with older men experiencing higher overall stress than women. Overall, male heart attack patients tend to have slightly higher stress levels, whereas female heart attack patients experience lower stress compared to their non-heart attack counterparts.
+
+-   Urban individuals report slightly higher stress than rural individuals, but rural males have the highest proportion of heart attack cases (52.3%). Despite higher stress in urban areas, heart attack rates remain lower.
 :::
 
 ------------------------------------------------------------------------
 
-# 6 Clinical Implications & Summary
+# 6 Clinical Implications
+
+The analysis of heart attack vulnerability across age, stress levels, and physiological factors provides critical insights for clinical practice. The following are key findings from this study:
+
+1.  **Age-Specific Vulnerability**: Middle-aged males and older females exhibit higher susceptibility to heart attacks. Understanding these trends can help target early prevention strategies tailored to these demographics.
+
+2.  **Role of Stress in Heart Attack Risk**:
+
+    -   Older individuals tend to experience higher stress levels, with a significant impact on heart attack occurrence.
+
+    -   Younger individuals with high stress exhibit lower diastolic blood pressure, suggesting potential adaptability, whereas older individuals experience increased diastolic BP under stress, indicating heightened risk.
+
+3.  **Blood Pressure Variations**:
+
+    -   Among heart attack cases, diastolic blood pressure demonstrates a stronger correlation with stress than systolic blood pressure.
+
+    -   Older individuals show a direct relationship between stress and diastolic BP, reinforcing the role of chronic stress in heart attack risk.
+
+4.  **Gender and Regional Disparities**:
+
+    -   Stress levels rise with age for both genders, with older men experiencing higher stress levels.
+
+    -   Urban populations report slightly higher stress levels than rural populations, yet rural males have the highest proportion of heart attack cases, likely due to healthcare access disparities and physically demanding labor.
+
+These insights suggest that personalized interventions—ranging from stress management programs for younger individuals to targeted cardiovascular monitoring for older individuals—are essential for reducing heart attack risks across different population groups in Japan. Additionally, addressing regional disparities through improved healthcare accessibility in rural areas is crucial.
+
+------------------------------------------------------------------------
+
+# 7 Summary
+
+This study provides insights into the relationship between stress, age, gender, and heart attack occurrence. While stress levels show a statistically significant difference between individuals with and without a heart attack, the clinical relevance remains minimal. Notably, older patients exhibit higher stress levels and greater variability in diastolic blood pressure (DBP) under stress, indicating a potential risk of stress-induced hypertension. Younger individuals, in contrast, display better cardiovascular adaptability, with lower systolic and diastolic blood pressure under stress.
+
+Gender and geographic location also appear to influence heart attack risk in Japan, with males and rural populations being more vulnerable. These findings highlight the importance of considering age, stress, and access to healthcare in heart attack prevention and management.
 
 ------------------------------------------------------------------------
 
@@ -1311,5 +1386,3 @@ Iso H. (2011). Lifestyle and cardiovascular disease in Japan. *Journal of ather
 Jung, E., Kong, S. Y., Ro, Y. S., Ryu, H. H., & Shin, S. D. (2022). Serum Cholesterol Levels and Risk of Cardiovascular Death: A Systematic Review and a Dose-Response Meta-Analysis of Prospective Cohort Studies. *International journal of environmental research and public health*, *19*(14), 8272. https://doi.org/10.3390/ijerph19148272
 
 Lauer, M. S., Okin, P. M., Larson, M. G., Evans, J. C., Levy, D. (2004). Impaired heart rate response to graded exercise: Prognostic implications of chronotropic incompetence in the Framingham Heart Study. *Circulation, 109*(7), 988–994. [https://doi.org/10.1161/01.CIR.0000141564.89465.4E](https://www.ahajournals.org/doi/10.1161/01.CIR.0000141564.89465.4E)
-
-Mayo Clinic. (n.d.). *What’s a normal resting heart rate?* Mayo Clinic. Retrieved February 3, 2025, from <https://www.mayoclinic.org/healthy-lifestyle/fitness/expert-answers/heart-rate/faq-20057979>

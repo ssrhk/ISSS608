@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Sei Sar Hla Kyi">
-<meta name="dcterms.date" content="2025-02-10">
+<meta name="dcterms.date" content="2025-02-13">
 
 <title>Take-home Exercise 01: Visualizing and Uncovering Trends on Heart Attacks in Japan – ISSS608</title>
 <style>
@@ -254,12 +254,14 @@ window.Quarto = {
   </ul></li>
   <li><a href="#zooming-in-vulnerability-in-young-vs-old-individuals" id="toc-zooming-in-vulnerability-in-young-vs-old-individuals" class="nav-link" data-scroll-target="#zooming-in-vulnerability-in-young-vs-old-individuals">5.3 Zooming in: Vulnerability in Young vs Old Individuals</a>
   <ul class="collapse">
-  <li><a href="#focusing-on-stress" id="toc-focusing-on-stress" class="nav-link" data-scroll-target="#focusing-on-stress">5.3.1 Focusing on Stress</a></li>
-  <li><a href="#stress-levels-in-blood-pressure" id="toc-stress-levels-in-blood-pressure" class="nav-link" data-scroll-target="#stress-levels-in-blood-pressure">5.3.2 Stress Levels in Blood Pressure</a></li>
-  <li><a href="#does-gender-and-regions-matter-in-stress" id="toc-does-gender-and-regions-matter-in-stress" class="nav-link" data-scroll-target="#does-gender-and-regions-matter-in-stress">5.3.3 Does Gender and Regions Matter in Stress?</a></li>
+  <li><a href="#focusing-on-stress-among-heart-attack-cases" id="toc-focusing-on-stress-among-heart-attack-cases" class="nav-link" data-scroll-target="#focusing-on-stress-among-heart-attack-cases">5.3.1 Focusing on Stress among Heart Attack Cases</a></li>
+  <li><a href="#stress-levels-in-systolic-vs-diastolic-blood-pressure" id="toc-stress-levels-in-systolic-vs-diastolic-blood-pressure" class="nav-link" data-scroll-target="#stress-levels-in-systolic-vs-diastolic-blood-pressure">5.3.2 Stress Levels in Systolic vs Diastolic Blood Pressure</a></li>
+  <li><a href="#stress-levels-in-diastolic-blood-pressure" id="toc-stress-levels-in-diastolic-blood-pressure" class="nav-link" data-scroll-target="#stress-levels-in-diastolic-blood-pressure">5.3.3 Stress Levels in Diastolic Blood Pressure</a></li>
+  <li><a href="#does-gender-and-regions-matter" id="toc-does-gender-and-regions-matter" class="nav-link" data-scroll-target="#does-gender-and-regions-matter">5.3.4 Does Gender and Regions Matter?</a></li>
   </ul></li>
   </ul></li>
-  <li><a href="#clinical-implications-summary" id="toc-clinical-implications-summary" class="nav-link" data-scroll-target="#clinical-implications-summary">6 Clinical Implications &amp; Summary</a></li>
+  <li><a href="#clinical-implications" id="toc-clinical-implications" class="nav-link" data-scroll-target="#clinical-implications">6 Clinical Implications</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">7 Summary</a></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   </ul>
 </nav>
@@ -286,14 +288,14 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 10, 2025</p>
+      <p class="date">February 13, 2025</p>
     </div>
   </div>
   
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">February 10, 2025</p>
+      <p class="date-modified">February 13, 2025</p>
     </div>
   </div>
     
@@ -330,8 +332,8 @@ window.Quarto = {
 <div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 50%">
-<col style="width: 50%">
+<col style="width: 23%">
+<col style="width: 76%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -353,23 +355,27 @@ window.Quarto = {
 <td>to combine multiple ggplot2 plots into a cohesive layout, making it easier to present related visualizations side by side</td>
 </tr>
 <tr class="even">
-<td>plotly</td>
-<td></td>
+<td>ggdist</td>
+<td>for visualizing distributions and uncertainty in data, particularly helpful for displaying probability distributions, densities, and interval estimates in an intuitive way.</td>
 </tr>
 <tr class="odd">
-<td>ggstatsplot</td>
-<td></td>
+<td>ggridges</td>
+<td>for visualizing the distribution of a numerical variable across different categories in a compact and aesthetically appealing manner.</td>
 </tr>
 <tr class="even">
+<td>ggstatsplot</td>
+<td>to enhance ggplot2 by incorporating statistical tests directly into visualizations, providing plots with annotations for effect sizes, p-values, confidence intervals, and other relevant statistical metrics.</td>
+</tr>
+<tr class="odd">
 <td>ggthemes</td>
-<td></td>
+<td>for additional themes and color palettes for ggplot2, allowing for more customization and better aesthetics</td>
 </tr>
 </tbody>
 </table>
 </div>
 <div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(tidyverse,patchwork,plotly,ggdist, ggridges,ggstatsplot,ggthemes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(tidyverse,patchwork, ggdist, ggridges,ggstatsplot,ggthemes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -439,7 +445,7 @@ $ Extra_Column_15         &lt;dbl&gt; 0.061632229, 0.617825340, 0.974455410, 0.2
 <div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>heartattack_data <span class="ot">&lt;-</span> heartattack_data <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span><span class="fu">c</span>(<span class="dv">18</span><span class="sc">:</span><span class="dv">32</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>We also notice that this dataset also contains data for people with no heart attack occurrence (in the Heart_Attack_Occurrence column). Since we are performing exploratory data analysis (EDA), it would be valuable to keep both groups, as this allows us to identify and compare characteristics like&nbsp;age, gender, lifestyle, or pre-existing conditions&nbsp;between those who had a heart attack and those who didn’t, potentially letting us uncover patterns or trends that can inform your study.</p>
+<p>We also notice that this dataset also contains data for people with no heart attack occurrence (in the Heart_Attack_Occurrence column). Since we are performing exploratory data analysis (EDA), it would be valuable to keep both groups, as this allows us to identify and compare characteristics like&nbsp;age, gender, lifestyle, or pre-existing conditions&nbsp;between those who had a heart attack and those who didn’t, potentially letting us uncover patterns or trends that can inform the study.</p>
 </section>
 <section id="checking-for-duplicates-and-missing-values" class="level2">
 <h2 class="anchored" data-anchor-id="checking-for-duplicates-and-missing-values">4.3 Checking for Duplicates and Missing values</h2>
@@ -478,7 +484,7 @@ $ Extra_Column_15         &lt;dbl&gt; 0.061632229, 0.617825340, 0.974455410, 0.2
 </div>
 </div>
 </div>
-<p>There are no duplicates and missing values in this dataset.</p>
+<p>We have confirmed that there are no duplicates and missing values in this dataset.</p>
 </section>
 <section id="grouping-variables-into-categories" class="level2">
 <h2 class="anchored" data-anchor-id="grouping-variables-into-categories">4.4 Grouping Variables into Categories</h2>
@@ -490,23 +496,11 @@ $ Extra_Column_15         &lt;dbl&gt; 0.061632229, 0.617825340, 0.974455410, 0.2
 <li><p><strong>Middle-Aged</strong>: 40–59</p></li>
 <li><p><strong>Old</strong>: 60–79</p></li>
 </ul></li>
-<li><p><strong>Cholesterol Level:</strong> According to guidelines from the American Heart Association (AHA) and National Heart, Lung, and Blood Institute (NHLBI) (Lauer et al, 2004), a desirable low cholesterol level is&nbsp;Below&nbsp;200 mg/dL, a borderline high medium would be between 200 to 239 mg/dL and high cholesterol level is considered as 240 mg/dL and above.To align with this finding, we will categorize as:</p>
-<ul>
-<li><strong>Low:</strong>&nbsp;80–199 mg/dL</li>
-<li><strong>Medium:</strong>&nbsp;200–239 mg/dL</li>
-<li><strong>High:</strong>&nbsp;240–336 mg/dL</li>
-</ul></li>
-<li><p><strong>Stress Level:</strong> A common method to measure stress is the Perceived Stress Scale (Cohen,1994) where individuals rate their stress from&nbsp;0 (no stress) to 10 (extreme stress). Since our dataset usesa&nbsp;0 to 10 range, it’s likely a self-reported scale, where 0-3 represents minimal or manageable stress, 4-6 represents moderate stress and 7-10 represents high to extreme stress, with potential health risks. Therefore, we will categorize the stress levels as:</p>
+<li><p><strong>Stress Level:</strong> A common method to measure stress is the Perceived Stress Scale (Cohen,1994) where individuals rate their stress from&nbsp;0 (no stress) to 10 (extreme stress). Since our dataset uses a&nbsp;0 to 10 range, it’s likely a self-reported scale, where 0-3 represents minimal or manageable stress, 4-6 represents moderate stress and 7-10 represents high to extreme stress, with potential health risks. Therefore, we will categorize the stress levels as:</p>
 <ul>
 <li><strong>Low:</strong>&nbsp;0.000–3.999</li>
 <li><strong>Medium:</strong>&nbsp;4.000–6.999</li>
 <li><strong>High:</strong>&nbsp;7.000–10.000</li>
-</ul></li>
-<li><p><strong>Heart Rate:</strong> According to Mayo Clinic, low/below normal heart rate is below 60 bpm, a normal healthy range is 60–100 bpm, and above normal is above 100 bpm. Aligning with this, our categories will be:</p>
-<ul>
-<li><p><strong>Low:</strong>&nbsp;30.000–59.999 bpm</p></li>
-<li><p><strong>Normal:</strong>&nbsp;60.000–99.999 bpm</p></li>
-<li><p><strong>High:</strong>&nbsp;100.000–108.7812 bpm</p></li>
 </ul></li>
 </ul>
 <div class="cell">
@@ -518,34 +512,18 @@ $ Extra_Column_15         &lt;dbl&gt; 0.061632229, 0.617825340, 0.974455410, 0.2
 <span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>      Age <span class="sc">&gt;=</span> <span class="dv">60</span> <span class="sc">&amp;</span> Age <span class="sc">&lt;=</span> <span class="dv">79</span> <span class="sc">~</span> <span class="st">"Old"</span></span>
 <span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    ),</span>
 <span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">Cholesterol =</span> <span class="fu">case_when</span>(</span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>      Cholesterol_Level <span class="sc">&gt;=</span> <span class="fl">80.0000</span> <span class="sc">&amp;</span> Cholesterol_Level  <span class="sc">&lt;=</span> <span class="fl">199.9999</span> <span class="sc">~</span> <span class="st">"Low"</span>,</span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>      Cholesterol_Level  <span class="sc">&gt;=</span> <span class="fl">200.0000</span> <span class="sc">&amp;</span> Cholesterol_Level  <span class="sc">&lt;=</span> <span class="fl">239.9999</span> <span class="sc">~</span> <span class="st">"Medium"</span>,</span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>      Cholesterol_Level  <span class="sc">&gt;=</span> <span class="fl">240.0000</span> <span class="sc">&amp;</span> Cholesterol_Level  <span class="sc">&lt;=</span> <span class="fl">336.9999</span> <span class="sc">~</span> <span class="st">"High"</span></span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">Stress =</span> <span class="fu">case_when</span>(</span>
-<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>      Stress_Levels <span class="sc">&gt;=</span> <span class="fl">0.000</span> <span class="sc">&amp;</span> Stress_Levels <span class="sc">&lt;=</span> <span class="fl">3.999999</span> <span class="sc">~</span> <span class="st">"Low"</span>,</span>
-<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>      Stress_Levels <span class="sc">&gt;</span> <span class="fl">4.000</span> <span class="sc">&amp;</span> Stress_Levels <span class="sc">&lt;=</span> <span class="fl">6.999999</span> <span class="sc">~</span> <span class="st">"Medium"</span>,</span>
-<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>      Stress_Levels <span class="sc">&gt;</span> <span class="fl">7.000</span> <span class="sc">&amp;</span> Stress_Levels <span class="sc">&lt;=</span> <span class="fl">10.000</span> <span class="sc">~</span> <span class="st">"High"</span></span>
-<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">HeartRate =</span> <span class="fu">case_when</span>(</span>
-<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>      Heart_Rate <span class="sc">&gt;=</span> <span class="fl">30.000</span> <span class="sc">&amp;</span> Heart_Rate <span class="sc">&lt;=</span> <span class="fl">59.99999</span> <span class="sc">~</span> <span class="st">"Low"</span>,</span>
-<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>      Heart_Rate <span class="sc">&gt;</span> <span class="fl">60.000</span> <span class="sc">&amp;</span> Heart_Rate <span class="sc">&lt;=</span> <span class="fl">99.99999</span> <span class="sc">~</span> <span class="st">"Normal"</span>,</span>
-<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>      Heart_Rate <span class="sc">&gt;</span> <span class="fl">100.000</span> <span class="sc">&amp;</span> Heart_Rate <span class="sc">&lt;=</span> <span class="fl">108.78217</span> <span class="sc">~</span> <span class="st">"High"</span></span>
-<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">BMICat =</span> <span class="fu">case_when</span>(</span>
-<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>      BMI <span class="sc">&gt;=</span> <span class="dv">0</span> <span class="sc">&amp;</span> BMI <span class="sc">&lt;=</span> <span class="fl">17.999999</span> <span class="sc">~</span> <span class="st">"Underweight"</span>,</span>
-<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>      BMI <span class="sc">&gt;</span> <span class="dv">18</span> <span class="sc">&amp;</span> BMI <span class="sc">&lt;=</span> <span class="fl">24.999999</span> <span class="sc">~</span> <span class="st">"Normal"</span>,</span>
-<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>      BMI <span class="sc">&gt;</span> <span class="dv">25</span> <span class="sc">~</span> <span class="st">"Overweight"</span></span>
-<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">Stress =</span> <span class="fu">case_when</span>(</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>      Stress_Levels <span class="sc">&gt;=</span> <span class="fl">0.000</span> <span class="sc">&amp;</span> Stress_Levels <span class="sc">&lt;=</span> <span class="fl">3.999999</span> <span class="sc">~</span> <span class="st">"Low"</span>,</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>      Stress_Levels <span class="sc">&gt;</span> <span class="fl">4.000</span> <span class="sc">&amp;</span> Stress_Levels <span class="sc">&lt;=</span> <span class="fl">6.999999</span> <span class="sc">~</span> <span class="st">"Medium"</span>,</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>      Stress_Levels <span class="sc">&gt;</span> <span class="fl">7.000</span> <span class="sc">&amp;</span> Stress_Levels <span class="sc">&lt;=</span> <span class="fl">10.000</span> <span class="sc">~</span> <span class="st">"High"</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="convert-data-types" class="level2">
 <h2 class="anchored" data-anchor-id="convert-data-types">4.5 Convert Data Types</h2>
-<p>We note that all variables are in the correct data types. However, we will convert the categorical columns such as Smoking_History,Diabetes_History, Hypertension_History, Family_History Heart_Attack_Occurrence, and our newly created columns as factor for better visualisation and to put the categories in order.</p>
+<p>We note that all variables are in the correct data types. However, we will convert the categorical columns such as Smoking_History, Diabetes_History, Hypertension_History, Family_History Heart_Attack_Occurrence, and our newly created columns as factor for better visualisation and to put the categories in order.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>heartattack_data <span class="ot">&lt;-</span> heartattack_data <span class="sc">%&gt;%</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
@@ -560,11 +538,8 @@ $ Extra_Column_15         &lt;dbl&gt; 0.061632229, 0.617825340, 0.974455410, 0.2
 <span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">Diet_Quality =</span> <span class="fu">factor</span>(Diet_Quality, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Poor"</span>, <span class="st">"Average"</span>, <span class="st">"Good"</span>)),</span>
 <span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">Physical_Activity =</span> <span class="fu">factor</span>(Physical_Activity, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Low"</span>, <span class="st">"Moderate"</span>, <span class="st">"High"</span>)),</span>
 <span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">AgeCat =</span> <span class="fu">factor</span>(AgeCat, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Young"</span>, <span class="st">"Middle-Aged"</span>, <span class="st">"Old"</span>)),</span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">Cholesterol =</span> <span class="fu">factor</span>(Cholesterol, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Low"</span>, <span class="st">"Medium"</span>, <span class="st">"High"</span>)),</span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">Stress =</span> <span class="fu">factor</span>(Stress, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Low"</span>, <span class="st">"Medium"</span>, <span class="st">"High"</span>)),</span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">HeartRate =</span> <span class="fu">factor</span>(HeartRate, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Low"</span>, <span class="st">"Normal"</span>, <span class="st">"High"</span>)),</span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">BMICat =</span> <span class="fu">factor</span>(BMICat, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Underweight"</span>, <span class="st">"Normal"</span>, <span class="st">"Overweight"</span>))</span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">Stress =</span> <span class="fu">factor</span>(Stress, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Low"</span>, <span class="st">"Medium"</span>, <span class="st">"High"</span>))</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Lastly, save the prepared output to rds format using the following code chunk. We will use this newly prepared data from this point.</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
@@ -582,7 +557,7 @@ $ Extra_Column_15         &lt;dbl&gt; 0.061632229, 0.617825340, 0.974455410, 0.2
 </div>
 </div>
 </div>
-<p>We will create a separate subset of the dataset for individuals who reported ‘Yes’ for Heart Attack Occurrence, enabling us to conduct further analysis on the distribution within this specific group.We will create a separate subset of the dataset for individuals who reported ‘Yes’ for Heart Attack Occurrence, enabling us to conduct further analysis on the distribution within this specific group.</p>
+<p>We will also create a separate subset of the dataset for individuals who reported ‘Yes’ for Heart Attack Occurrence, enabling us to conduct further analysis and visualisations on the distribution with a focus on this specific group.</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-4-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-1" role="tab" aria-controls="tabset-4-1" aria-selected="true">Subset</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-2" role="tab" aria-controls="tabset-4-2" aria-selected="false">Save to .rds format</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-3" role="tab" aria-controls="tabset-4-3" aria-selected="false">Load the rds file</a></li></ul>
 <div class="tab-content">
@@ -612,8 +587,9 @@ $ Extra_Column_15         &lt;dbl&gt; 0.061632229, 0.617825340, 0.974455410, 0.2
 <section id="visualising-the-distributions" class="level2">
 <h2 class="anchored" data-anchor-id="visualising-the-distributions">5.1 Visualising the Distributions</h2>
 <p>To begin, we first assess the distribution of heart attack occurrences in our dataset, which consists of 30,000 records. How many individuals experienced a heart attack? Is the dataset balanced in terms of heart attack cases versus non-cases?</p>
-<p>Next, we examine the distribution of gender—are males and females equally represented? Similarly, we analyze the regional distribution to determine whether rural and urban populations are proportionally represented.</p>
+<p>Next, we examine the distribution of gender—are males and females equally represented? Similarly, we analyze the regional distribution to determine whether rural and urban populations are proportionally sampled in the data.</p>
 <p>Understanding these proportions is crucial, as any significant imbalance could influence our analysis and the generalizability of our findings. By exploring these distributions, we can better assess potential biases and determine whether adjustments, such as weighting or stratified analysis, may be necessary moving forward.</p>
+<p>Let’s start by visualizing pie charts of the categorical variables in our full dataset.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div>
@@ -623,25 +599,25 @@ $ Extra_Column_15         &lt;dbl&gt; 0.061632229, 0.617825340, 0.974455410, 0.2
 </div>
 </div>
 </div>
+<p>From the pie charts, we saw that:</p>
 <ul>
-<li><p>Only&nbsp;<strong>10%</strong>&nbsp;of individuals in the dataset have experienced a heart attack, while&nbsp;<strong>90%</strong>&nbsp;have not. This suggests an&nbsp;<strong>imbalance</strong>&nbsp;in the dataset, where heart attack cases are much fewer than non-cases.</p></li>
+<li><p>Only&nbsp;<strong>10%</strong>&nbsp;of individuals in the dataset have experienced a heart attack, while&nbsp;<strong>90%</strong>&nbsp;have not. This suggests an&nbsp;<strong>imbalance</strong>&nbsp;in the dataset, where heart attack cases are sampled much fewer than non-cases.</p></li>
 <li><p>The dataset has an equal representation of&nbsp;<strong>males (50%) and females (50%)</strong>.This balance ensures that gender-related analyses are not biased toward one group over the other.</p></li>
 <li><p>The underrepresentation of rural populations means findings may be more&nbsp;<strong>urban-centric</strong>&nbsp;unless adjustments are made. If rural populations are at different levels of heart attack risk, this imbalance may impact the generalizability of results.</p></li>
 <li><p>Young age category is over represented as compared to middle-aged and old. Since this may overemphasize the vulnerabilitiy of young individuals, we will have to adjust this AgeCat variable for further analysis as shown in section 5.2.3.</p></li>
 <li><p>In stress categories is the medium level is over represented as well. Since this may overemphasize the medium stress level, we will have to adjust this Stress variable for further analysis as shown in section 5.3.1.</p></li>
-<li></li>
 </ul>
 </section>
 <section id="starting-big-overview-of-heart-attack-occurrence-in-japan" class="level2">
 <h2 class="anchored" data-anchor-id="starting-big-overview-of-heart-attack-occurrence-in-japan">5.2 Starting Big: Overview of Heart Attack Occurrence in Japan</h2>
 <section id="association-of-heart-attack-occurrence-with-continuous-factors" class="level3">
 <h3 class="anchored" data-anchor-id="association-of-heart-attack-occurrence-with-continuous-factors">5.2.1 Association of Heart Attack Occurrence with Continuous Factors</h3>
-<p>To determine whether numerical factors are associated with heart attack occurrence, we will first assess the distribution of each numerical variable. The following will be tested:</p>
+<p>To determine whether numerical factors are associated with heart attack occurrence, we will first assess the distribution of each continuous variable. The following will be tested:</p>
 <ul>
-<li><p><strong>Hypothesis:</strong>There is no significant difference in numerical factors between individuals with and without a heart attack.</p></li>
-<li><p><strong>Alternative Hypothesis</strong>: There is a significant difference in numerical factors between individuals with and without a heart attack.</p></li>
+<li><p><strong>Null Hypothesis:</strong> There is no significant difference in continuous factors between individuals with and without a heart attack.</p></li>
+<li><p><strong>Alternative Hypothesis</strong>: There is a significant difference in continuous factors between individuals with and without a heart attack.</p></li>
 </ul>
-<p>To decide whether to use the&nbsp;<strong>Welch’s t-test</strong>&nbsp;(for normally distributed data) or the&nbsp;<strong>Mann-Whitney U test</strong>&nbsp;(for non-normally distributed data), we will first check the normality of each numerical variable.</p>
+<p>To decide whether to use the&nbsp;<strong>Welch’s t-test</strong>&nbsp;(for normally distributed data) or the&nbsp;<strong>Mann-Whitney U test</strong>&nbsp;(for non-normally distributed data), we will first check the normality of each continuous variable by plotting histograms as shown below. <strong><code>geom_histogram()</code></strong> from <strong>ggplot2</strong> package to plot the histograms.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div>
@@ -651,7 +627,7 @@ $ Extra_Column_15         &lt;dbl&gt; 0.061632229, 0.617825340, 0.974455410, 0.2
 </div>
 </div>
 </div>
-<p>Since all 6 continuous variables represent normal distribution, we will use Welch test which is type = “p”.</p>
+<p>Since all six continuous variables follow a normal distribution, we will use the <strong>Welch’s t-test</strong> for comparing means between groups. The <strong><code>ggbetweenstats()</code></strong> function from the <strong>ggstatsplot</strong> package allows us to visualize the distribution of a continuous variable across categorical groups while simultaneously performing statistical test to test our hypothesis. In this case, we will specify <strong>Welch’s t-test</strong> using <code>type = "p"</code> within <code>ggbetweenstats()</code>.</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-5-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-1" role="tab" aria-controls="tabset-5-1" aria-selected="true">BMI + Stress</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-5-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-2" role="tab" aria-controls="tabset-5-2" aria-selected="false">Cholesterol + Heart Rate</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-5-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-3" role="tab" aria-controls="tabset-5-3" aria-selected="false">Systolic + Diastolic BP</a></li></ul>
 <div class="tab-content">
@@ -690,27 +666,10 @@ $ Extra_Column_15         &lt;dbl&gt; 0.061632229, 0.617825340, 0.974455410, 0.2
 </div>
 </div>
 </div>
-<div class="callout callout-style-default callout-note callout-titled" style="color: black; background-color: #e0f3f9">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Insights
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<ul>
-<li><p>The Welch’s t-test for&nbsp;Stress Level&nbsp;has a&nbsp;p-value of 0.04, indicating a statistically significant difference in stress levels between individuals with and without a heart attack.</p></li>
-<li><p>The mean stress level is slightly lower for individuals who had a heart attack (4.93) compared to those who did not (5.01), but the effect size (g hedges​=0.04) suggests a very small difference. While statistically significant, this difference may not be clinically meaningful.</p></li>
-<li><p>BMI, Cholesterol Level, Heart Rate, Systolic BP, and Diastolic BP&nbsp;all had&nbsp;p-values greater than 0.05, indicating&nbsp;no significant differences&nbsp;between individuals with and without a heart attack. This suggests that these factors, in isolation, do not show strong evidence of a direct association with heart attack occurrence in this dataset.</p></li>
-<li><p>Apart from Stress, we <strong>fail to reject</strong> the null hypothesis that there is no significant difference between individuals with and without a heart attack for the rest of the variables.</p></li>
-</ul>
-</div>
-</div>
 </section>
 <section id="association-of-heart-attack-occurrence-with-categorical-factors" class="level3">
 <h3 class="anchored" data-anchor-id="association-of-heart-attack-occurrence-with-categorical-factors">5.2.2 Association of Heart Attack Occurrence with Categorical Factors</h3>
+<p>Next, we will conduct hypothesis testing for the categorical variables as well. We will use <strong><code>ggbarstats()</code></strong> from the <strong>ggstatsplot</strong> package to assess statistical significance while visualizing the proportions and distribution of categorical factors in a stacked bar chart. This function performs appropriate statistical tests to determine associations between categorical variables.</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-6-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-1" role="tab" aria-controls="tabset-6-1" aria-selected="true">Diabetes + Alcohol Consumption</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-6-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-2" role="tab" aria-controls="tabset-6-2" aria-selected="false">Smoking + Family History</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-6-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-3" role="tab" aria-controls="tabset-6-3" aria-selected="false">Diet Quality + Physical Activity</a></li></ul>
 <div class="tab-content">
@@ -755,23 +714,23 @@ Insights
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Insights from Two Sample Mean Tests
+Insights
 </div>
 </div>
 <div class="callout-body-container callout-body">
 <ul>
 <li><p>The Welch’s t-test for&nbsp;Stress Level&nbsp;has a&nbsp;p-value of 0.04, indicating a statistically significant difference in stress levels between individuals with and without a heart attack.</p></li>
 <li><p>The mean stress level is slightly lower for individuals who had a heart attack (4.93) compared to those who did not (5.01), but the effect size (g hedges​=0.04) suggests a very small difference. While statistically significant, this difference may not be clinically meaningful.</p></li>
-<li><p>BMI, Cholesterol Level, Heart Rate, Systolic BP, and Diastolic BP&nbsp;all had&nbsp;p-values greater than 0.05, indicating&nbsp;no significant differences&nbsp;between individuals with and without a heart attack. This suggests that these factors, in isolation, do not show strong evidence of a direct association with heart attack occurrence in this dataset.</p></li>
-<li><p>There is no clear association observed between the levels of categorical factors like alcohol consumption and heart attack occurrence at a significance level of 5%. For example, low alcohol consumption does not correlate with a lower risk of heart attack, nor does high alcohol consumption correlate with a higher risk for this particular dataset.</p></li>
+<li><p>BMI, Cholesterol Level, Heart Rate, Systolic BP, Diastolic BP and&nbsp;all categorical variables had&nbsp;p-values greater than 0.05, indicating&nbsp;no significant differences&nbsp;between individuals with and without a heart attack. This suggests that these factors, in isolation, do not show strong evidence of a direct association with heart attack occurrence in this dataset.</p></li>
+<li><p>Apart from Stress, we <strong>fail to reject</strong> the null hypothesis that there is no significant difference between individuals with and without a heart attack for the rest of the variables.</p></li>
 </ul>
 </div>
 </div>
 </section>
 <section id="overview-of-heart-attack-cases-the-demographics" class="level3">
 <h3 class="anchored" data-anchor-id="overview-of-heart-attack-cases-the-demographics">5.2.3 Overview of Heart Attack Cases: The Demographics</h3>
-<p>We will first explore the distribution of heart attack occurrences across different age groups and genders in Japan. By categorizing individuals into age groups (Young, Middle-Aged, and Old), we can observe trends in heart attack prevalence, with particular focus on gender differences. This helps identify which demographic groups are more vulnerable and gives us the overview.</p>
-<div class="callout callout-style-default callout-important callout-titled">
+<p>Now that we have an understanding of the distributions and significance of the variables against heart attack occurrence, we will first explore the distribution of heart attack occurrences across different age groups and genders in Japan. By categorizing individuals into age groups (Young, Middle-Aged, and Old), we can observe trends in heart attack prevalence, with particular focus on gender differences. This helps identify which demographic groups are more vulnerable and gives us the overview.</p>
+<div class="callout callout-style-default callout-important callout-titled" style="color: black; background-color: #f0dcdc">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
@@ -787,6 +746,7 @@ Adjustment for Age Category Imbalance
 <p>This adjustment ensures that the analysis of heart attack risk is proportionate to the actual representation of each age group in the dataset, providing more accurate insights into the relationship between age and heart attack prevalence.</p>
 </div>
 </div>
+<p>For this visualization, we will use <strong><code>geom_bar()</code></strong> from the <strong>ggplot2</strong> package to create bar charts and leverage the <strong>patchwork</strong> package to seamlessly combine multiple bar charts into a cohesive layout.</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-7-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-1" role="tab" aria-controls="tabset-7-1" aria-selected="true">The Plot</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-7-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-2" role="tab" aria-controls="tabset-7-2" aria-selected="false">The Code</a></li></ul>
 <div class="tab-content">
@@ -813,14 +773,14 @@ Adjustment for Age Category Imbalance
 <span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(AgeCat) <span class="sc">%&gt;%</span></span>
 <span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">HeartAttackCases =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span></span>
 <span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(total_age_counts, <span class="at">by =</span> <span class="st">"AgeCat"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Prevalence =</span> (HeartAttackCases <span class="sc">/</span> TotalCount) <span class="sc">*</span> <span class="dv">100</span>)</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">PrevalenceAgeCat =</span> (HeartAttackCases <span class="sc">/</span> TotalCount) <span class="sc">*</span> <span class="dv">100</span>)</span>
 <span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>custom_colors <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Young"</span> <span class="ot">=</span> <span class="st">"#ffe372"</span>, <span class="st">"Middle-Aged"</span> <span class="ot">=</span> <span class="st">"#9cc567"</span>, <span class="st">"Old"</span> <span class="ot">=</span> <span class="st">"#e79251"</span>)</span>
 <span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot 1: Heart Attack Occurrence by Age Category </span></span>
-<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(age_summary, <span class="fu">aes</span>(<span class="at">x =</span> AgeCat, <span class="at">y =</span> Prevalence, <span class="at">fill =</span> AgeCat)) <span class="sc">+</span></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(age_summary, <span class="fu">aes</span>(<span class="at">x =</span> AgeCat, <span class="at">y =</span> PrevalenceAgeCat, <span class="at">fill =</span> AgeCat)) <span class="sc">+</span></span>
 <span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
-<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">sprintf</span>(<span class="st">"%.2f%%"</span>, Prevalence)), <span class="at">vjust =</span> <span class="fl">1.5</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span>  </span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">sprintf</span>(<span class="st">"%.2f%%"</span>, PrevalenceAgeCat)), <span class="at">vjust =</span> <span class="fl">1.5</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span>  </span>
 <span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> custom_colors) <span class="sc">+</span></span>
 <span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Age Category"</span>) <span class="sc">+</span>  </span>
 <span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
@@ -851,12 +811,12 @@ Adjustment for Age Category Imbalance
 <span id="cb17-46"><a href="#cb17-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Gender, AgeCat) <span class="sc">%&gt;%</span></span>
 <span id="cb17-47"><a href="#cb17-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">HeartAttackCases =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span></span>
 <span id="cb17-48"><a href="#cb17-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(total_gender_age_counts, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"Gender"</span>, <span class="st">"AgeCat"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb17-49"><a href="#cb17-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Prevalence =</span> (HeartAttackCases <span class="sc">/</span> TotalCount) <span class="sc">*</span> <span class="dv">100</span>)</span>
+<span id="cb17-49"><a href="#cb17-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">PrevalenceAgeCat =</span> (HeartAttackCases <span class="sc">/</span> TotalCount) <span class="sc">*</span> <span class="dv">100</span>)</span>
 <span id="cb17-50"><a href="#cb17-50" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-51"><a href="#cb17-51" aria-hidden="true" tabindex="-1"></a><span class="co"># Gender-Age Barplot</span></span>
-<span id="cb17-52"><a href="#cb17-52" aria-hidden="true" tabindex="-1"></a>p3 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(gender_age_summary, <span class="fu">aes</span>(<span class="at">x =</span> Gender, <span class="at">y =</span> Prevalence, <span class="at">fill =</span> AgeCat)) <span class="sc">+</span></span>
+<span id="cb17-52"><a href="#cb17-52" aria-hidden="true" tabindex="-1"></a>p3 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(gender_age_summary, <span class="fu">aes</span>(<span class="at">x =</span> Gender, <span class="at">y =</span> PrevalenceAgeCat, <span class="at">fill =</span> AgeCat)) <span class="sc">+</span></span>
 <span id="cb17-53"><a href="#cb17-53" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">position =</span> <span class="st">"dodge"</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span>  </span>
-<span id="cb17-54"><a href="#cb17-54" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">sprintf</span>(<span class="st">"%.1f%%"</span>, Prevalence)), </span>
+<span id="cb17-54"><a href="#cb17-54" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">sprintf</span>(<span class="st">"%.1f%%"</span>, PrevalenceAgeCat)), </span>
 <span id="cb17-55"><a href="#cb17-55" aria-hidden="true" tabindex="-1"></a>            <span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="at">width =</span> <span class="fl">0.9</span>), <span class="at">vjust =</span> <span class="fl">1.5</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span> </span>
 <span id="cb17-56"><a href="#cb17-56" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> custom_colors) <span class="sc">+</span></span>
 <span id="cb17-57"><a href="#cb17-57" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Gender"</span>, <span class="at">y =</span> <span class="st">"Prevalence of Heart Attack Cases (%)"</span>, <span class="at">fill =</span> <span class="st">"Age Category"</span>) <span class="sc">+</span></span>
@@ -869,7 +829,7 @@ Adjustment for Age Category Imbalance
 <span id="cb17-64"><a href="#cb17-64" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-65"><a href="#cb17-65" aria-hidden="true" tabindex="-1"></a>(p1 <span class="sc">+</span> p2)<span class="sc">/</span> p3 <span class="sc">+</span> </span>
 <span id="cb17-66"><a href="#cb17-66" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">widths =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="fl">1.5</span>)) <span class="sc">+</span>  </span>
-<span id="cb17-67"><a href="#cb17-67" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_annotation</span>(<span class="at">title =</span> <span class="st">"Heart Attack Occurrence by Age Group and Gender"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb17-67"><a href="#cb17-67" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_annotation</span>(<span class="at">title =</span> <span class="st">"Proportion of Heart Attack Cases in Age Groups and Gender"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -886,10 +846,7 @@ Insights
 <div class="callout-body-container callout-body">
 <ul>
 <li><strong>Males have a slightly higher proportion of heart attack cases than females</strong>, suggesting gender may be a factor.</li>
-</ul>
-<!-- -->
-<ul>
-<li><p><strong>Among those who experienced heart attacks</strong>, a higher percentage are in the&nbsp;<strong>Middle Aged Group (10.0%)</strong>.</p>
+<li><strong>Among those who experienced heart attacks</strong>, a higher percentage are in the&nbsp;<strong>Middle Aged Group (10.0%)</strong>.
 <ul>
 <li><p>Among females, the&nbsp;Old Age Group&nbsp;is the most vulnerable.</p></li>
 <li><p>Among males, the&nbsp;Middle-Aged Age Group&nbsp;appears to be the most vulnerable to heart attacks.</p></li>
@@ -903,17 +860,17 @@ Insights
 <h2 class="anchored" data-anchor-id="zooming-in-vulnerability-in-young-vs-old-individuals">5.3 Zooming in: Vulnerability in Young vs Old Individuals</h2>
 <p>Understanding heart attack vulnerability requires examining how risk factors differ across age groups. Young and old individuals present distinct physiological, behavioral, and lifestyle characteristics that influence heart attack risk. Young individuals may experience heart attacks due to factors such as stress, lifestyle habits, or underlying conditions, while older individuals often face risks associated with long-term health issues, including hypertension, cholesterol, and cardiovascular disease.</p>
 <p>By focusing on these two age groups, we aim to uncover key differences in how heart attacks manifest and what factors contribute most significantly to their occurrence. This targeted approach allows us to explore whether certain risk factors, such as stress, have a stronger impact in one group over the other, ultimately providing more age-specific insights into heart attack prevention and management.</p>
-<section id="focusing-on-stress" class="level3">
-<h3 class="anchored" data-anchor-id="focusing-on-stress">5.3.1 Focusing on Stress</h3>
+<section id="focusing-on-stress-among-heart-attack-cases" class="level3">
+<h3 class="anchored" data-anchor-id="focusing-on-stress-among-heart-attack-cases">5.3.1 Focusing on Stress among Heart Attack Cases</h3>
 <p>Stress is a well known contributor to heart disease, but its impact may vary depending on age. In young individuals, stressors such as work pressure, financial concerns, and lifestyle choices may lead to sudden cardiovascular strain, increasing heart attack risk. In contrast, for older individuals, chronic stress and cumulative health burdens can contribute to long-term cardiovascular deterioration.</p>
-<p>Given the significance of stress in heart attack occurrences, as identified in Section 5.1.2, this section examines how stress levels differ between young and old individuals and whether these variations influence heart attack vulnerability. By analyzing these distinctions, we can better understand whether stress acts as a more immediate or gradual risk factor across different age demographics.Adjustment for Stress Category Imbalance</p>
-<div class="callout callout-style-default callout-important callout-titled">
+<p>Given the significance of stress in heart attack occurrences, as identified in Section 5.1.2, this section examines how stress levels differ between young and old individuals and whether these variations influence heart attack vulnerability. By analyzing these distinctions, we can better understand whether stress acts as a more immediate or gradual risk factor across different age demographics.</p>
+<div class="callout callout-style-default callout-important callout-titled" style="color: black; background-color: #f0dcdc">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Important
+Adjustment for Stress Category Imbalance
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -923,11 +880,12 @@ Important
 <li><p>Low: 31%</p></li>
 <li><p>High: 16%</p></li>
 </ul>
-<p>If we use the Stress categories as they are, the medium category would be disproportionately represented. To ensure more accurate insights and avoid overemphasizing the medium stress group, we will normalize the data before visualizing. This normalization will be done using the following formula:</p>
-<p><span class="math inline">\(NormalizedStress\)</span> = Young (or Old) in each Stress Category with experience of Heart Attack​/ Total Number of each Stress Category in those who have experienced Heart Attack</p>
-<p>By applying this normalization, we adjust for the imbalances in Stress category distributions and ensure that each age group’s Stress categories are represented proportionally within the context of heart attack cases.</p>
+<p>If we use the Stress categories as they are, the medium category would be disproportionately represented. To ensure more accurate insights and prevent overemphasis on the medium stress group, we will first analyze within each stress category before visualizing the results.</p>
+<p>To achieve this, we introduce a new variable,&nbsp;<strong>NormalizedStress</strong>, calculated as follows:</p>
+<p><span class="math inline">\(NormalizedStress\)</span> = Number of Young (or Old) individuals in each Stress Category who experienced Heart Attack​/ Total Number of Invidividuals in each Stress Category who experienced Heart Attack</p>
 </div>
 </div>
+<p>For this visualization, we will use&nbsp;<strong><code>ggbetweenstats()</code></strong>&nbsp;to test whether there is a significant association between age categories and stress levels. Additionally,&nbsp;<strong><code>geom_boxplot()</code></strong>&nbsp;will be used to compare stress levels between younger and older individuals, while&nbsp;<strong><code>geom_bar()</code></strong>&nbsp;from the&nbsp;<strong>ggplot2</strong>&nbsp;package will create bar charts to display the distribution of stress levels across age categories. Finally, the&nbsp;<strong>patchwork</strong>&nbsp;package will be used to combine these plots into a cohesive and structured layout.</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-8-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-8-1" role="tab" aria-controls="tabset-8-1" aria-selected="true">The Plot</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-8-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-8-2" role="tab" aria-controls="tabset-8-2" aria-selected="false">The Code</a></li></ul>
 <div class="tab-content">
@@ -958,18 +916,18 @@ Important
 <span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Join the counts with the total Stress counts to calculate normalized proportions</span></span>
 <span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>normalized_stress <span class="ot">&lt;-</span> age_stress_counts <span class="sc">%&gt;%</span></span>
 <span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(total_stress_counts, <span class="at">by =</span> <span class="st">"Stress"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">NormalizedStressProportion =</span> Count <span class="sc">/</span> TotalCount)</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">NormalizedStress =</span> Count <span class="sc">/</span> TotalCount)</span>
 <span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot normalized Stress proportions for each AgeCat</span></span>
-<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>stressplot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(normalized_stress, <span class="fu">aes</span>(<span class="at">x =</span> AgeCat, <span class="at">y =</span> NormalizedStressProportion, <span class="at">fill =</span> Stress)) <span class="sc">+</span></span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>stressplot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(normalized_stress, <span class="fu">aes</span>(<span class="at">x =</span> AgeCat, <span class="at">y =</span> NormalizedStress, <span class="at">fill =</span> Stress)) <span class="sc">+</span></span>
 <span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">position =</span> <span class="st">"dodge"</span>) <span class="sc">+</span>  </span>
-<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">sprintf</span>(<span class="st">"%.1f%%"</span>, NormalizedStressProportion <span class="sc">*</span> <span class="dv">100</span>)), </span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">sprintf</span>(<span class="st">"%.1f%%"</span>, NormalizedStress <span class="sc">*</span> <span class="dv">100</span>)), </span>
 <span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>            <span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="at">width =</span> <span class="fl">0.8</span>), <span class="at">vjust =</span> <span class="fl">1.5</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span>  </span>
 <span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Low"</span> <span class="ot">=</span> <span class="st">"#ffcccc"</span>, <span class="st">"Medium"</span> <span class="ot">=</span> <span class="st">"#83bace"</span>, <span class="st">"High"</span> <span class="ot">=</span> <span class="st">"#608e24"</span>)) <span class="sc">+</span></span>
 <span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Age Category"</span>, <span class="at">y =</span> <span class="st">"Normalized Stress Proportion"</span>) <span class="sc">+</span></span>
 <span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
 <span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"right"</span>,</span>
-<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.title=</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">5</span>),</span>
+<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.title=</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">7</span>),</span>
 <span id="cb18-27"><a href="#cb18-27" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.text=</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">5</span>),</span>
 <span id="cb18-28"><a href="#cb18-28" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_blank</span>(),</span>
 <span id="cb18-29"><a href="#cb18-29" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
@@ -1036,7 +994,7 @@ Important
 <span id="cb18-90"><a href="#cb18-90" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-91"><a href="#cb18-91" aria-hidden="true" tabindex="-1"></a>anova_stress<span class="sc">+</span>stress_box<span class="sc">+</span>stressplot <span class="sc">+</span> </span>
 <span id="cb18-92"><a href="#cb18-92" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">widths =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="fl">0.8</span>, <span class="fl">0.8</span>)) <span class="sc">+</span>  </span>
-<span id="cb18-93"><a href="#cb18-93" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_annotation</span>(<span class="at">title =</span> <span class="st">"Stress Level in Young and Old Individuals who had a Heart Attack"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb18-93"><a href="#cb18-93" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_annotation</span>(<span class="at">title =</span> <span class="st">"Stress Level of Heart Attack Cases by Age Category"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -1059,25 +1017,13 @@ Insights
 </div>
 </div>
 </section>
-<section id="stress-levels-in-blood-pressure" class="level3">
-<h3 class="anchored" data-anchor-id="stress-levels-in-blood-pressure">5.3.2 Stress Levels in Blood Pressure</h3>
-<p>Blood pressure is a critical indicator of cardiovascular health, and its relationship with stress is well-documented in medical research. Higher stress levels have been associated with fluctuations in blood pressure, which can increase the risk of heart-related complications, including heart attacks (Gordon &amp; Mendes,2021).</p>
-<p>In this section, we examine how diastolic blood pressure varies across different stress levels among young and old individuals. By analyzing these patterns, we aim to understand whether stress contributes differently to blood pressure changes across age groups. Identifying such differences can provide insights into the physiological impact of stress and its potential role in heart attack risk.</p>
-<div class="callout callout-style-default callout-important callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-FYI! Why Diastolic BP is important
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>Systolic blood pressure reflects the pressure in the arteries when the heart beats, while diastolic blood pressure reflects the pressure between beats when the heart is at rest. Diastolic pressure is often used in clinical settings to gauge the health of the blood vessels and heart’s ability to relax. Given the context of this study, which seeks to explore the impact of stress on heart function, diastolic blood pressure provides a more relevant and sensitive measure of how stress affects the body’s ability to regulate blood flow.</p>
-</div>
-</div>
+<section id="stress-levels-in-systolic-vs-diastolic-blood-pressure" class="level3">
+<h3 class="anchored" data-anchor-id="stress-levels-in-systolic-vs-diastolic-blood-pressure">5.3.2 Stress Levels in Systolic vs Diastolic Blood Pressure</h3>
+<p>Blood pressure (BP) is a critical indicator of cardiovascular health, with fluctuations often linked to stress levels. Research has shown that prolonged exposure to stress can contribute to blood pressure dysregulation, increasing the risk of cardiovascular events, including heart attacks (Gordon &amp; Mendes, 2021).</p>
+<p>Systolic blood pressure (SBP) measures the pressure exerted on artery walls when the heart contracts, while diastolic blood pressure (DBP) reflects the pressure during heart relaxation. Understanding the relationship between stress and both BP components helps assess how stress-induced cardiovascular responses vary between individuals.</p>
+<p>We will visualize both SBP and DBP using <code>geom_boxplot()</code> from the <strong>ggplot2</strong> package, with the plots faceted by stress levels. This approach allows for a clear comparison of different age categories within each stress level.</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-9-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-9-1" role="tab" aria-controls="tabset-9-1" aria-selected="true">Correlation Analysis - BP vs Stress</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-9-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-9-2" role="tab" aria-controls="tabset-9-2" aria-selected="false">Distribution of Diastolic BP in Age</a></li></ul>
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-9-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-9-1" role="tab" aria-controls="tabset-9-1" aria-selected="true">The Plot</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-9-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-9-2" role="tab" aria-controls="tabset-9-2" aria-selected="false">The Code</a></li></ul>
 <div class="tab-content">
 <div id="tabset-9-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-9-1-tab">
 <div class="cell">
@@ -1092,13 +1038,37 @@ FYI! Why Diastolic BP is important
 </div>
 <div id="tabset-9-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-9-2-tab">
 <div class="cell">
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="Take-home_Ex01_files/figure-html/unnamed-chunk-27-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Boxplot to compare diastolic BP distribution by stress level and age group</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>dia <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(yesheartattack, <span class="fu">aes</span>(<span class="at">x =</span> AgeCat, <span class="at">y =</span> Diastolic_BP, <span class="at">fill =</span> AgeCat)) <span class="sc">+</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>() <span class="sc">+</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> Stress) <span class="sc">+</span>  <span class="co"># Remove scales = 'free' to make y-axis same for all facets</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_summary</span>(<span class="at">fun =</span> median, <span class="at">geom =</span> <span class="st">"text"</span>, <span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">round</span>(..y.., <span class="dv">2</span>)), </span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">vjust =</span> <span class="sc">-</span><span class="fl">0.5</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span>  <span class="co"># Add median text</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Distribution of Diastolic BP and Systolic BP by Stress Level and Age Group"</span>,</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Age Group"</span>,</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Diastolic BP (mmHg)"</span>) <span class="sc">+</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Young"</span> <span class="ot">=</span> <span class="st">"#ffde59"</span>, <span class="st">"Middle-Aged"</span> <span class="ot">=</span> <span class="st">"#9cc567"</span>, <span class="st">"Old"</span> <span class="ot">=</span> <span class="st">"#fcadb9"</span>)) <span class="sc">+</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position =</span> <span class="st">"none"</span>)</span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Boxplot to compare systolic BP distribution by stress level and age group</span></span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>sys <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(yesheartattack, <span class="fu">aes</span>(<span class="at">x =</span> AgeCat, <span class="at">y =</span> Systolic_BP, <span class="at">fill =</span> AgeCat)) <span class="sc">+</span></span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>() <span class="sc">+</span></span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> Stress) <span class="sc">+</span>  <span class="co"># Remove scales = 'free' to make y-axis same for all facets</span></span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_summary</span>(<span class="at">fun =</span> median, <span class="at">geom =</span> <span class="st">"text"</span>, <span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">round</span>(..y.., <span class="dv">2</span>)), </span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a>               <span class="at">vjust =</span> <span class="sc">-</span><span class="fl">0.5</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span>  <span class="co"># Add median text</span></span>
+<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Age Group"</span>,</span>
+<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Systolic BP (mmHg)"</span>) <span class="sc">+</span></span>
+<span id="cb19-24"><a href="#cb19-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Young"</span> <span class="ot">=</span> <span class="st">"#ffde59"</span>, <span class="st">"Middle-Aged"</span> <span class="ot">=</span> <span class="st">"#9cc567"</span>, <span class="st">"Old"</span> <span class="ot">=</span> <span class="st">"#fcadb9"</span>)) <span class="sc">+</span></span>
+<span id="cb19-25"><a href="#cb19-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb19-26"><a href="#cb19-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb19-27"><a href="#cb19-27" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb19-28"><a href="#cb19-28" aria-hidden="true" tabindex="-1"></a>        <span class="at">strip.text =</span> <span class="fu">element_blank</span>(),  <span class="co"># Removes "Low," "Medium," "High" labels</span></span>
+<span id="cb19-29"><a href="#cb19-29" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position =</span> <span class="st">"none"</span>)</span>
+<span id="cb19-30"><a href="#cb19-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-31"><a href="#cb19-31" aria-hidden="true" tabindex="-1"></a>dia <span class="sc">/</span> sys</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -1114,34 +1084,53 @@ Insights
 </div>
 <div class="callout-body-container callout-body">
 <ul>
-<li>The&nbsp;spread (IQR) of diastolic BP is wider&nbsp;for young individuals across all stress levels, meaning their BP varies more compared to older individuals. The density plots (overlaid KDE) show that the&nbsp;diastolic BP distribution is slightly more concentrated for older individuals, suggesting more consistency in their BP readings.</li>
-</ul>
-<!-- -->
+<li><p>Both&nbsp;SBP and DBP&nbsp;appear to be&nbsp;relatively stable&nbsp;across stress levels, with only slight variations.</p></li>
+<li><p>Older individuals tend to have higher median SBP and DBP, likely due to&nbsp;reduced arterial elasticity and increased vascular resistance with aging.</p></li>
+<li><p>Diastolic BP:</p>
 <ul>
-<li><p>The analysis reveals a significant correlation between stress and diastolic blood pressure (DBP), with a p-value of 0.02 indicating that stress levels do indeed have an effect on DBP. The correlation coefficient (R) of -0.04 suggests a very weak negative relationship between stress and DBP, implying that, on the whole, higher stress levels are slightly associated with lower diastolic blood pressure. However, looking at the 95% confidence interval for the correlation, which ranges from -0.08 to -0.008, we can conclude that while the relationship between stress and DBP is statistically significant, its strength is not substantial.</p></li>
-<li><p>When delving into the distribution of DBP across stress levels in different age categories, there are interesting patterns:</p>
-<ul>
-<li>For young individuals, there is no clear increasing or decreasing trend in median BP across stress levels. The median BP remains relatively stable (around 79-80 mmHg).</li>
-</ul>
-<!-- -->
-<ul>
-<li><p>For older individuals, there is an inverse relationship between stress and diastolic BP:</p>
-<ul>
-<li><p>Older individuals with low stress have the highest median BP (81.2 mmHg).</p></li>
-<li><p>Those with high stress have a lower median BP (79 mmHg).</p></li>
-<li><p>This could suggest that older individuals under stress might have physiological or behavioral responses (e.g., lifestyle changes, medication adherence) that lower BP.</p></li>
-<li><p>In elderly individuals,&nbsp;very low DBP (&lt;60 mmHg) is linked to an increased risk of heart failure&nbsp;because the heart may not get enough oxygenated blood.</p></li>
+<li><p>Young individuals&nbsp;exhibited&nbsp;a decline in median DBP with increasing stress, suggesting possible acute stress adaptation or a physiological response.</p></li>
+<li><p>Older individuals showed a slight increase in DBP with higher stress, which could be attributed to&nbsp;chronic stress effects.</p></li>
 </ul></li>
+<li><p>Systolic BP:</p>
+<ul>
+<li><p>Young individuals also show a slight decrease in SBP under high stress, reinforcing the idea that they may have better cardiovascular adaptability.</p></li>
+<li><p>Older individuals see a moderate rise in SBP with high stress, which aligns with the DBP trend, suggesting&nbsp;stress-induced hypertension risk.</p></li>
 </ul></li>
+<li><p>Middle-aged individuals&nbsp;exhibit the&nbsp;most stable&nbsp;blood pressure across stress levels, possibly due to adaptation mechanisms.</p></li>
+<li><p>Diastolic BP shows a stronger age-dependent variation under stress than Systolic BP.</p></li>
 </ul>
 </div>
 </div>
 </section>
-<section id="does-gender-and-regions-matter-in-stress" class="level3">
-<h3 class="anchored" data-anchor-id="does-gender-and-regions-matter-in-stress">5.3.3 Does Gender and Regions Matter in Stress?</h3>
-<p>Exploring the influence of both gender and region (urban vs.&nbsp;rural) on heart attack occurrence with varying stress levels can provide valuable insights into disparities in cardiovascular risk. By examining how gender and region interact with different stress levels, we aim to uncover any significant patterns that may indicate higher vulnerability to heart attacks.</p>
-<p>Let’s first see the distribution of gender and region proportions in each stress level.</p>
+<section id="stress-levels-in-diastolic-blood-pressure" class="level3">
+<h3 class="anchored" data-anchor-id="stress-levels-in-diastolic-blood-pressure">5.3.3 Stress Levels in Diastolic Blood Pressure</h3>
+<p>Among the two blood pressure metrics, diastolic BP demonstrated a stronger and statistically significant correlation with stress levels. This finding motivated a more in-depth analysis of DBP in response to stress across different age groups.</p>
+<p>This section examines the variations in&nbsp;DBP across different stress levels, comparing young and old individuals. By analyzing these patterns, we aim to determine whether stress contributes differently to blood pressure fluctuations across age groups, which could have implications for heart attack risk.</p>
+<div class="callout callout-style-default callout-important callout-titled" style="color: black; background-color: #f0dcdc">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Why Diastolic BP is important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Systolic blood pressure reflects the pressure in the arteries when the heart beats, while diastolic blood pressure reflects the pressure between beats when the heart is at rest. Diastolic pressure is often used in clinical settings to gauge the health of the blood vessels and heart’s ability to relax. Given the context of this study, which seeks to explore the impact of stress on heart function, diastolic blood pressure provides a more relevant and sensitive measure of how stress affects the body’s ability to regulate blood flow.</p>
+</div>
+</div>
+<p>We will first use <strong><code>ggscatterstats()</code></strong> to examine whether there is a significant correlation between <strong>DBP</strong> and <strong>stress levels</strong>. Then, we will visualize the distribution of <strong>DBP</strong> across different stress levels using a combination of <strong><code>stat_halfeye()</code></strong> and <strong><code>geom_boxplot()</code></strong> from the <strong>ggplot2</strong> package, providing a detailed view of the data distribution and variability.</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-10-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-10-1" role="tab" aria-controls="tabset-10-1" aria-selected="true">Correlation Analysis - DBP vs Stress</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-10-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-10-2" role="tab" aria-controls="tabset-10-2" aria-selected="false">The Plot: Distribution of Diastolic BP</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-10-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-10-3" role="tab" aria-controls="tabset-10-3" aria-selected="false">The Code</a></li></ul>
+<div class="tab-content">
+<div id="tabset-10-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-10-1-tab">
 <div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggscatterstats</span>(</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> yesheartattack,</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> Stress_Levels,</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> Diastolic_BP,</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">marginal =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -1150,31 +1139,8 @@ Insights
 </div>
 </div>
 </div>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
 </div>
-<div class="callout-title-container flex-fill">
-Adjustment for class imbalances in Gender and Region of Stress Levels
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>As found above, if we use the Region and Gender as it are, the Male and Urban category would be disproportionately represented. To ensure more accurate insights and avoid overemphasizing certain groups, we will normalize the data before visualizing. This normalization will be done using the following formulas:</p>
-<p><span class="math inline">\(StressRegion\)</span> = Number of heart attack cases in each Stress-Region group/ Total number of cases in the same stress category</p>
-<p><span class="math inline">\(StressAge\)</span> = Number of heart attack cases in each Stress-Age group/ Total number of cases in the same stress category</p>
-<p><span class="math inline">\(GenderRegion\)</span>= = Number of heart attack cases for each Gender-Region combination/ Total number of heart attack cases in that region</p>
-<p>This ensures that:</p>
-<ol type="1">
-<li><p><strong>Urban and Rural are weighted fairly</strong>&nbsp;(not dominated by Urban cases).</p></li>
-<li><p><strong>Gender imbalances within Urban vs.&nbsp;Rural are accounted for</strong> (not dominated by Male)</p></li>
-</ol>
-</div>
-</div>
-<div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-10-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-10-1" role="tab" aria-controls="tabset-10-1" aria-selected="true">The Plot</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-10-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-10-2" role="tab" aria-controls="tabset-10-2" aria-selected="false">The Code</a></li></ul>
-<div class="tab-content">
-<div id="tabset-10-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-10-1-tab">
+<div id="tabset-10-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-10-2-tab">
 <div class="cell">
 <div class="cell-output-display">
 <div>
@@ -1185,78 +1151,35 @@ Adjustment for class imbalances in Gender and Region of Stress Levels
 </div>
 </div>
 </div>
-<div id="tabset-10-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-10-2-tab">
+<div id="tabset-10-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-10-3-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Normalize the proportion by Region and Gender</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>normalized_proportion_heartattack_reg <span class="ot">&lt;-</span> yesheartattack <span class="sc">%&gt;%</span></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Stress, Region) <span class="sc">%&gt;%</span></span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">HeartAttackCases =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span></span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Stress) <span class="sc">%&gt;%</span></span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">TotalHeartAttackCasesStress =</span> <span class="fu">sum</span>(HeartAttackCases)) <span class="sc">%&gt;%</span></span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">NormalizedProportion =</span> HeartAttackCases <span class="sc">/</span> TotalHeartAttackCasesStress <span class="sc">*</span> <span class="dv">100</span>)</span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Region plot with normalized proportions</span></span>
-<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>region <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(normalized_proportion_heartattack_reg, <span class="fu">aes</span>(<span class="at">x =</span> Region, <span class="at">y =</span> NormalizedProportion, <span class="at">fill =</span> Region)) <span class="sc">+</span></span>
-<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
-<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">sprintf</span>(<span class="st">"%.1f%%"</span>, NormalizedProportion)), <span class="at">vjust =</span> <span class="fl">1.5</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Region"</span>, <span class="at">y =</span> <span class="st">"Normalized Proportion of Heart Attack Cases"</span>,</span>
-<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Normalized Proportion of Heart Attack Cases among Stress Levels by Region"</span>) <span class="sc">+</span></span>
-<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Rural"</span> <span class="ot">=</span> <span class="st">"#9cc567"</span>, <span class="st">"Urban"</span> <span class="ot">=</span> <span class="st">"#e79251"</span>)) <span class="sc">+</span> </span>
-<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> Stress, <span class="at">ncol =</span> <span class="dv">3</span>) <span class="sc">+</span> </span>
-<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title.y =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.title.x =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_blank</span>())</span>
-<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-24"><a href="#cb19-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Normalize the proportion by Stress and Gender</span></span>
-<span id="cb19-25"><a href="#cb19-25" aria-hidden="true" tabindex="-1"></a>normalized_proportion_heartattack <span class="ot">&lt;-</span> yesheartattack <span class="sc">%&gt;%</span></span>
-<span id="cb19-26"><a href="#cb19-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Stress, Gender) <span class="sc">%&gt;%</span></span>
-<span id="cb19-27"><a href="#cb19-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">HeartAttackCases =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span></span>
-<span id="cb19-28"><a href="#cb19-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Stress) <span class="sc">%&gt;%</span></span>
-<span id="cb19-29"><a href="#cb19-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">TotalHeartAttackCasesStress =</span> <span class="fu">sum</span>(HeartAttackCases)) <span class="sc">%&gt;%</span></span>
-<span id="cb19-30"><a href="#cb19-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb19-31"><a href="#cb19-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">NormalizedProportion =</span> HeartAttackCases <span class="sc">/</span> TotalHeartAttackCasesStress <span class="sc">*</span> <span class="dv">100</span>)</span>
-<span id="cb19-32"><a href="#cb19-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-33"><a href="#cb19-33" aria-hidden="true" tabindex="-1"></a><span class="co"># Gender plot with normalized proportions</span></span>
-<span id="cb19-34"><a href="#cb19-34" aria-hidden="true" tabindex="-1"></a>gender <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(normalized_proportion_heartattack, <span class="fu">aes</span>(<span class="at">x =</span> Gender, <span class="at">y =</span> NormalizedProportion, <span class="at">fill =</span> Gender)) <span class="sc">+</span></span>
-<span id="cb19-35"><a href="#cb19-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
-<span id="cb19-36"><a href="#cb19-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">sprintf</span>(<span class="st">"%.1f%%"</span>, NormalizedProportion)), <span class="at">vjust =</span> <span class="fl">1.5</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb19-37"><a href="#cb19-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Gender"</span>, <span class="at">y =</span> <span class="st">"Normalized Proportion of Heart Attack Cases"</span>,</span>
-<span id="cb19-38"><a href="#cb19-38" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Normalized Proportion of Heart Attack Cases among Stress Levels by Gender"</span>) <span class="sc">+</span></span>
-<span id="cb19-39"><a href="#cb19-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Female"</span> <span class="ot">=</span> <span class="st">"#f7a8b8"</span>, <span class="st">"Male"</span> <span class="ot">=</span> <span class="st">"#83bace"</span>)) <span class="sc">+</span> </span>
-<span id="cb19-40"><a href="#cb19-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> Stress, <span class="at">ncol =</span> <span class="dv">3</span>) <span class="sc">+</span> </span>
-<span id="cb19-41"><a href="#cb19-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb19-42"><a href="#cb19-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title.y =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb19-43"><a href="#cb19-43" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb19-44"><a href="#cb19-44" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.title.x =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb19-45"><a href="#cb19-45" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_blank</span>())</span>
-<span id="cb19-46"><a href="#cb19-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-47"><a href="#cb19-47" aria-hidden="true" tabindex="-1"></a><span class="co"># Normalize the proportion of heart attack cases by Gender and Region</span></span>
-<span id="cb19-48"><a href="#cb19-48" aria-hidden="true" tabindex="-1"></a>normalized_proportion_heartattack_group <span class="ot">&lt;-</span> yesheartattack <span class="sc">%&gt;%</span></span>
-<span id="cb19-49"><a href="#cb19-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Gender, Region) <span class="sc">%&gt;%</span></span>
-<span id="cb19-50"><a href="#cb19-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">HeartAttackCases =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span></span>
-<span id="cb19-51"><a href="#cb19-51" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Region) <span class="sc">%&gt;%</span></span>
-<span id="cb19-52"><a href="#cb19-52" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">TotalHeartAttackCasesRegion =</span> <span class="fu">sum</span>(HeartAttackCases)) <span class="sc">%&gt;%</span></span>
-<span id="cb19-53"><a href="#cb19-53" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb19-54"><a href="#cb19-54" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">NormalizedProportion =</span> HeartAttackCases <span class="sc">/</span> TotalHeartAttackCasesRegion <span class="sc">*</span> <span class="dv">100</span>)</span>
-<span id="cb19-55"><a href="#cb19-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-56"><a href="#cb19-56" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the bar plot with normalized proportions</span></span>
-<span id="cb19-57"><a href="#cb19-57" aria-hidden="true" tabindex="-1"></a>gender_reg <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(normalized_proportion_heartattack_group, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">interaction</span>(Gender, Region), <span class="at">y =</span> NormalizedProportion, <span class="at">fill =</span> <span class="fu">interaction</span>(Gender, Region))) <span class="sc">+</span></span>
-<span id="cb19-58"><a href="#cb19-58" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
-<span id="cb19-59"><a href="#cb19-59" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">sprintf</span>(<span class="st">"%.1f%%"</span>, NormalizedProportion)), <span class="at">vjust =</span> <span class="dv">1</span>, <span class="at">size =</span> <span class="dv">3</span>, <span class="at">hjust =</span> <span class="fl">1.3</span>) <span class="sc">+</span></span>
-<span id="cb19-60"><a href="#cb19-60" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Gender-Region Group"</span>, <span class="at">y =</span> <span class="st">"Normalized Proportion of Heart Attack Cases (%)"</span>) <span class="sc">+</span></span>
-<span id="cb19-61"><a href="#cb19-61" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Male.Urban"</span> <span class="ot">=</span> <span class="st">"#0d8ab7"</span>, <span class="st">"Female.Urban"</span> <span class="ot">=</span> <span class="st">"#e78090"</span>, <span class="st">"Male.Rural"</span> <span class="ot">=</span> <span class="st">"#83bace"</span>, <span class="st">"Female.Rural"</span> <span class="ot">=</span> <span class="st">"#f0c6c7"</span>)) <span class="sc">+</span></span>
-<span id="cb19-62"><a href="#cb19-62" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb19-63"><a href="#cb19-63" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title.y =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb19-64"><a href="#cb19-64" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.title.x =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb19-65"><a href="#cb19-65" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_blank</span>()) <span class="sc">+</span></span>
-<span id="cb19-66"><a href="#cb19-66" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>()</span>
-<span id="cb19-67"><a href="#cb19-67" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-68"><a href="#cb19-68" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-69"><a href="#cb19-69" aria-hidden="true" tabindex="-1"></a>(gender <span class="sc">+</span> region) <span class="sc">/</span> gender_reg<span class="sc">+</span></span>
-<span id="cb19-70"><a href="#cb19-70" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_annotation</span>(<span class="at">title =</span> <span class="st">"Proportion of Heart Attack Cases among Stress Levels by Gender and Region"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(heartattack_filtered, <span class="fu">aes</span>(<span class="at">x =</span> Stress, <span class="at">y =</span> Diastolic_BP, <span class="at">fill =</span> AgeCat)) <span class="sc">+</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_halfeye</span>(<span class="at">adjust =</span> <span class="fl">0.5</span>, </span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">justification =</span> <span class="sc">-</span><span class="fl">0.2</span>, </span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">.width =</span> <span class="dv">0</span>, </span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">point_colour =</span> <span class="cn">NA</span>, </span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span>  <span class="co"># Density plot</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">width =</span> <span class="fl">0.2</span>, </span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>               <span class="at">outlier.shape =</span> <span class="dv">16</span>,  </span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>               <span class="at">outlier.color =</span> <span class="st">"black"</span>, </span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>               <span class="at">outlier.size =</span> <span class="fl">1.5</span>, </span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>               <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span>  </span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_summary</span>(<span class="at">fun =</span> median, <span class="at">geom =</span> <span class="st">"text"</span>,</span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>               <span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">paste0</span>(<span class="st">"Median = "</span>, <span class="fu">round</span>(..y.., <span class="dv">1</span>))),</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>               <span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="at">width =</span> <span class="fl">0.8</span>),</span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>               <span class="at">vjust =</span> <span class="fl">0.3</span>, <span class="at">size =</span> <span class="dv">3</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span>  <span class="co"># Add median text</span></span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span>  <span class="co"># Flip for better readability</span></span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Young"</span> <span class="ot">=</span> <span class="st">"#63b2e3"</span>, <span class="st">"Old"</span> <span class="ot">=</span> <span class="st">"#f1b6b1"</span>)) <span class="sc">+</span> </span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_discrete</span>(<span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.2</span>, <span class="fl">0.8</span>))) <span class="sc">+</span></span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Diastolic BP Across Stress Levels"</span>,</span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Stress Levels"</span>,</span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Diastolic Blood Pressure (mmHg)"</span>,</span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>       <span class="at">fill =</span> <span class="st">"Age Category"</span>) <span class="sc">+</span></span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_economist</span>() <span class="sc">+</span> </span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>,</span>
+<span id="cb21-25"><a href="#cb21-25" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.text=</span><span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">8</span>),</span>
+<span id="cb21-26"><a href="#cb21-26" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.title=</span><span class="fu">element_blank</span>(),</span>
+<span id="cb21-27"><a href="#cb21-27" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.title.y =</span> <span class="fu">element_blank</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -1272,7 +1195,63 @@ Insights
 </div>
 <div class="callout-body-container callout-body">
 <ul>
-<li>Notably, the group most at risk is rural-dwelling males, with a heart attack proportion of 52.3%. They are followed by rural males, with 51.6%. These findings emphasize the combined effect of gender and urban living on heart attack vulnerability, highlighting a need for targeted interventions for males, particularly in rural settings.</li>
+<li>The analysis reveals a significant correlation between stress and diastolic blood pressure (DBP), with a p-value of 0.02 indicating that stress levels do indeed have an effect on DBP. The correlation coefficient (R) of -0.04 suggests a very weak negative relationship between stress and DBP, implying that, on the whole, higher stress levels are slightly associated with lower diastolic blood pressure. However, looking at the 95% confidence interval for the correlation, which ranges from -0.08 to -0.008, we can conclude that while the relationship between stress and DBP is statistically significant, its strength is not substantial.</li>
+<li>The&nbsp;spread (IQR) of diastolic BP is wider&nbsp;for young individuals across all stress levels, meaning their BP varies more compared to older individuals. The density plots show that the&nbsp;diastolic BP distribution is slightly more concentrated for older individuals, suggesting more consistency in their BP readings.</li>
+<li>For young individuals, the inverse relationship between stress and diastolic blood pressure is intriguing. Specifically, those experiencing higher levels of stress have lower median diastolic blood pressure. This could potentially be related to lifestyle factors common among younger populations, such as increased physical activity or lower levels of chronic conditions, which might help mitigate the expected increases in blood pressure with stress.</li>
+<li>For older individuals, there is an direct relationship between stress and diastolic BP:
+<ul>
+<li><p>Older individuals with low stress have the lowest median BP (79.5 mmHg).</p></li>
+<li><p>Those with high stress have a higher median BP (80.4 mmHg).</p></li>
+<li><p>This could suggest that older individuals under high stress might have increased risk of heart attack.</p></li>
+</ul></li>
+</ul>
+</div>
+</div>
+</section>
+<section id="does-gender-and-regions-matter" class="level3">
+<h3 class="anchored" data-anchor-id="does-gender-and-regions-matter">5.3.4 Does Gender and Regions Matter?</h3>
+<p>Exploring the impact of gender and region (urban vs.&nbsp;rural) on the occurrence of heart attacks in relation to varying stress levels can reveal important insights into cardiovascular risk disparities. By examining how gender and region interact with different stress levels, we aim to identify significant patterns that may highlight increased vulnerability to heart attacks.</p>
+<p>We will use a <strong><code>stat_halfeye()</code></strong> and <strong><code>geom_boxplot()</code></strong> from <strong>ggplot2</strong> to visualize gender differences, as well as a boxplot to compare differences between individuals with and without heart attacks. Similarly, we will apply the <strong><code>stat_halfeye()</code></strong> and <strong><code>geom_boxplot()</code></strong> to examine regional differences (urban vs.&nbsp;rural). Lastly, we will include an interaction term between gender and region (e.g., <strong>Female.Urban</strong> and <strong>Male.Urban</strong>) to visualize the proportions of heart attack cases within these groups, helping us identify which demographic groups may be more vulnerable.</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-11-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-11-1" role="tab" aria-controls="tabset-11-1" aria-selected="true">Gender</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-11-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-11-2" role="tab" aria-controls="tabset-11-2" aria-selected="false">Region</a></li></ul>
+<div class="tab-content">
+<div id="tabset-11-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-11-1-tab">
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Take-home_Ex01_files/figure-html/unnamed-chunk-31-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-11-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-11-2-tab">
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Take-home_Ex01_files/figure-html/unnamed-chunk-32-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled" style="color: black; background-color: #e0f3f9">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Insights
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><p>Stress levels increase slightly with age for both genders, with older men experiencing higher overall stress than women. Overall, male heart attack patients tend to have slightly higher stress levels, whereas female heart attack patients experience lower stress compared to their non-heart attack counterparts.</p></li>
+<li><p>Urban individuals report slightly higher stress than rural individuals, but rural males have the highest proportion of heart attack cases (52.3%). Despite higher stress in urban areas, heart attack rates remain lower.</p></li>
 </ul>
 </div>
 </div>
@@ -1280,8 +1259,34 @@ Insights
 </section>
 </section>
 </section>
-<section id="clinical-implications-summary" class="level1">
-<h1>6 Clinical Implications &amp; Summary</h1>
+<section id="clinical-implications" class="level1">
+<h1>6 Clinical Implications</h1>
+<p>The analysis of heart attack vulnerability across age, stress levels, and physiological factors provides critical insights for clinical practice. The following are key findings from this study:</p>
+<ol type="1">
+<li><p><strong>Age-Specific Vulnerability</strong>: Middle-aged males and older females exhibit higher susceptibility to heart attacks. Understanding these trends can help target early prevention strategies tailored to these demographics.</p></li>
+<li><p><strong>Role of Stress in Heart Attack Risk</strong>:</p>
+<ul>
+<li><p>Older individuals tend to experience higher stress levels, with a significant impact on heart attack occurrence.</p></li>
+<li><p>Younger individuals with high stress exhibit lower diastolic blood pressure, suggesting potential adaptability, whereas older individuals experience increased diastolic BP under stress, indicating heightened risk.</p></li>
+</ul></li>
+<li><p><strong>Blood Pressure Variations</strong>:</p>
+<ul>
+<li><p>Among heart attack cases, diastolic blood pressure demonstrates a stronger correlation with stress than systolic blood pressure.</p></li>
+<li><p>Older individuals show a direct relationship between stress and diastolic BP, reinforcing the role of chronic stress in heart attack risk.</p></li>
+</ul></li>
+<li><p><strong>Gender and Regional Disparities</strong>:</p>
+<ul>
+<li><p>Stress levels rise with age for both genders, with older men experiencing higher stress levels.</p></li>
+<li><p>Urban populations report slightly higher stress levels than rural populations, yet rural males have the highest proportion of heart attack cases, likely due to healthcare access disparities and physically demanding labor.</p></li>
+</ul></li>
+</ol>
+<p>These insights suggest that personalized interventions—ranging from stress management programs for younger individuals to targeted cardiovascular monitoring for older individuals—are essential for reducing heart attack risks across different population groups in Japan. Additionally, addressing regional disparities through improved healthcare accessibility in rural areas is crucial.</p>
+<hr>
+</section>
+<section id="summary" class="level1">
+<h1>7 Summary</h1>
+<p>This study provides insights into the relationship between stress, age, gender, and heart attack occurrence. While stress levels show a statistically significant difference between individuals with and without a heart attack, the clinical relevance remains minimal. Notably, older patients exhibit higher stress levels and greater variability in diastolic blood pressure (DBP) under stress, indicating a potential risk of stress-induced hypertension. Younger individuals, in contrast, display better cardiovascular adaptability, with lower systolic and diastolic blood pressure under stress.</p>
+<p>Gender and geographic location also appear to influence heart attack risk in Japan, with males and rural populations being more vulnerable. These findings highlight the importance of considering age, stress, and access to healthcare in heart attack prevention and management.</p>
 <hr>
 </section>
 <section id="references" class="level1">
@@ -1291,7 +1296,6 @@ Insights
 <p>Iso H. (2011). Lifestyle and cardiovascular disease in Japan.&nbsp;<em>Journal of atherosclerosis and thrombosis</em>,&nbsp;<em>18</em>(2), 83–88. https://doi.org/10.5551/jat.6866</p>
 <p>Jung, E., Kong, S. Y., Ro, Y. S., Ryu, H. H., &amp; Shin, S. D. (2022). Serum Cholesterol Levels and Risk of Cardiovascular Death: A Systematic Review and a Dose-Response Meta-Analysis of Prospective Cohort Studies. <em>International journal of environmental research and public health</em>, <em>19</em>(14), 8272. https://doi.org/10.3390/ijerph19148272</p>
 <p>Lauer, M. S., Okin, P. M., Larson, M. G., Evans, J. C., Levy, D. (2004). Impaired heart rate response to graded exercise: Prognostic implications of chronotropic incompetence in the Framingham Heart Study.&nbsp;<em>Circulation, 109</em>(7), 988–994.&nbsp;<a href="https://www.ahajournals.org/doi/10.1161/01.CIR.0000141564.89465.4E">https://doi.org/10.1161/01.CIR.0000141564.89465.4E</a></p>
-<p>Mayo Clinic. (n.d.).&nbsp;<em>What’s a normal resting heart rate?</em>&nbsp;Mayo Clinic. Retrieved February 3, 2025, from&nbsp;<a href="https://www.mayoclinic.org/healthy-lifestyle/fitness/expert-answers/heart-rate/faq-20057979" class="uri">https://www.mayoclinic.org/healthy-lifestyle/fitness/expert-answers/heart-rate/faq-20057979</a></p>
 
 
 </section>
