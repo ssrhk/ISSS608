@@ -1,0 +1,225 @@
+---
+title: "In-class_Ex05"
+format: html
+author: "Sei Sar Hla Kyi"
+date: "`r Sys.Date()`"
+date-modified: "`r Sys.Date()`"
+execute: 
+  eval: true
+  echo: true
+  message: false
+  freeze: true
+  warning: false
+---
+
+# 1 Installing and Loading Packages
+
+SmartEDA: productive tool to organize our data to do EDA effectively
+
+gtsummary: summarize modelling results and create elegant table for reporting purposes
+
+```{r}
+pacman::p_load(tidyverse, readxl, SmartEDA, easystats, gtsummary,ggstatsplot)
+```
+
+# 2 Importing Data
+
+We will use *read_xls( )* from **readxl** package that allows us to work with excel file. "data" tells which worksheet to read as the excel file contains multiple worksheets (data and metadata). Each worksheet represent one dataframe in the excel file.
+
+```{r}
+car_resale <- read_xls("data/ToyotaCorolla.xls","data")
+```
+
+# 3 Data Overview
+
+The following are different ways we can visualize the data.
+
+::: panel-tabset
+## glimpse()
+
+We can use *glimpse( )* from the **dplyr** package that shows the structure of the data.
+
+```{r}
+glimpse(car_resale)
+```
+
+## summary()
+
+*summary()* shows us the class, and range/quartiles (for continuous variables).
+
+```{r}
+summary(car_resale)
+```
+:::
+
+However, both are difficult to see.
+
+Tables are also a way to visualize the data. *ExpData* from **SmartEDA** package allows us to visualize easier.
+
+::: panel-tabset
+## type 1: Overall data summary
+
+Complete cases shows us if there are missing values. 100% means there is no missing values. If we make it an object by assigning it to 'summary1' we can now further customize it to report.
+
+```{r}
+car_resale %>%
+  ExpData(type=1)
+```
+
+## type 2: Variable level summary
+
+This further break down by variables.
+
+```{r}
+car_resale %>%
+  ExpData(type=2)
+```
+:::
+
+**Insight:** Variable 15 only has one distinct value, this is the variable that has zero variance (uniform).
+
+We will prepare the variables with the code chunk below before further visualization.
+
+```{r}
+cols <- c("Mfg_Month","HP_Bin","CC_bin","Doors","Gears","Cylinders","Fuel_Type","Color","Met_Color","Automatic","Mfr_Guarantee","BOVAG_Guarantee","ABS","Airbag_1","Airbag_2","Airco","Automatic_airco","Boardcomputer","CD_Player","Central_Lock","Powered_Windows","Power_Steering","Radio","Mistlamps","Sport_Model","Backseat_Divider","Metallic_Rim","Radio_cassette","Tow_Bar")
+
+
+car_resale <- read_xls ("data/ToyotaCorolla.xls",
+                        sheet = "data") %>%
+  mutate(Id = as.character(Id)) %>%
+  mutate_each(funs(factor(.)),cols)
+```
+
+## 3.1 Visualizing the variables
+
+### 3.1.1 Continuous variables
+
+*ExpNumViz* from the **SmartEDA** without target variable creates density plots and also display skewness and kurtosis at the same time.
+
+Page lets us control how many plots should placed side by side. 2x2 will give 4 in one page.
+
+nlim will exclude the numeric variable which is having less than nlim unique value.
+
+::: panel-tabset
+## Without Target Variable
+
+```{r}
+car_resale %>%
+  ExpNumViz(target= NULL,
+            nlim = 10,
+            Page = c(2,2))
+```
+
+## With Target Variable
+
+```{r}
+car_resale %>%
+  ExpNumViz(target= "Price",
+            nlim = 10,
+            Page = c(2,2))
+```
+:::
+
+### 3.1.2 Categorical variables
+
+*ExpCatViz* from the **SmartEDA** willl display all the categorical variables in barcharts. Change the figure width and height to visualize better in HTML (default is 8).
+
+```{r}
+#| fig-width: 12
+#| fig_height: 10
+car_resale %>%
+  ExpCatViz(target= NULL,
+            col="sky blue",
+            clim = 10,
+            margin=2,
+            Page = c(4,4),
+            sample=16)
+```
+
+# 4 Building Explanatory Model
+
+Let's build the base model first.
+
+```{r}
+model <- lm(Price ~ Age_08_04 + Mfg_Year + KM + Weight + Guarantee_Period,data=car_resale)
+model
+```
+
+## 4.1 Checking for Multicollinearity
+
+```{r}
+check_collinearity(model)
+```
+
+*Plot()* is a **see** package from **easystats**. It creates plots using ggplot function by consuming objects.
+
+```{r}
+check_c <- check_collinearity(model)
+plot(check_c)
+```
+
+Because there is high VIF between Age and Manufacturing Year, we will remove one from this pair and rebuild the new model. Then we check for normality assumption.
+
+## 4.2 Final Model and Checks
+
+```{r}
+model1 <- lm(Price ~ Age_08_04 + KM + Weight + Guarantee_Period,data=car_resale)
+check_normality(model1)
+```
+
+```{r}
+check_heteroscedasticity(model1)
+```
+
+*check_model()* is using ggplot and patchwork to group all together. It combines all normality, linearity and homogeneity.
+
+::: callout-note
+## To check:
+
+-   For linearity test, it should be a linear line to conform. Possible cause for not conforming: there is an outlier or maybe heteroscedasticity
+
+-   Values should be all around the horizontal line to conform to normality of residuals.
+
+-   Influential Observation: Shows the 95% confidence interval, Red is the significant outlier (consider to remove and rerun model), Green ones are out of the CI.
+:::
+
+```{r}
+check_model(model1)
+```
+
+```{r}
+summary(model1)
+```
+
+Instead of summary (), we can use *tbl_regression()* from **gt_summary** package reorganizes the results in a clear report.
+
+```{r}
+tbl_regression(model1,
+               intercept = TRUE)
+```
+
+To further customize our result report, we will use the following code chunk to add in Rsquare, AIC, p value and sigma for the whole model.
+
+```{r}
+tbl_regression(model1,
+               intercept = TRUE) %>%
+  add_glance_source_note(
+    label = list (sigma ~ "\U03C3"),
+    include = c (r.squared, adj.r.squared,
+                 AIC, statistic,
+                 p.value, sigma))
+```
+
+```{r}
+p_model1<-parameters(model1)
+p_model1
+```
+
+```{r}
+plot(parameters(model1))
+```
+
+```{r}
+ggcoefstats(model1,
+            output = "plot")
+```

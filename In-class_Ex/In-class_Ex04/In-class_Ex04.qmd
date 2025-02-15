@@ -31,7 +31,7 @@ pacman::p_load(ggdist, ggridges, ggthemes,
 exam <- read_csv("data/Exam_data.csv")
 ```
 
-# 3 Distribution of English Grades by Class 
+# 3 Distribution of English Grades by Class
 
 ## 3.1 Boxplot
 

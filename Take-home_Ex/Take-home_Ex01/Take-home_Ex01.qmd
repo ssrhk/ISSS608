@@ -42,7 +42,7 @@ The following R packages will be used to achieve the objective.
 ## Packages Used
 
 | Package | Explanation |
-|------------------|----------------------------------------------------------|
+|------------------------------------|------------------------------------|
 | tidyverse | to efficiently manipulate and clean data, utilizing functions from packages like `dplyr` and `tidyr` for data wrangling. |
 | ggplot2 | to create informative and aesthetically pleasing visualizations, such as histograms and boxplots, to analyze the data |
 | patchwork | to combine multiple ggplot2 plots into a cohesive layout, making it easier to present related visualizations side by side |
@@ -941,7 +941,7 @@ anova_stress+stress_box+stressplot +
 -   When examining stress categories, young heart attack patients were most commonly found in the Low Stress category, with 38.2% of cases. In contrast, older individuals had a greater proportion of heart attack cases in the Medium and High Stress categories. This aligns with the boxplot observations, reinforcing that older heart attack patients generally experience higher stress levels compared to younger patients.
 :::
 
-### 5.3.2 Stress Levels in Systolic vs Diastolic Blood Pressure 
+### 5.3.2 Stress Levels in Systolic vs Diastolic Blood Pressure
 
 Blood pressure (BP) is a critical indicator of cardiovascular health, with fluctuations often linked to stress levels. Research has shown that prolonged exposure to stress can contribute to blood pressure dysregulation, increasing the risk of cardiovascular events, including heart attacks (Gordon & Mendes, 2021).
 
@@ -1339,7 +1339,7 @@ halfeyereg / gender_reg + plot_layout(heights = c(1.5, 0.5))
 
 ------------------------------------------------------------------------
 
-# 6 Clinical Implications
+# 6 Clinical Implications from Visual Plots
 
 The analysis of heart attack vulnerability across age, stress levels, and physiological factors provides critical insights for clinical practice. The following are key findings from this study:
 
@@ -1367,7 +1367,81 @@ These insights suggest that personalized interventions—ranging from stress man
 
 ------------------------------------------------------------------------
 
-# 7 Summary
+# 7 Multiple Logistic Regression Model
+
+Let's build a logistic regression model to confirm and check our clinical implications from our visual plots.
+
+## 7.1 Recoding Variables
+
+### 7.1.1 Recoding Continuous Variables
+
+Scale between 0 and 1 as they are on vastly different scales
+
+```{r}
+heartattack_lr <- heartattack %>%
+  mutate(
+    Cholesterol_Level = rescale(Cholesterol_Level, to = c(0, 1)),
+    Stress_Levels = rescale(Stress_Levels, to = c(0, 1)),
+    BMI = rescale(BMI, to = c(0, 1)),
+    Heart_Rate = rescale(Heart_Rate, to = c(0, 1)),
+    Systolic_BP = rescale(Systolic_BP, to = c(0, 1)),
+    Diastolic_BP = rescale(Diastolic_BP, to = c(0, 1))
+  )
+```
+
+### 7.1.2 Recoding Categorical Variables
+
+| Binary (Recoded to 0 and 1)  | 3 Levels (Recoded to 0,1,2)            |
+|------------------------------|----------------------------------------|
+| Gender: Female/Male          | Physical_Activity: Low/Moderate/High   |
+| Region: Urban/Rural          | Diet_Quality: Poor/Average/Good        |
+| Smoking_History: Yes/No      | Alcohol_Consumption: Low/Moderate/High |
+| Diabetes_History: Yes/No     | AgeCat: Young/Middle-Aged/Old          |
+| Hypertension_History: Yes/No |                                        |
+| Family_History: Yes/No       |                                        |
+
+```{r}
+heartattack_lr <- heartattack_lr %>%
+  mutate(
+    # Binary variables: 0 = No, 1 = Yes
+    Gender = ifelse(Gender == "Female", 0, 1),  
+    Region = ifelse(Region == "Urban", 0, 1),  
+    Smoking_History = ifelse(Smoking_History == "No", 0, 1),  
+    Diabetes_History = ifelse(Diabetes_History == "No", 0, 1),  
+    Hypertension_History = ifelse(Hypertension_History == "No", 0, 1), 
+    Family_History = ifelse(Family_History == "No", 0, 1),  
+    
+    # Three-level variables: 0 = Low/Poor/Young, 1 = Moderate/Average/Middle-Aged, 2 = High/Good/Old
+    Physical_Activity = recode(Physical_Activity, "Low" = 0, "Moderate" = 1, "High" = 2),
+    Diet_Quality = recode(Diet_Quality, "Poor" = 0, "Average" = 1, "Good" = 2),
+    Alcohol_Consumption = recode(Alcohol_Consumption, "Low" = 0, "Moderate" = 1, "High" = 2),
+    AgeCat = recode(AgeCat, "Young" = 0, "Middle-Aged" = 1, "Old" = 2)
+  )
+
+```
+
+### 7.1.3 Recoding Dependent Variable
+
+1: Yes Heart Attack Occurrence
+
+0: No Heart Attack Occurrence
+
+```{r}
+heartattack_lr <- heartattack_lr %>%
+  mutate(Heart_Attack_Recode = ifelse(Heart_Attack_Occurrence == "Yes", 1, 0))
+```
+
+## 7.2 Model
+
+### 7.2.1 Base Model
+
+### 7.2.2 Final Model
+
+## 7.5 Model Diagnostics
+
+------------------------------------------------------------------------
+
+# 8 Summary
 
 This study provides insights into the relationship between stress, age, gender, and heart attack occurrence. While stress levels show a statistically significant difference between individuals with and without a heart attack, the clinical relevance remains minimal. Notably, older patients exhibit higher stress levels and greater variability in diastolic blood pressure (DBP) under stress, indicating a potential risk of stress-induced hypertension. Younger individuals, in contrast, display better cardiovascular adaptability, with lower systolic and diastolic blood pressure under stress.
 
