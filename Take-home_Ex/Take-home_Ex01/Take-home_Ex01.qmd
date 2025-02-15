@@ -50,11 +50,13 @@ The following R packages will be used to achieve the objective.
 | ggridges | for visualizing the distribution of a numerical variable across different categories in a compact and aesthetically appealing manner. |
 | ggstatsplot | to enhance ggplot2 by incorporating statistical tests directly into visualizations, providing plots with annotations for effect sizes, p-values, confidence intervals, and other relevant statistical metrics. |
 | ggthemes | for additional themes and color palettes for ggplot2, allowing for more customization and better aesthetics |
+| scales | to rescale continuous variables for logistic regression |
+| gtsummary | to customize summarization of model outputs |
 
 ## Code to Install and Launch
 
 ```{r}
-pacman::p_load(tidyverse,patchwork, ggdist, ggridges,ggstatsplot,ggthemes)
+pacman::p_load(tidyverse,patchwork, ggdist, ggridges,ggstatsplot,ggthemes,scales,gtsummary)
 ```
 :::
 
@@ -532,7 +534,7 @@ Now that we have an understanding of the distributions and significance of the v
 
 In section 5.1, it was observed that the Young Age Group (36%) is naturally more represented in the dataset. If we analyze the data without adjustment, this could lead to an overemphasis on the risk of heart attacks among young individuals. To mitigate this potential bias, we will normalize the prevalence of heart attacks within each age group by accounting for their overall representation in the dataset.
 
-The prevalence of heart attack in each age category will be normalized using the following formula:
+The prevalence of heart attack in each age category will be calculated using the following formula:
 
 $PrevalenceAgeCat$ = Number of Heart Attack Cases in Age Group/ Total Individuals in Age Group
 
@@ -724,9 +726,7 @@ As found in section 5.1, in our dataset, the Stress category distribution is imb
 
 If we use the Stress categories as they are, the medium category would be disproportionately represented. To ensure more accurate insights and prevent overemphasis on the medium stress group, we will first analyze within each stress category before visualizing the results.
 
-To achieve this, we introduce a new variable, **NormalizedStress**, calculated as follows:
-
-$NormalizedStress$ = Number of Young (or Old) individuals in each Stress Category who experienced Heart Attack​/ Total Number of Invidividuals in each Stress Category who experienced Heart Attack
+To achieve this, we calculate **proportion of young/middle-age/old individuals within each stress group** (i.e. Number of Young individuals in each Stress Category who experienced Heart Attack​/ Total Number of Heart Attack Cases in each Stress Category)
 :::
 
 For this visualization, we will use **`ggbetweenstats()`** to test whether there is a significant association between age categories and stress levels. Additionally, **`geom_boxplot()`** will be used to compare stress levels between younger and older individuals, while **`geom_bar()`** from the **ggplot2** package will create bar charts to display the distribution of stress levels across age categories. Finally, the **patchwork** package will be used to combine these plots into a cohesive and structured layout.
@@ -1337,6 +1337,150 @@ halfeyereg / gender_reg + plot_layout(heights = c(1.5, 0.5))
 -   Urban individuals report slightly higher stress than rural individuals, but rural males have the highest proportion of heart attack cases (52.3%). Despite higher stress in urban areas, heart attack rates remain lower.
 :::
 
+### 5.3.5 Diabetes History in Heart Attack Patients
+
+Diabetes is a significant risk factor for cardiovascular disease, with individuals suffering from diabetes often exhibiting higher rates of heart disease and stroke. The relationship between diabetes and heart health is complex, as diabetes can accelerate the process of fatty plaques buildup in the arteries, which increases the likelihood of heart attacks and other cardiovascular events (Mattheus et al., 2013).
+
+Understanding the influence of a history of diabetes on cardiovascular health is crucial for identifying high-risk populations. Specifically, individuals with a history of diabetes are more likely to experience complications related to blood pressure and cholesterol levels, both of which are critical indicators of heart health.
+
+In this section, we will visualize the distribution of stress levels between individuals with and without a diabetes history. Using `geom_boxplot()` from the **ggplot2** package, we will plot the stress levels, grouped by diabetes history and age category. This will help us identify any significant differences in stress levels between the groups, allowing for a clearer understanding of how diabetes history and age may influence stress.
+
+::: panel-tabset
+## The Plot
+
+```{r}
+#| echo: False
+# Calculate proportions of age categories within Diabetes History
+heartattack_diabetes<- yesheartattack %>% 
+  group_by(Diabetes_History, AgeCat) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  group_by(Diabetes_History) %>%
+  mutate(Proportion = (Count / sum(Count)) * 100) 
+
+# Diabetes Age Group Barchart
+diabetesbar <- ggplot(heartattack_diabetes, aes(x = Diabetes_History, y = Proportion, fill = factor(AgeCat))) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.8)) + 
+  geom_text(aes(label = sprintf("%.1f%%", Proportion)), 
+            position = position_dodge(width = 0.8), vjust = 0.2,hjust=1.2, size = 3) +  
+  labs(
+    title = "Diabetes History by Age Group and Stress Level",
+    x = "Diabetes History",
+    y = "Proportion (%)",
+    fill = "Age Category"
+  ) +
+  scale_fill_manual(values = c("Young" = "#ffde59", "Middle-Aged" = "#e79251", "Old" = "#9cc567")) +
+  theme_minimal()+
+  theme(axis.title.x = element_blank())+
+  coord_flip()
+
+
+# Calculate the percentiles (25th, 50th, and 75th) for Stress Levels grouped by Diabetes History and AgeCat
+age_dia_stress_data <- yesheartattack %>%
+  group_by(Diabetes_History, AgeCat) %>%
+  summarise(
+    median_stress = median(Stress_Levels),
+    q25_stress = quantile(Stress_Levels, 0.25),
+    q75_stress = quantile(Stress_Levels, 0.75),
+    .groups = "drop"
+  )
+
+# Boxplot for Age-Dia-Stress
+age_dia_stress <- ggplot(yesheartattack, aes(x = Diabetes_History, y = Stress_Levels, fill = Diabetes_History)) +
+  geom_boxplot() +
+  facet_wrap(~ AgeCat) +
+  labs(
+       x = "Diabetes History",
+       y = "Stress Levels") +
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title= element_blank()) +
+  scale_fill_manual(values = c("Yes" = "#83bace", "No" = "#e78090")) +
+  geom_text(data = age_dia_stress_data, aes(x = Diabetes_History, y = median_stress, label = paste("Median:", round(median_stress, 2))),
+            position = position_nudge(y = 0.5), size = 3, color = "black") +
+  geom_text(data = age_dia_stress_data, aes(x = Diabetes_History, y = q25_stress, label = paste("25th:", round(q25_stress, 2))),
+            position = position_nudge(y = -0.5), size = 3, color = "black") +
+  geom_text(data = age_dia_stress_data, aes(x = Diabetes_History, y = q75_stress, label = paste("75th:", round(q75_stress, 2))),
+            position = position_nudge(y = 0.5), size = 3, color = "black")
+
+
+diabetesbar/age_dia_stress +
+  plot_layout(widths = c(1,2),heights = c(1,2))
+```
+
+## The Code
+
+```{r}
+#| eval: False
+# Calculate proportions of age categories within Diabetes History
+heartattack_diabetes<- yesheartattack %>% 
+  group_by(Diabetes_History, AgeCat) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  group_by(Diabetes_History) %>%
+  mutate(Proportion = (Count / sum(Count)) * 100) 
+
+# Diabetes Age Group Barchart
+diabetesbar <- ggplot(heartattack_diabetes, aes(x = Diabetes_History, y = Proportion, fill = factor(AgeCat))) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.8)) + 
+  geom_text(aes(label = sprintf("%.1f%%", Proportion)), 
+            position = position_dodge(width = 0.8), vjust = 0.2,hjust=1.2, size = 3) +  
+  labs(
+    title = "Diabetes History by Age Group and Stress Level",
+    x = "Diabetes History",
+    y = "Proportion (%)",
+    fill = "Age Category"
+  ) +
+  scale_fill_manual(values = c("Young" = "#ffde59", "Middle-Aged" = "#e79251", "Old" = "#9cc567")) +
+  theme_minimal()+
+  theme(axis.title.x = element_blank())+
+  coord_flip()
+
+
+# Calculate the percentiles (25th, 50th, and 75th) for Stress Levels grouped by Diabetes History and AgeCat
+age_dia_stress_data <- yesheartattack %>%
+  group_by(Diabetes_History, AgeCat) %>%
+  summarise(
+    median_stress = median(Stress_Levels),
+    q25_stress = quantile(Stress_Levels, 0.25),
+    q75_stress = quantile(Stress_Levels, 0.75),
+    .groups = "drop"
+  )
+
+# Boxplot for Age-Dia-Stress
+age_dia_stress <- ggplot(yesheartattack, aes(x = Diabetes_History, y = Stress_Levels, fill = Diabetes_History)) +
+  geom_boxplot() +
+  facet_wrap(~ AgeCat) +
+  labs(
+       x = "Diabetes History",
+       y = "Stress Levels") +
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title= element_blank()) +
+  scale_fill_manual(values = c("Yes" = "#83bace", "No" = "#e78090")) +
+  geom_text(data = age_dia_stress_data, aes(x = Diabetes_History, y = median_stress, label = paste("Median:", round(median_stress, 2))),
+            position = position_nudge(y = 0.5), size = 3, color = "black") +
+  geom_text(data = age_dia_stress_data, aes(x = Diabetes_History, y = q25_stress, label = paste("25th:", round(q25_stress, 2))),
+            position = position_nudge(y = -0.5), size = 3, color = "black") +
+  geom_text(data = age_dia_stress_data, aes(x = Diabetes_History, y = q75_stress, label = paste("75th:", round(q75_stress, 2))),
+            position = position_nudge(y = 0.5), size = 3, color = "black")
+
+
+diabetesbar/age_dia_stress +
+  plot_layout(widths = c(1,2),heights = c(1,2))
+```
+:::
+
+::: {.callout-note style="color: black; background-color: #e0f3f9"}
+## Insights
+
+-   The young age category represents the highest proportion among diabetic heart attack patients, accounting for 39.7% of the total. In contrast, the old age category has the lowest proportion. This trend suggests that younger individuals with diabetes may be more susceptible to heart attacks, possibly due to factors such as early onset of diabetes or other underlying risk factors.
+
+-   For patients with no diabetes history, the young age category still has the highest proportion, but it is lower compared to the diabetic heart attack patients. This could be explained by the overall higher proportion of younger individuals in heart attack patients in general.
+
+-   Interestingly, the middle-aged and old age categories show a higher proportion in non-diabetic heart attack patients compared to diabetic heart attack patients.
+
+-   For old diabetic patients, stress levels appear to be significantly higher compared to other groups. However, diabetes history seems to have a notable impact only in the young age category. Specifically, young diabetic patients show higher stress levels than their non-diabetic counterparts. In contrast, for both the middle-aged and old groups, this relationship is reversed: older diabetic patients tend to have lower stress levels than their non-diabetic counterparts.
+:::
+
 ------------------------------------------------------------------------
 
 # 6 Clinical Implications from Visual Plots
@@ -1363,25 +1507,32 @@ The analysis of heart attack vulnerability across age, stress levels, and physio
 
     -   Urban populations report slightly higher stress levels than rural populations, yet rural males have the highest proportion of heart attack cases, likely due to healthcare access disparities and physically demanding labor.
 
+5.  **Diabetes History**:
+
+    -   Younger individuals with diabetes may be more vulnerable to heart attacks, possibly due to factors such as early onset of diabetes or other underlying risk factors.
+
+    -   The effect of diabetes on stress is more pronounced in younger individuals, potentially due to the challenges of managing diabetes at an earlier age. In older individuals, other factors might outweigh the impact of diabetes on stress, or they may have developed coping mechanisms over time, leading to lower stress levels despite having diabetes.
+
 These insights suggest that personalized interventions—ranging from stress management programs for younger individuals to targeted cardiovascular monitoring for older individuals—are essential for reducing heart attack risks across different population groups in Japan. Additionally, addressing regional disparities through improved healthcare accessibility in rural areas is crucial.
 
 ------------------------------------------------------------------------
 
 # 7 Multiple Logistic Regression Model
 
-Let's build a logistic regression model to confirm and check our clinical implications from our visual plots.
+Next, we will build a **logistic regression model** to confirm and further investigate the clinical implications suggested by the visual plots. Logistic regression is a statistical method used for modeling the relationship between a binary outcome variable and one or more predictor variables, as in our case, where we are predicting the likelihood of a heart attack (Yes/No).
 
 ## 7.1 Recoding Variables
 
 ### 7.1.1 Recoding Continuous Variables
 
-Scale between 0 and 1 as they are on vastly different scales
+To ensure that all continuous variables are on comparable scales and to avoid any one variable disproportionately influencing the model, we will scale these continuous variables between 0 and 1. This is especially important when the variables are on vastly different scales (for example, BMI vs. Heart Rate), as it ensures that the model treats them equally, improving the interpretability and stability of the regression results.
+
+By scaling variables, each predictor has the same weight in the logistic regression model, preventing the model from being biased towards variables with larger numerical ranges. We will use the following code to create a new dataframe for the logistic regression with the name, *heartattack_lr*.
 
 ```{r}
 heartattack_lr <- heartattack %>%
   mutate(
     Cholesterol_Level = rescale(Cholesterol_Level, to = c(0, 1)),
-    Stress_Levels = rescale(Stress_Levels, to = c(0, 1)),
     BMI = rescale(BMI, to = c(0, 1)),
     Heart_Rate = rescale(Heart_Rate, to = c(0, 1)),
     Systolic_BP = rescale(Systolic_BP, to = c(0, 1)),
@@ -1390,6 +1541,14 @@ heartattack_lr <- heartattack %>%
 ```
 
 ### 7.1.2 Recoding Categorical Variables
+
+Logistic regression requires numerical input, so categorical variables—such as gender, region, and family history—must be converted into numerical values.
+
+Categorical variables are either binary or multilevel for our dataset. For binary variables (such as Gender, Smoking History, and Hypertension History), we will recode the categories into two values: 0 and 1, where 0 typically represents the absence of the condition and 1 represents the presence.
+
+For variables with more than two levels (such as Physical Activity, Region, and Diet Quality), we will assign each level a unique integer. These variables will be recoded into 0, 1, or 2 values, where each number represents a distinct category, allowing the logistic regression model to treat the categories appropriately without losing the ordinal information.
+
+The following table shows how the categorical variables will be recoded.
 
 | Binary (Recoded to 0 and 1)  | 3 Levels (Recoded to 0,1,2)            |
 |------------------------------|----------------------------------------|
@@ -1415,37 +1574,170 @@ heartattack_lr <- heartattack_lr %>%
     Physical_Activity = recode(Physical_Activity, "Low" = 0, "Moderate" = 1, "High" = 2),
     Diet_Quality = recode(Diet_Quality, "Poor" = 0, "Average" = 1, "Good" = 2),
     Alcohol_Consumption = recode(Alcohol_Consumption, "Low" = 0, "Moderate" = 1, "High" = 2),
-    AgeCat = recode(AgeCat, "Young" = 0, "Middle-Aged" = 1, "Old" = 2)
+    AgeCat = recode(AgeCat, "Young" = 0, "Middle-Aged" = 1, "Old" = 2),
+    Stress = recode(Stress, "Low" = 0, "Medium" = 1, "High" = 2)
   )
 
 ```
 
 ### 7.1.3 Recoding Dependent Variable
 
-1: Yes Heart Attack Occurrence
+We also recode the dependent variable for logistic regression.
 
-0: No Heart Attack Occurrence
+The original dependent variable, `Heart_Attack_Occurrence` has responses such as "Yes" and "No." For logistic regression, we need to convert this categorical variable into numeric values. We will recode the variable as follows:
+
+-   1: Indicates the occurrence of a heart attack (Yes)
+
+-   0: Indicates no occurrence of a heart attack (No)
 
 ```{r}
 heartattack_lr <- heartattack_lr %>%
   mutate(Heart_Attack_Recode = ifelse(Heart_Attack_Occurrence == "Yes", 1, 0))
 ```
 
-## 7.2 Model
+## 7.2 The Models
 
-### 7.2.1 Base Model
+We are now ready for building **logistic regression models** specifically for the **young category** individuals. The goal is to evaluate how well various predictor variables influence the likelihood of a heart attack occurrence among younger individuals (defined in the dataset as those categorized as "Young").
 
-### 7.2.2 Final Model
+To enhance our understanding, we will also build a logistic regression model for the **old category** for comparison. By comparing these models, we can examine whether different age groups exhibit distinct risk factors for heart attack occurrences. This comparison can provide valuable insights into whether certain predictors are more relevant for younger individuals or if they affect all age groups similarly.
 
-## 7.5 Model Diagnostics
+### 7.2.1 Logistic Regression Model for Young Category
+
+We first build a base logistic regression model as the initial model that includes all predictor variables without any further optimization.
+
+Then we refine the model using the **forward stepwise regression** method to systematically add predictors one by one, based on their statistical significance. This approach allows us to identify the most relevant variables while removing those that do not contribute significantly to the model's predictive power.
+
+```{r}
+heartattack_young <- heartattack_lr %>%
+  filter(AgeCat == 0)
+```
+
+```{r}
+heartattack_lr_young <- glm(Heart_Attack_Recode ~ 
+                              Gender + 
+                              Region + 
+                              Smoking_History + 
+                              Diabetes_History + 
+                              Hypertension_History + 
+                              Family_History + 
+                              Physical_Activity + 
+                              Diet_Quality + 
+                              Alcohol_Consumption + 
+                              Cholesterol_Level+
+                              Stress+
+                              BMI+
+                              Systolic_BP+
+                              Diastolic_BP+
+                              Heart_Rate, 
+                            data = heartattack_young, 
+                            family = binomial())
+
+heartattack_lr_young_step <- step(heartattack_lr_young, 
+                                       direction = "forward", 
+                                       trace = FALSE)
+summary(heartattack_lr_young_step)
+```
+
+::: {.callout-note style="color: black; background-color: #e0f3f9"}
+## Insights
+
+-   **Diabetes history** is the most significant predictor in the model for younger individuals, indicating that having a history of diabetes increases the risk of a heart attack.
+
+-   **Stress levels** is also significant for young individuals. However, it is a slight negative relationship with heart attack occurrence, meaning that higher stress levels may be associated with a lower likelihood of experiencing a heart attack in this age group, which could be due to the complexity of stress as a factor—possibly indicating that individuals with higher stress may be more likely to engage in behaviors or seek treatments that reduce heart attack risk.
+
+-   All other predictors are insignificant.
+:::
+
+### 7.2.2 Logistic Regression Model for Old Category
+
+Again, we do the same for the old category.
+
+```{r}
+heartattack_old <- heartattack_lr %>%
+  filter(AgeCat == 2)
+```
+
+```{r}
+heartattack_lr_old <- glm(Heart_Attack_Recode ~ 
+                              Gender + 
+                              Region + 
+                              Smoking_History + 
+                              Diabetes_History + 
+                              Hypertension_History + 
+                              Family_History + 
+                              Physical_Activity + 
+                              Diet_Quality + 
+                              Alcohol_Consumption + 
+                              Cholesterol_Level+
+                              Stress+
+                              BMI+
+                              Systolic_BP+
+                              Diastolic_BP+
+                              Heart_Rate, 
+                            data = heartattack_old, 
+                            family = binomial())
+
+heartattack_lr_old_step<- step(heartattack_lr_old, 
+                                               direction = "forward", 
+                                               trace = FALSE)
+summary(heartattack_lr_old_step)
+```
+
+::: {.callout-note style="color: black; background-color: #e0f3f9"}
+## Insights
+
+The logistic regression model for the old category indicates that only cholesterol level might have some marginal relevance,with a p value of 0.141, but overall, many of the variables do not show a significant impact.
+:::
+
+## 7.3 Comparison of Models
+
+::: panel-tabset
+## Young
+
+```{r}
+tbl_regression(heartattack_lr_young_step,
+               intercept = TRUE,
+               estimate_fun = purrr::partial(style_sigfig, digits = 4)) %>%
+  add_glance_source_note(
+    include = c(AIC, BIC, deviance, df.residual))
+```
+
+## Old
+
+```{r}
+tbl_regression(heartattack_lr_old_step,
+               intercept = TRUE,
+               estimate_fun = purrr::partial(style_sigfig, digits = 4)) %>%
+  add_glance_source_note(
+    include = c(AIC, BIC, deviance, df.residual))
+```
+:::
+
+::: {.callout-note style="color: black; background-color: #e0f3f9"}
+## Insights
+
+#### **1. Significance of Predictors:**
+
+-   **Young Category**: Significant predictors such as Diabetes History (positive relationship with heart attack risk) and Stress Levels (negative relationship with heart attack risk) suggest that lifestyle and health conditions like diabetes, alongside stress, play an important role in the likelihood of heart attacks in the young.
+
+-   **Old Category**: There are no significant predictors in the old category.The lack of significant results may be due to the age group having a more homogeneous risk factor profile, with factors such as age playing a dominant role in heart attack occurrence.
+
+#### 2. **Model Fit:**
+
+-   **Young Category**: The model for the young category has a residual deviance of 6077 and an AIC of 6109.6, indicating that the model fits the data moderately well. The significance of a few variables suggests that the model explains some variation in heart attack occurrence.
+
+-   **Old Category**: The residual deviance for the old category is 5625, and the AIC is 5658, which also indicates a reasonable model fit, although no variables were found to be statistically significant.
+:::
 
 ------------------------------------------------------------------------
 
 # 8 Summary
 
-This study provides insights into the relationship between stress, age, gender, and heart attack occurrence. While stress levels show a statistically significant difference between individuals with and without a heart attack, the clinical relevance remains minimal. Notably, older patients exhibit higher stress levels and greater variability in diastolic blood pressure (DBP) under stress, indicating a potential risk of stress-induced hypertension. Younger individuals, in contrast, display better cardiovascular adaptability, with lower systolic and diastolic blood pressure under stress.
+This study examines the relationship between stress, age, gender, and heart attack occurrence. While stress levels show a statistically significant difference between individuals with and without a heart attack, the clinical relevance remains minimal. Older patients exhibit higher stress levels and greater variability in diastolic blood pressure (DBP), suggesting potential stress-induced hypertension. In contrast, younger individuals show better cardiovascular adaptability, with lower systolic and diastolic blood pressure under stress.
 
-Gender and geographic location also appear to influence heart attack risk in Japan, with males and rural populations being more vulnerable. These findings highlight the importance of considering age, stress, and access to healthcare in heart attack prevention and management.
+Gender and geographic location also influence heart attack risk, with males and rural populations being more vulnerable. These findings emphasize the importance of considering age, stress, and access to healthcare in heart attack prevention and management.
+
+The logistic regression results support these insights, highlighting that stress levels are marginally significant for young individuals, aligning with the earlier observation that stress plays a crucial role in heart attack risk. Additionally, diabetes history emerged as a significant predictor for younger individuals, reinforcing that health conditions like diabetes are important in determining heart attack vulnerability. For the older group, the lack of significant predictors contrasts with the earlier insight about stress's impact, possibly reflecting the complexity of risk factors in older populations that are not fully captured by the model.
 
 ------------------------------------------------------------------------
 
@@ -1460,3 +1752,5 @@ Iso H. (2011). Lifestyle and cardiovascular disease in Japan. *Journal of ather
 Jung, E., Kong, S. Y., Ro, Y. S., Ryu, H. H., & Shin, S. D. (2022). Serum Cholesterol Levels and Risk of Cardiovascular Death: A Systematic Review and a Dose-Response Meta-Analysis of Prospective Cohort Studies. *International journal of environmental research and public health*, *19*(14), 8272. https://doi.org/10.3390/ijerph19148272
 
 Lauer, M. S., Okin, P. M., Larson, M. G., Evans, J. C., Levy, D. (2004). Impaired heart rate response to graded exercise: Prognostic implications of chronotropic incompetence in the Framingham Heart Study. *Circulation, 109*(7), 988–994. [https://doi.org/10.1161/01.CIR.0000141564.89465.4E](https://www.ahajournals.org/doi/10.1161/01.CIR.0000141564.89465.4E)
+
+Matheus, A. S., Tannus, L. R., Cobas, R. A., Palma, C. C., Negrato, C. A., & Gomes, M. B. (2013). Impact of diabetes on cardiovascular disease: an update. *International journal of hypertension*, *2013*, 653789. https://doi.org/10.1155/2013/653789

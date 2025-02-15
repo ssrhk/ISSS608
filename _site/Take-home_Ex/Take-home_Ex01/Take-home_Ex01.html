@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Sei Sar Hla Kyi">
-<meta name="dcterms.date" content="2025-02-13">
+<meta name="dcterms.date" content="2025-02-16">
 
 <title>Take-home Exercise 01: Visualizing and Uncovering Trends on Heart Attacks in Japan – ISSS608</title>
 <style>
@@ -262,10 +262,26 @@ window.Quarto = {
   <li><a href="#stress-levels-in-systolic-vs-diastolic-blood-pressure" id="toc-stress-levels-in-systolic-vs-diastolic-blood-pressure" class="nav-link" data-scroll-target="#stress-levels-in-systolic-vs-diastolic-blood-pressure">5.3.2 Stress Levels in Systolic vs Diastolic Blood Pressure</a></li>
   <li><a href="#stress-levels-in-diastolic-blood-pressure" id="toc-stress-levels-in-diastolic-blood-pressure" class="nav-link" data-scroll-target="#stress-levels-in-diastolic-blood-pressure">5.3.3 Stress Levels in Diastolic Blood Pressure</a></li>
   <li><a href="#does-gender-and-regions-matter" id="toc-does-gender-and-regions-matter" class="nav-link" data-scroll-target="#does-gender-and-regions-matter">5.3.4 Does Gender and Regions Matter?</a></li>
+  <li><a href="#diabetes-history-in-heart-attack-patients" id="toc-diabetes-history-in-heart-attack-patients" class="nav-link" data-scroll-target="#diabetes-history-in-heart-attack-patients">5.3.5 Diabetes History in Heart Attack Patients</a></li>
   </ul></li>
   </ul></li>
-  <li><a href="#clinical-implications" id="toc-clinical-implications" class="nav-link" data-scroll-target="#clinical-implications">6 Clinical Implications</a></li>
-  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">7 Summary</a></li>
+  <li><a href="#clinical-implications-from-visual-plots" id="toc-clinical-implications-from-visual-plots" class="nav-link" data-scroll-target="#clinical-implications-from-visual-plots">6 Clinical Implications from Visual Plots</a></li>
+  <li><a href="#multiple-logistic-regression-model" id="toc-multiple-logistic-regression-model" class="nav-link" data-scroll-target="#multiple-logistic-regression-model">7 Multiple Logistic Regression Model</a>
+  <ul class="collapse">
+  <li><a href="#recoding-variables" id="toc-recoding-variables" class="nav-link" data-scroll-target="#recoding-variables">7.1 Recoding Variables</a>
+  <ul class="collapse">
+  <li><a href="#recoding-continuous-variables" id="toc-recoding-continuous-variables" class="nav-link" data-scroll-target="#recoding-continuous-variables">7.1.1 Recoding Continuous Variables</a></li>
+  <li><a href="#recoding-categorical-variables" id="toc-recoding-categorical-variables" class="nav-link" data-scroll-target="#recoding-categorical-variables">7.1.2 Recoding Categorical Variables</a></li>
+  <li><a href="#recoding-dependent-variable" id="toc-recoding-dependent-variable" class="nav-link" data-scroll-target="#recoding-dependent-variable">7.1.3 Recoding Dependent Variable</a></li>
+  </ul></li>
+  <li><a href="#the-models" id="toc-the-models" class="nav-link" data-scroll-target="#the-models">7.2 The Models</a>
+  <ul class="collapse">
+  <li><a href="#logistic-regression-model-for-young-category" id="toc-logistic-regression-model-for-young-category" class="nav-link" data-scroll-target="#logistic-regression-model-for-young-category">7.2.1 Logistic Regression Model for Young Category</a></li>
+  <li><a href="#logistic-regression-model-for-old-category" id="toc-logistic-regression-model-for-old-category" class="nav-link" data-scroll-target="#logistic-regression-model-for-old-category">7.2.2 Logistic Regression Model for Old Category</a></li>
+  </ul></li>
+  <li><a href="#comparison-of-models" id="toc-comparison-of-models" class="nav-link" data-scroll-target="#comparison-of-models">7.3 Comparison of Models</a></li>
+  </ul></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">8 Summary</a></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   </ul>
 </nav>
@@ -292,14 +308,14 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 13, 2025</p>
+      <p class="date">February 16, 2025</p>
     </div>
   </div>
   
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">February 13, 2025</p>
+      <p class="date-modified">February 16, 2025</p>
     </div>
   </div>
     
@@ -336,8 +352,8 @@ window.Quarto = {
 <div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 23%">
-<col style="width: 76%">
+<col style="width: 50%">
+<col style="width: 50%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -374,12 +390,20 @@ window.Quarto = {
 <td>ggthemes</td>
 <td>for additional themes and color palettes for ggplot2, allowing for more customization and better aesthetics</td>
 </tr>
+<tr class="even">
+<td>scales</td>
+<td>to rescale continuous variables for logistic regression</td>
+</tr>
+<tr class="odd">
+<td>gtsummary</td>
+<td>to customize summarization of model outputs</td>
+</tr>
 </tbody>
 </table>
 </div>
 <div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(tidyverse,patchwork, ggdist, ggridges,ggstatsplot,ggthemes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(tidyverse,patchwork, ggdist, ggridges,ggstatsplot,ggthemes,scales,gtsummary)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -745,7 +769,7 @@ Adjustment for Age Category Imbalance
 </div>
 <div class="callout-body-container callout-body">
 <p>In section 5.1, it was observed that the Young Age Group (36%) is naturally more represented in the dataset. If we analyze the data without adjustment, this could lead to an overemphasis on the risk of heart attacks among young individuals. To mitigate this potential bias, we will normalize the prevalence of heart attacks within each age group by accounting for their overall representation in the dataset.</p>
-<p>The prevalence of heart attack in each age category will be normalized using the following formula:</p>
+<p>The prevalence of heart attack in each age category will be calculated using the following formula:</p>
 <p><span class="math inline">\(PrevalenceAgeCat\)</span> = Number of Heart Attack Cases in Age Group/ Total Individuals in Age Group</p>
 <p>This adjustment ensures that the analysis of heart attack risk is proportionate to the actual representation of each age group in the dataset, providing more accurate insights into the relationship between age and heart attack prevalence.</p>
 </div>
@@ -885,8 +909,7 @@ Adjustment for Stress Category Imbalance
 <li><p>High: 16%</p></li>
 </ul>
 <p>If we use the Stress categories as they are, the medium category would be disproportionately represented. To ensure more accurate insights and prevent overemphasis on the medium stress group, we will first analyze within each stress category before visualizing the results.</p>
-<p>To achieve this, we introduce a new variable,&nbsp;<strong>NormalizedStress</strong>, calculated as follows:</p>
-<p><span class="math inline">\(NormalizedStress\)</span> = Number of Young (or Old) individuals in each Stress Category who experienced Heart Attack​/ Total Number of Invidividuals in each Stress Category who experienced Heart Attack</p>
+<p>To achieve this, we calculate <strong>proportion of young/middle-age/old individuals within each stress group</strong> (i.e.&nbsp;Number of Young individuals in each Stress Category who experienced Heart Attack​/ Total Number of Heart Attack Cases in each Stress Category)</p>
 </div>
 </div>
 <p>For this visualization, we will use&nbsp;<strong><code>ggbetweenstats()</code></strong>&nbsp;to test whether there is a significant association between age categories and stress levels. Additionally,&nbsp;<strong><code>geom_boxplot()</code></strong>&nbsp;will be used to compare stress levels between younger and older individuals, while&nbsp;<strong><code>geom_bar()</code></strong>&nbsp;from the&nbsp;<strong>ggplot2</strong>&nbsp;package will create bar charts to display the distribution of stress levels across age categories. Finally, the&nbsp;<strong>patchwork</strong>&nbsp;package will be used to combine these plots into a cohesive and structured layout.</p>
@@ -1259,12 +1282,111 @@ Insights
 </ul>
 </div>
 </div>
+</section>
+<section id="diabetes-history-in-heart-attack-patients" class="level3">
+<h3 class="anchored" data-anchor-id="diabetes-history-in-heart-attack-patients">5.3.5 Diabetes History in Heart Attack Patients</h3>
+<p>Diabetes is a significant risk factor for cardiovascular disease, with individuals suffering from diabetes often exhibiting higher rates of heart disease and stroke. The relationship between diabetes and heart health is complex, as diabetes can accelerate the process of fatty plaques buildup in the arteries, which increases the likelihood of heart attacks and other cardiovascular events (Mattheus et al., 2013).</p>
+<p>Understanding the influence of a history of diabetes on cardiovascular health is crucial for identifying high-risk populations. Specifically, individuals with a history of diabetes are more likely to experience complications related to blood pressure and cholesterol levels, both of which are critical indicators of heart health.</p>
+<p>In this section, we will visualize the distribution of stress levels between individuals with and without a diabetes history. Using <code>geom_boxplot()</code> from the <strong>ggplot2</strong> package, we will plot the stress levels, grouped by diabetes history and age category. This will help us identify any significant differences in stress levels between the groups, allowing for a clearer understanding of how diabetes history and age may influence stress.</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-12-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-12-1" role="tab" aria-controls="tabset-12-1" aria-selected="true">The Plot</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-12-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-12-2" role="tab" aria-controls="tabset-12-2" aria-selected="false">The Code</a></li></ul>
+<div class="tab-content">
+<div id="tabset-12-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-12-1-tab">
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Take-home_Ex01_files/figure-html/unnamed-chunk-33-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-12-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-12-2-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate proportions of age categories within Diabetes History</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>heartattack_diabetes<span class="ot">&lt;-</span> yesheartattack <span class="sc">%&gt;%</span> </span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Diabetes_History, AgeCat) <span class="sc">%&gt;%</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">Count =</span> <span class="fu">n</span>(), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Diabetes_History) <span class="sc">%&gt;%</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Proportion =</span> (Count <span class="sc">/</span> <span class="fu">sum</span>(Count)) <span class="sc">*</span> <span class="dv">100</span>) </span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Diabetes Age Group Barchart</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>diabetesbar <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(heartattack_diabetes, <span class="fu">aes</span>(<span class="at">x =</span> Diabetes_History, <span class="at">y =</span> Proportion, <span class="at">fill =</span> <span class="fu">factor</span>(AgeCat))) <span class="sc">+</span></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="at">width =</span> <span class="fl">0.8</span>)) <span class="sc">+</span> </span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">sprintf</span>(<span class="st">"%.1f%%"</span>, Proportion)), </span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>            <span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="at">width =</span> <span class="fl">0.8</span>), <span class="at">vjust =</span> <span class="fl">0.2</span>,<span class="at">hjust=</span><span class="fl">1.2</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span>  </span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Diabetes History by Age Group and Stress Level"</span>,</span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Diabetes History"</span>,</span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Proportion (%)"</span>,</span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"Age Category"</span></span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Young"</span> <span class="ot">=</span> <span class="st">"#ffde59"</span>, <span class="st">"Middle-Aged"</span> <span class="ot">=</span> <span class="st">"#e79251"</span>, <span class="st">"Old"</span> <span class="ot">=</span> <span class="st">"#9cc567"</span>)) <span class="sc">+</span></span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()<span class="sc">+</span></span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title.x =</span> <span class="fu">element_blank</span>())<span class="sc">+</span></span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>()</span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate the percentiles (25th, 50th, and 75th) for Stress Levels grouped by Diabetes History and AgeCat</span></span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>age_dia_stress_data <span class="ot">&lt;-</span> yesheartattack <span class="sc">%&gt;%</span></span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Diabetes_History, AgeCat) <span class="sc">%&gt;%</span></span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">median_stress =</span> <span class="fu">median</span>(Stress_Levels),</span>
+<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">q25_stress =</span> <span class="fu">quantile</span>(Stress_Levels, <span class="fl">0.25</span>),</span>
+<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">q75_stress =</span> <span class="fu">quantile</span>(Stress_Levels, <span class="fl">0.75</span>),</span>
+<span id="cb22-32"><a href="#cb22-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb22-33"><a href="#cb22-33" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb22-34"><a href="#cb22-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-35"><a href="#cb22-35" aria-hidden="true" tabindex="-1"></a><span class="co"># Boxplot for Age-Dia-Stress</span></span>
+<span id="cb22-36"><a href="#cb22-36" aria-hidden="true" tabindex="-1"></a>age_dia_stress <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(yesheartattack, <span class="fu">aes</span>(<span class="at">x =</span> Diabetes_History, <span class="at">y =</span> Stress_Levels, <span class="at">fill =</span> Diabetes_History)) <span class="sc">+</span></span>
+<span id="cb22-37"><a href="#cb22-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>() <span class="sc">+</span></span>
+<span id="cb22-38"><a href="#cb22-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> AgeCat) <span class="sc">+</span></span>
+<span id="cb22-39"><a href="#cb22-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb22-40"><a href="#cb22-40" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Diabetes History"</span>,</span>
+<span id="cb22-41"><a href="#cb22-41" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Stress Levels"</span>) <span class="sc">+</span></span>
+<span id="cb22-42"><a href="#cb22-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb22-43"><a href="#cb22-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>,</span>
+<span id="cb22-44"><a href="#cb22-44" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.title=</span> <span class="fu">element_blank</span>()) <span class="sc">+</span></span>
+<span id="cb22-45"><a href="#cb22-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Yes"</span> <span class="ot">=</span> <span class="st">"#83bace"</span>, <span class="st">"No"</span> <span class="ot">=</span> <span class="st">"#e78090"</span>)) <span class="sc">+</span></span>
+<span id="cb22-46"><a href="#cb22-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="at">data =</span> age_dia_stress_data, <span class="fu">aes</span>(<span class="at">x =</span> Diabetes_History, <span class="at">y =</span> median_stress, <span class="at">label =</span> <span class="fu">paste</span>(<span class="st">"Median:"</span>, <span class="fu">round</span>(median_stress, <span class="dv">2</span>))),</span>
+<span id="cb22-47"><a href="#cb22-47" aria-hidden="true" tabindex="-1"></a>            <span class="at">position =</span> <span class="fu">position_nudge</span>(<span class="at">y =</span> <span class="fl">0.5</span>), <span class="at">size =</span> <span class="dv">3</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb22-48"><a href="#cb22-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="at">data =</span> age_dia_stress_data, <span class="fu">aes</span>(<span class="at">x =</span> Diabetes_History, <span class="at">y =</span> q25_stress, <span class="at">label =</span> <span class="fu">paste</span>(<span class="st">"25th:"</span>, <span class="fu">round</span>(q25_stress, <span class="dv">2</span>))),</span>
+<span id="cb22-49"><a href="#cb22-49" aria-hidden="true" tabindex="-1"></a>            <span class="at">position =</span> <span class="fu">position_nudge</span>(<span class="at">y =</span> <span class="sc">-</span><span class="fl">0.5</span>), <span class="at">size =</span> <span class="dv">3</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb22-50"><a href="#cb22-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="at">data =</span> age_dia_stress_data, <span class="fu">aes</span>(<span class="at">x =</span> Diabetes_History, <span class="at">y =</span> q75_stress, <span class="at">label =</span> <span class="fu">paste</span>(<span class="st">"75th:"</span>, <span class="fu">round</span>(q75_stress, <span class="dv">2</span>))),</span>
+<span id="cb22-51"><a href="#cb22-51" aria-hidden="true" tabindex="-1"></a>            <span class="at">position =</span> <span class="fu">position_nudge</span>(<span class="at">y =</span> <span class="fl">0.5</span>), <span class="at">size =</span> <span class="dv">3</span>, <span class="at">color =</span> <span class="st">"black"</span>)</span>
+<span id="cb22-52"><a href="#cb22-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-53"><a href="#cb22-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-54"><a href="#cb22-54" aria-hidden="true" tabindex="-1"></a>diabetesbar<span class="sc">/</span>age_dia_stress <span class="sc">+</span></span>
+<span id="cb22-55"><a href="#cb22-55" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">widths =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),<span class="at">heights =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled" style="color: black; background-color: #e0f3f9">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Insights
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><p>The young age category represents the highest proportion among diabetic heart attack patients, accounting for 39.7% of the total. In contrast, the old age category has the lowest proportion. This trend suggests that younger individuals with diabetes may be more susceptible to heart attacks, possibly due to factors such as early onset of diabetes or other underlying risk factors.</p></li>
+<li><p>For patients with no diabetes history, the young age category still has the highest proportion, but it is lower compared to the diabetic heart attack patients. This could be explained by the overall higher proportion of younger individuals in heart attack patients in general.</p></li>
+<li><p>Interestingly, the middle-aged and old age categories show a higher proportion in non-diabetic heart attack patients compared to diabetic heart attack patients.</p></li>
+<li><p>For old diabetic patients, stress levels appear to be significantly higher compared to other groups. However, diabetes history seems to have a notable impact only in the young age category. Specifically, young diabetic patients show higher stress levels than their non-diabetic counterparts. In contrast, for both the middle-aged and old groups, this relationship is reversed: older diabetic patients tend to have lower stress levels than their non-diabetic counterparts.</p></li>
+</ul>
+</div>
+</div>
 <hr>
 </section>
 </section>
 </section>
-<section id="clinical-implications" class="level1">
-<h1>6 Clinical Implications</h1>
+<section id="clinical-implications-from-visual-plots" class="level1">
+<h1>6 Clinical Implications from Visual Plots</h1>
 <p>The analysis of heart attack vulnerability across age, stress levels, and physiological factors provides critical insights for clinical practice. The following are key findings from this study:</p>
 <ol type="1">
 <li><p><strong>Age-Specific Vulnerability</strong>: Middle-aged males and older females exhibit higher susceptibility to heart attacks. Understanding these trends can help target early prevention strategies tailored to these demographics.</p></li>
@@ -1283,14 +1405,1448 @@ Insights
 <li><p>Stress levels rise with age for both genders, with older men experiencing higher stress levels.</p></li>
 <li><p>Urban populations report slightly higher stress levels than rural populations, yet rural males have the highest proportion of heart attack cases, likely due to healthcare access disparities and physically demanding labor.</p></li>
 </ul></li>
+<li><p><strong>Diabetes History</strong>:</p>
+<ul>
+<li><p>Younger individuals with diabetes may be more vulnerable to heart attacks, possibly due to factors such as early onset of diabetes or other underlying risk factors.</p></li>
+<li><p>The effect of diabetes on stress is more pronounced in younger individuals, potentially due to the challenges of managing diabetes at an earlier age. In older individuals, other factors might outweigh the impact of diabetes on stress, or they may have developed coping mechanisms over time, leading to lower stress levels despite having diabetes.</p></li>
+</ul></li>
 </ol>
 <p>These insights suggest that personalized interventions—ranging from stress management programs for younger individuals to targeted cardiovascular monitoring for older individuals—are essential for reducing heart attack risks across different population groups in Japan. Additionally, addressing regional disparities through improved healthcare accessibility in rural areas is crucial.</p>
 <hr>
 </section>
+<section id="multiple-logistic-regression-model" class="level1">
+<h1>7 Multiple Logistic Regression Model</h1>
+<p>Next, we will build a&nbsp;<strong>logistic regression model</strong>&nbsp;to confirm and further investigate the clinical implications suggested by the visual plots. Logistic regression is a statistical method used for modeling the relationship between a binary outcome variable and one or more predictor variables, as in our case, where we are predicting the likelihood of a heart attack (Yes/No).</p>
+<section id="recoding-variables" class="level2">
+<h2 class="anchored" data-anchor-id="recoding-variables">7.1 Recoding Variables</h2>
+<section id="recoding-continuous-variables" class="level3">
+<h3 class="anchored" data-anchor-id="recoding-continuous-variables">7.1.1 Recoding Continuous Variables</h3>
+<p>To ensure that all continuous variables are on comparable scales and to avoid any one variable disproportionately influencing the model, we will scale these continuous variables between&nbsp;0 and 1. This is especially important when the variables are on vastly different scales (for example, BMI vs.&nbsp;Heart Rate), as it ensures that the model treats them equally, improving the interpretability and stability of the regression results.</p>
+<p>By scaling variables, each predictor has the same weight in the logistic regression model, preventing the model from being biased towards variables with larger numerical ranges. We will use the following code to create a new dataframe for the logistic regression with the name, <em>heartattack_lr</em>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>heartattack_lr <span class="ot">&lt;-</span> heartattack <span class="sc">%&gt;%</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">Cholesterol_Level =</span> <span class="fu">rescale</span>(Cholesterol_Level, <span class="at">to =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)),</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">BMI =</span> <span class="fu">rescale</span>(BMI, <span class="at">to =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)),</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Heart_Rate =</span> <span class="fu">rescale</span>(Heart_Rate, <span class="at">to =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)),</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">Systolic_BP =</span> <span class="fu">rescale</span>(Systolic_BP, <span class="at">to =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)),</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">Diastolic_BP =</span> <span class="fu">rescale</span>(Diastolic_BP, <span class="at">to =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>))</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="recoding-categorical-variables" class="level3">
+<h3 class="anchored" data-anchor-id="recoding-categorical-variables">7.1.2 Recoding Categorical Variables</h3>
+<p>Logistic regression requires numerical input, so categorical variables—such as gender, region, and family history—must be converted into numerical values.</p>
+<p>Categorical variables are either&nbsp;binary&nbsp;or&nbsp;multilevel for our dataset. For binary variables (such as Gender, Smoking History, and Hypertension History), we will recode the categories into two values:&nbsp;0&nbsp;and&nbsp;1, where&nbsp;0&nbsp;typically represents the absence of the condition and&nbsp;1&nbsp;represents the presence.</p>
+<p>For variables with more than two levels (such as Physical Activity, Region, and Diet Quality), we will assign each level a unique integer. These variables will be recoded into&nbsp;0, 1, or 2&nbsp;values, where each number represents a distinct category, allowing the logistic regression model to treat the categories appropriately without losing the ordinal information.</p>
+<p>The following table shows how the categorical variables will be recoded.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 42%">
+<col style="width: 57%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Binary (Recoded to 0 and 1)</th>
+<th>3 Levels (Recoded to 0,1,2)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Gender: Female/Male</td>
+<td>Physical_Activity: Low/Moderate/High</td>
+</tr>
+<tr class="even">
+<td>Region: Urban/Rural</td>
+<td>Diet_Quality: Poor/Average/Good</td>
+</tr>
+<tr class="odd">
+<td>Smoking_History: Yes/No</td>
+<td>Alcohol_Consumption: Low/Moderate/High</td>
+</tr>
+<tr class="even">
+<td>Diabetes_History: Yes/No</td>
+<td>AgeCat: Young/Middle-Aged/Old</td>
+</tr>
+<tr class="odd">
+<td>Hypertension_History: Yes/No</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Family_History: Yes/No</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>heartattack_lr <span class="ot">&lt;-</span> heartattack_lr <span class="sc">%&gt;%</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Binary variables: 0 = No, 1 = Yes</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">Gender =</span> <span class="fu">ifelse</span>(Gender <span class="sc">==</span> <span class="st">"Female"</span>, <span class="dv">0</span>, <span class="dv">1</span>),  </span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Region =</span> <span class="fu">ifelse</span>(Region <span class="sc">==</span> <span class="st">"Urban"</span>, <span class="dv">0</span>, <span class="dv">1</span>),  </span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">Smoking_History =</span> <span class="fu">ifelse</span>(Smoking_History <span class="sc">==</span> <span class="st">"No"</span>, <span class="dv">0</span>, <span class="dv">1</span>),  </span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">Diabetes_History =</span> <span class="fu">ifelse</span>(Diabetes_History <span class="sc">==</span> <span class="st">"No"</span>, <span class="dv">0</span>, <span class="dv">1</span>),  </span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">Hypertension_History =</span> <span class="fu">ifelse</span>(Hypertension_History <span class="sc">==</span> <span class="st">"No"</span>, <span class="dv">0</span>, <span class="dv">1</span>), </span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">Family_History =</span> <span class="fu">ifelse</span>(Family_History <span class="sc">==</span> <span class="st">"No"</span>, <span class="dv">0</span>, <span class="dv">1</span>),  </span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Three-level variables: 0 = Low/Poor/Young, 1 = Moderate/Average/Middle-Aged, 2 = High/Good/Old</span></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">Physical_Activity =</span> <span class="fu">recode</span>(Physical_Activity, <span class="st">"Low"</span> <span class="ot">=</span> <span class="dv">0</span>, <span class="st">"Moderate"</span> <span class="ot">=</span> <span class="dv">1</span>, <span class="st">"High"</span> <span class="ot">=</span> <span class="dv">2</span>),</span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">Diet_Quality =</span> <span class="fu">recode</span>(Diet_Quality, <span class="st">"Poor"</span> <span class="ot">=</span> <span class="dv">0</span>, <span class="st">"Average"</span> <span class="ot">=</span> <span class="dv">1</span>, <span class="st">"Good"</span> <span class="ot">=</span> <span class="dv">2</span>),</span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">Alcohol_Consumption =</span> <span class="fu">recode</span>(Alcohol_Consumption, <span class="st">"Low"</span> <span class="ot">=</span> <span class="dv">0</span>, <span class="st">"Moderate"</span> <span class="ot">=</span> <span class="dv">1</span>, <span class="st">"High"</span> <span class="ot">=</span> <span class="dv">2</span>),</span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">AgeCat =</span> <span class="fu">recode</span>(AgeCat, <span class="st">"Young"</span> <span class="ot">=</span> <span class="dv">0</span>, <span class="st">"Middle-Aged"</span> <span class="ot">=</span> <span class="dv">1</span>, <span class="st">"Old"</span> <span class="ot">=</span> <span class="dv">2</span>),</span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">Stress =</span> <span class="fu">recode</span>(Stress, <span class="st">"Low"</span> <span class="ot">=</span> <span class="dv">0</span>, <span class="st">"Medium"</span> <span class="ot">=</span> <span class="dv">1</span>, <span class="st">"High"</span> <span class="ot">=</span> <span class="dv">2</span>)</span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="recoding-dependent-variable" class="level3">
+<h3 class="anchored" data-anchor-id="recoding-dependent-variable">7.1.3 Recoding Dependent Variable</h3>
+<p>We also recode the dependent variable for logistic regression.</p>
+<p>The original dependent variable,&nbsp;<code>Heart_Attack_Occurrence</code> has responses such as “Yes” and “No.” For logistic regression, we need to convert this categorical variable into numeric values. We will recode the variable as follows:</p>
+<ul>
+<li><p>1: Indicates the occurrence of a heart attack (Yes)</p></li>
+<li><p>0: Indicates no occurrence of a heart attack (No)</p></li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>heartattack_lr <span class="ot">&lt;-</span> heartattack_lr <span class="sc">%&gt;%</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Heart_Attack_Recode =</span> <span class="fu">ifelse</span>(Heart_Attack_Occurrence <span class="sc">==</span> <span class="st">"Yes"</span>, <span class="dv">1</span>, <span class="dv">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="the-models" class="level2">
+<h2 class="anchored" data-anchor-id="the-models">7.2 The Models</h2>
+<p>We are now ready for building&nbsp;<strong>logistic regression models</strong>&nbsp;specifically for the&nbsp;<strong>young category</strong> individuals. The goal is to evaluate how well various predictor variables influence the likelihood of a heart attack occurrence among younger individuals (defined in the dataset as those categorized as “Young”).</p>
+<p>To enhance our understanding, we will also build a logistic regression model for the&nbsp;<strong>old category</strong> for comparison. By comparing these models, we can examine whether different age groups exhibit distinct risk factors for heart attack occurrences. This comparison can provide valuable insights into whether certain predictors are more relevant for younger individuals or if they affect all age groups similarly.</p>
+<section id="logistic-regression-model-for-young-category" class="level3">
+<h3 class="anchored" data-anchor-id="logistic-regression-model-for-young-category">7.2.1 Logistic Regression Model for Young Category</h3>
+<p>We first build a base logistic regression model as the initial model that includes all predictor variables without any further optimization.</p>
+<p>Then we refine the model using the <strong>forward stepwise regression</strong> method to systematically add predictors one by one, based on their statistical significance. This approach allows us to identify the most relevant variables while removing those that do not contribute significantly to the model’s predictive power.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>heartattack_young <span class="ot">&lt;-</span> heartattack_lr <span class="sc">%&gt;%</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(AgeCat <span class="sc">==</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>heartattack_lr_young <span class="ot">&lt;-</span> <span class="fu">glm</span>(Heart_Attack_Recode <span class="sc">~</span> </span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>                              Gender <span class="sc">+</span> </span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>                              Region <span class="sc">+</span> </span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>                              Smoking_History <span class="sc">+</span> </span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>                              Diabetes_History <span class="sc">+</span> </span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>                              Hypertension_History <span class="sc">+</span> </span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>                              Family_History <span class="sc">+</span> </span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>                              Physical_Activity <span class="sc">+</span> </span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>                              Diet_Quality <span class="sc">+</span> </span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>                              Alcohol_Consumption <span class="sc">+</span> </span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>                              Cholesterol_Level<span class="sc">+</span></span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>                              Stress<span class="sc">+</span></span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>                              BMI<span class="sc">+</span></span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>                              Systolic_BP<span class="sc">+</span></span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>                              Diastolic_BP<span class="sc">+</span></span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>                              Heart_Rate, </span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>                            <span class="at">data =</span> heartattack_young, </span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>                            <span class="at">family =</span> <span class="fu">binomial</span>())</span>
+<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a>heartattack_lr_young_step <span class="ot">&lt;-</span> <span class="fu">step</span>(heartattack_lr_young, </span>
+<span id="cb27-21"><a href="#cb27-21" aria-hidden="true" tabindex="-1"></a>                                       <span class="at">direction =</span> <span class="st">"forward"</span>, </span>
+<span id="cb27-22"><a href="#cb27-22" aria-hidden="true" tabindex="-1"></a>                                       <span class="at">trace =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb27-23"><a href="#cb27-23" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(heartattack_lr_young_step)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+glm(formula = Heart_Attack_Recode ~ Gender + Region + Smoking_History + 
+    Diabetes_History + Hypertension_History + Family_History + 
+    Physical_Activity + Diet_Quality + Alcohol_Consumption + 
+    Cholesterol_Level + Stress + BMI + Systolic_BP + Diastolic_BP + 
+    Heart_Rate, family = binomial(), data = heartattack_young)
+
+Coefficients:
+                      Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept)          -2.113367   0.331425  -6.377 1.81e-10 ***
+Gender                0.035216   0.069245   0.509   0.6111    
+Region                0.019063   0.074879   0.255   0.7990    
+Smoking_History      -0.009142   0.075747  -0.121   0.9039    
+Diabetes_History      0.205928   0.081794   2.518   0.0118 *  
+Hypertension_History  0.122994   0.078220   1.572   0.1159    
+Family_History       -0.032549   0.076038  -0.428   0.6686    
+Physical_Activity    -0.039023   0.044523  -0.876   0.3808    
+Diet_Quality          0.063859   0.046383   1.377   0.1686    
+Alcohol_Consumption  -0.031345   0.046821  -0.669   0.5032    
+Cholesterol_Level    -0.116074   0.298043  -0.389   0.6969    
+Stress               -0.109263   0.051843  -2.108   0.0351 *  
+BMI                  -0.090155   0.279490  -0.323   0.7470    
+Systolic_BP          -0.100789   0.282966  -0.356   0.7217    
+Diastolic_BP          0.100331   0.268195   0.374   0.7083    
+Heart_Rate           -0.067279   0.272703  -0.247   0.8051    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 6094.1  on 9593  degrees of freedom
+Residual deviance: 6076.9  on 9578  degrees of freedom
+  (1123 observations deleted due to missingness)
+AIC: 6108.9
+
+Number of Fisher Scoring iterations: 5</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled" style="color: black; background-color: #e0f3f9">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Insights
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><p><strong>Diabetes history</strong>&nbsp;is the most significant predictor in the model for younger individuals, indicating that having a history of diabetes increases the risk of a heart attack.</p></li>
+<li><p><strong>Stress levels</strong> is also significant for young individuals. However, it is a slight negative relationship with heart attack occurrence, meaning that higher stress levels may be associated with a lower likelihood of experiencing a heart attack in this age group, which could be due to the complexity of stress as a factor—possibly indicating that individuals with higher stress may be more likely to engage in behaviors or seek treatments that reduce heart attack risk.</p></li>
+<li><p>All other predictors are insignificant.</p></li>
+</ul>
+</div>
+</div>
+</section>
+<section id="logistic-regression-model-for-old-category" class="level3">
+<h3 class="anchored" data-anchor-id="logistic-regression-model-for-old-category">7.2.2 Logistic Regression Model for Old Category</h3>
+<p>Again, we do the same for the old category.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>heartattack_old <span class="ot">&lt;-</span> heartattack_lr <span class="sc">%&gt;%</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(AgeCat <span class="sc">==</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>heartattack_lr_old <span class="ot">&lt;-</span> <span class="fu">glm</span>(Heart_Attack_Recode <span class="sc">~</span> </span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>                              Gender <span class="sc">+</span> </span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>                              Region <span class="sc">+</span> </span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>                              Smoking_History <span class="sc">+</span> </span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>                              Diabetes_History <span class="sc">+</span> </span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>                              Hypertension_History <span class="sc">+</span> </span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>                              Family_History <span class="sc">+</span> </span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>                              Physical_Activity <span class="sc">+</span> </span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>                              Diet_Quality <span class="sc">+</span> </span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>                              Alcohol_Consumption <span class="sc">+</span> </span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>                              Cholesterol_Level<span class="sc">+</span></span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>                              Stress<span class="sc">+</span></span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>                              BMI<span class="sc">+</span></span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>                              Systolic_BP<span class="sc">+</span></span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>                              Diastolic_BP<span class="sc">+</span></span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>                              Heart_Rate, </span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>                            <span class="at">data =</span> heartattack_old, </span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a>                            <span class="at">family =</span> <span class="fu">binomial</span>())</span>
+<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a>heartattack_lr_old_step<span class="ot">&lt;-</span> <span class="fu">step</span>(heartattack_lr_old, </span>
+<span id="cb30-21"><a href="#cb30-21" aria-hidden="true" tabindex="-1"></a>                                               <span class="at">direction =</span> <span class="st">"forward"</span>, </span>
+<span id="cb30-22"><a href="#cb30-22" aria-hidden="true" tabindex="-1"></a>                                               <span class="at">trace =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb30-23"><a href="#cb30-23" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(heartattack_lr_old_step)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+glm(formula = Heart_Attack_Recode ~ Gender + Region + Smoking_History + 
+    Diabetes_History + Hypertension_History + Family_History + 
+    Physical_Activity + Diet_Quality + Alcohol_Consumption + 
+    Cholesterol_Level + Stress + BMI + Systolic_BP + Diastolic_BP + 
+    Heart_Rate, family = binomial(), data = heartattack_old)
+
+Coefficients:
+                      Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept)          -2.291243   0.342506  -6.690 2.24e-11 ***
+Gender               -0.015602   0.071804  -0.217    0.828    
+Region               -0.114997   0.080864  -1.422    0.155    
+Smoking_History       0.059233   0.078156   0.758    0.449    
+Diabetes_History     -0.006976   0.089854  -0.078    0.938    
+Hypertension_History -0.078347   0.085511  -0.916    0.360    
+Family_History       -0.036489   0.078968  -0.462    0.644    
+Physical_Activity    -0.041640   0.046326  -0.899    0.369    
+Diet_Quality         -0.024867   0.048082  -0.517    0.605    
+Alcohol_Consumption  -0.057183   0.049439  -1.157    0.247    
+Cholesterol_Level     0.452076   0.306888   1.473    0.141    
+Stress                0.016078   0.053551   0.300    0.764    
+BMI                  -0.083856   0.292348  -0.287    0.774    
+Systolic_BP          -0.125447   0.294332  -0.426    0.670    
+Diastolic_BP         -0.016944   0.277933  -0.061    0.951    
+Heart_Rate            0.274086   0.281972   0.972    0.331    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 5635.4  on 8746  degrees of freedom
+Residual deviance: 5625.7  on 8731  degrees of freedom
+  (967 observations deleted due to missingness)
+AIC: 5657.7
+
+Number of Fisher Scoring iterations: 5</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled" style="color: black; background-color: #e0f3f9">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Insights
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The logistic regression model for the old category indicates that only cholesterol level might have some marginal relevance,with a p value of 0.141, but overall, many of the variables do not show a significant impact.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="comparison-of-models" class="level2">
+<h2 class="anchored" data-anchor-id="comparison-of-models">7.3 Comparison of Models</h2>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-13-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-13-1" role="tab" aria-controls="tabset-13-1" aria-selected="true">Young</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-13-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-13-2" role="tab" aria-controls="tabset-13-2" aria-selected="false">Old</a></li></ul>
+<div class="tab-content">
+<div id="tabset-13-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-13-1-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tbl_regression</span>(heartattack_lr_young_step,</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>               <span class="at">intercept =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">estimate_fun =</span> purrr<span class="sc">::</span><span class="fu">partial</span>(style_sigfig, <span class="at">digits =</span> <span class="dv">4</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_glance_source_note</span>(</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">include =</span> <span class="fu">c</span>(AIC, BIC, deviance, df.residual))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="mlukpopaeb" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#mlukpopaeb table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#mlukpopaeb thead, #mlukpopaeb tbody, #mlukpopaeb tfoot, #mlukpopaeb tr, #mlukpopaeb td, #mlukpopaeb th {
+  border-style: none;
+}
+
+#mlukpopaeb p {
+  margin: 0;
+  padding: 0;
+}
+
+#mlukpopaeb .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#mlukpopaeb .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#mlukpopaeb .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#mlukpopaeb .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#mlukpopaeb .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#mlukpopaeb .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#mlukpopaeb .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#mlukpopaeb .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#mlukpopaeb .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#mlukpopaeb .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#mlukpopaeb .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#mlukpopaeb .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#mlukpopaeb .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#mlukpopaeb .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#mlukpopaeb .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#mlukpopaeb .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#mlukpopaeb .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#mlukpopaeb .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#mlukpopaeb .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#mlukpopaeb .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#mlukpopaeb .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#mlukpopaeb .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#mlukpopaeb .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#mlukpopaeb .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#mlukpopaeb .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#mlukpopaeb .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#mlukpopaeb .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#mlukpopaeb .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#mlukpopaeb .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#mlukpopaeb .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#mlukpopaeb .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#mlukpopaeb .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#mlukpopaeb .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#mlukpopaeb .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#mlukpopaeb .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#mlukpopaeb .gt_left {
+  text-align: left;
+}
+
+#mlukpopaeb .gt_center {
+  text-align: center;
+}
+
+#mlukpopaeb .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#mlukpopaeb .gt_font_normal {
+  font-weight: normal;
+}
+
+#mlukpopaeb .gt_font_bold {
+  font-weight: bold;
+}
+
+#mlukpopaeb .gt_font_italic {
+  font-style: italic;
+}
+
+#mlukpopaeb .gt_super {
+  font-size: 65%;
+}
+
+#mlukpopaeb .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#mlukpopaeb .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#mlukpopaeb .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#mlukpopaeb .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#mlukpopaeb .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#mlukpopaeb .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#mlukpopaeb .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#mlukpopaeb .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#mlukpopaeb div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+<table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+  <thead>
+    <tr class="gt_col_headings">
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="<div data-qmd-base64=&quot;KipDaGFyYWN0ZXJpc3RpYyoq&quot;><div class='gt_from_md'><p><strong>Characteristic</strong></p>
+</div></div>"><div data-qmd-base64="KipDaGFyYWN0ZXJpc3RpYyoq"><div class="gt_from_md"><p><strong>Characteristic</strong></p>
+</div></div></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="<div data-qmd-base64=&quot;Kipsb2coT1IpKio=&quot;><div class='gt_from_md'><p><strong>log(OR)</strong></p>
+</div></div><span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;><sup>1</sup></span>"><div data-qmd-base64="Kipsb2coT1IpKio="><div class="gt_from_md"><p><strong>log(OR)</strong></p>
+</div></div><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="<div data-qmd-base64=&quot;Kio5NSUgQ0kqKg==&quot;><div class='gt_from_md'><p><strong>95% CI</strong></p>
+</div></div><span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;><sup>1</sup></span>"><div data-qmd-base64="Kio5NSUgQ0kqKg=="><div class="gt_from_md"><p><strong>95% CI</strong></p>
+</div></div><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="<div data-qmd-base64=&quot;KipwLXZhbHVlKio=&quot;><div class='gt_from_md'><p><strong>p-value</strong></p>
+</div></div>"><div data-qmd-base64="KipwLXZhbHVlKio="><div class="gt_from_md"><p><strong>p-value</strong></p>
+</div></div></th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td headers="label" class="gt_row gt_left">(Intercept)</td>
+<td headers="estimate" class="gt_row gt_center">-2.113</td>
+<td headers="conf.low" class="gt_row gt_center">-2.765, -1.466</td>
+<td headers="p.value" class="gt_row gt_center">&lt;0.001</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Gender</td>
+<td headers="estimate" class="gt_row gt_center">0.0352</td>
+<td headers="conf.low" class="gt_row gt_center">-0.1005, 0.1710</td>
+<td headers="p.value" class="gt_row gt_center">0.6</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Region</td>
+<td headers="estimate" class="gt_row gt_center">0.0191</td>
+<td headers="conf.low" class="gt_row gt_center">-0.1288, 0.1648</td>
+<td headers="p.value" class="gt_row gt_center">0.8</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Smoking_History</td>
+<td headers="estimate" class="gt_row gt_center">-0.0091</td>
+<td headers="conf.low" class="gt_row gt_center">-0.1589, 0.1382</td>
+<td headers="p.value" class="gt_row gt_center">&gt;0.9</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Diabetes_History</td>
+<td headers="estimate" class="gt_row gt_center">0.2059</td>
+<td headers="conf.low" class="gt_row gt_center">0.0438, 0.3646</td>
+<td headers="p.value" class="gt_row gt_center">0.012</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Hypertension_History</td>
+<td headers="estimate" class="gt_row gt_center">0.1230</td>
+<td headers="conf.low" class="gt_row gt_center">-0.0318, 0.2749</td>
+<td headers="p.value" class="gt_row gt_center">0.12</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Family_History</td>
+<td headers="estimate" class="gt_row gt_center">-0.0325</td>
+<td headers="conf.low" class="gt_row gt_center">-0.1829, 0.1153</td>
+<td headers="p.value" class="gt_row gt_center">0.7</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Physical_Activity</td>
+<td headers="estimate" class="gt_row gt_center">-0.0390</td>
+<td headers="conf.low" class="gt_row gt_center">-0.1263, 0.0482</td>
+<td headers="p.value" class="gt_row gt_center">0.4</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Diet_Quality</td>
+<td headers="estimate" class="gt_row gt_center">0.0639</td>
+<td headers="conf.low" class="gt_row gt_center">-0.0267, 0.1551</td>
+<td headers="p.value" class="gt_row gt_center">0.2</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Alcohol_Consumption</td>
+<td headers="estimate" class="gt_row gt_center">-0.0313</td>
+<td headers="conf.low" class="gt_row gt_center">-0.1233, 0.0603</td>
+<td headers="p.value" class="gt_row gt_center">0.5</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Cholesterol_Level</td>
+<td headers="estimate" class="gt_row gt_center">-0.1161</td>
+<td headers="conf.low" class="gt_row gt_center">-0.7004, 0.4681</td>
+<td headers="p.value" class="gt_row gt_center">0.7</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Stress</td>
+<td headers="estimate" class="gt_row gt_center">-0.1093</td>
+<td headers="conf.low" class="gt_row gt_center">-0.2112, -0.0079</td>
+<td headers="p.value" class="gt_row gt_center">0.035</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">BMI</td>
+<td headers="estimate" class="gt_row gt_center">-0.0902</td>
+<td headers="conf.low" class="gt_row gt_center">-0.6381, 0.4576</td>
+<td headers="p.value" class="gt_row gt_center">0.7</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Systolic_BP</td>
+<td headers="estimate" class="gt_row gt_center">-0.1008</td>
+<td headers="conf.low" class="gt_row gt_center">-0.6553, 0.4540</td>
+<td headers="p.value" class="gt_row gt_center">0.7</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Diastolic_BP</td>
+<td headers="estimate" class="gt_row gt_center">0.1003</td>
+<td headers="conf.low" class="gt_row gt_center">-0.4254, 0.6260</td>
+<td headers="p.value" class="gt_row gt_center">0.7</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Heart_Rate</td>
+<td headers="estimate" class="gt_row gt_center">-0.0673</td>
+<td headers="conf.low" class="gt_row gt_center">-0.6017, 0.4674</td>
+<td headers="p.value" class="gt_row gt_center">0.8</td></tr>
+  </tbody>
+  <tfoot class="gt_sourcenotes">
+    <tr>
+      <td class="gt_sourcenote" colspan="4"><div data-qmd-base64="QUlDID0gNiwxMDk7IEJJQyA9IDYsMjI0OyBEZXZpYW5jZSA9IDYsMDc3OyBSZXNpZHVhbCBkZiA9IDksNTc4"><div class="gt_from_md"><p>AIC = 6,109; BIC = 6,224; Deviance = 6,077; Residual df = 9,578</p>
+</div></div></td>
+    </tr>
+  </tfoot>
+  <tfoot class="gt_footnotes">
+    <tr>
+      <td class="gt_footnote" colspan="4"><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span> <div data-qmd-base64="T1IgPSBPZGRzIFJhdGlvLCBDSSA9IENvbmZpZGVuY2UgSW50ZXJ2YWw="><div class="gt_from_md"><p>OR = Odds Ratio, CI = Confidence Interval</p>
+</div></div></td>
+    </tr>
+  </tfoot>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-13-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-13-2-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tbl_regression</span>(heartattack_lr_old_step,</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>               <span class="at">intercept =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">estimate_fun =</span> purrr<span class="sc">::</span><span class="fu">partial</span>(style_sigfig, <span class="at">digits =</span> <span class="dv">4</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_glance_source_note</span>(</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">include =</span> <span class="fu">c</span>(AIC, BIC, deviance, df.residual))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="tzgvidouls" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#tzgvidouls table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#tzgvidouls thead, #tzgvidouls tbody, #tzgvidouls tfoot, #tzgvidouls tr, #tzgvidouls td, #tzgvidouls th {
+  border-style: none;
+}
+
+#tzgvidouls p {
+  margin: 0;
+  padding: 0;
+}
+
+#tzgvidouls .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#tzgvidouls .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#tzgvidouls .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#tzgvidouls .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#tzgvidouls .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#tzgvidouls .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#tzgvidouls .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#tzgvidouls .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#tzgvidouls .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#tzgvidouls .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#tzgvidouls .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#tzgvidouls .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#tzgvidouls .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#tzgvidouls .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#tzgvidouls .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#tzgvidouls .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#tzgvidouls .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#tzgvidouls .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#tzgvidouls .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#tzgvidouls .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#tzgvidouls .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#tzgvidouls .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#tzgvidouls .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#tzgvidouls .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#tzgvidouls .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#tzgvidouls .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#tzgvidouls .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#tzgvidouls .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#tzgvidouls .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#tzgvidouls .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#tzgvidouls .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#tzgvidouls .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#tzgvidouls .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#tzgvidouls .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#tzgvidouls .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#tzgvidouls .gt_left {
+  text-align: left;
+}
+
+#tzgvidouls .gt_center {
+  text-align: center;
+}
+
+#tzgvidouls .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#tzgvidouls .gt_font_normal {
+  font-weight: normal;
+}
+
+#tzgvidouls .gt_font_bold {
+  font-weight: bold;
+}
+
+#tzgvidouls .gt_font_italic {
+  font-style: italic;
+}
+
+#tzgvidouls .gt_super {
+  font-size: 65%;
+}
+
+#tzgvidouls .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#tzgvidouls .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#tzgvidouls .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#tzgvidouls .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#tzgvidouls .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#tzgvidouls .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#tzgvidouls .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#tzgvidouls .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#tzgvidouls div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+<table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+  <thead>
+    <tr class="gt_col_headings">
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="<div data-qmd-base64=&quot;KipDaGFyYWN0ZXJpc3RpYyoq&quot;><div class='gt_from_md'><p><strong>Characteristic</strong></p>
+</div></div>"><div data-qmd-base64="KipDaGFyYWN0ZXJpc3RpYyoq"><div class="gt_from_md"><p><strong>Characteristic</strong></p>
+</div></div></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="<div data-qmd-base64=&quot;Kipsb2coT1IpKio=&quot;><div class='gt_from_md'><p><strong>log(OR)</strong></p>
+</div></div><span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;><sup>1</sup></span>"><div data-qmd-base64="Kipsb2coT1IpKio="><div class="gt_from_md"><p><strong>log(OR)</strong></p>
+</div></div><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="<div data-qmd-base64=&quot;Kio5NSUgQ0kqKg==&quot;><div class='gt_from_md'><p><strong>95% CI</strong></p>
+</div></div><span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;><sup>1</sup></span>"><div data-qmd-base64="Kio5NSUgQ0kqKg=="><div class="gt_from_md"><p><strong>95% CI</strong></p>
+</div></div><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="<div data-qmd-base64=&quot;KipwLXZhbHVlKio=&quot;><div class='gt_from_md'><p><strong>p-value</strong></p>
+</div></div>"><div data-qmd-base64="KipwLXZhbHVlKio="><div class="gt_from_md"><p><strong>p-value</strong></p>
+</div></div></th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td headers="label" class="gt_row gt_left">(Intercept)</td>
+<td headers="estimate" class="gt_row gt_center">-2.291</td>
+<td headers="conf.low" class="gt_row gt_center">-2.965, -1.622</td>
+<td headers="p.value" class="gt_row gt_center">&lt;0.001</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Gender</td>
+<td headers="estimate" class="gt_row gt_center">-0.0156</td>
+<td headers="conf.low" class="gt_row gt_center">-0.1564, 0.1252</td>
+<td headers="p.value" class="gt_row gt_center">0.8</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Region</td>
+<td headers="estimate" class="gt_row gt_center">-0.1150</td>
+<td headers="conf.low" class="gt_row gt_center">-0.2751, 0.0420</td>
+<td headers="p.value" class="gt_row gt_center">0.2</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Smoking_History</td>
+<td headers="estimate" class="gt_row gt_center">0.0592</td>
+<td headers="conf.low" class="gt_row gt_center">-0.0952, 0.2113</td>
+<td headers="p.value" class="gt_row gt_center">0.4</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Diabetes_History</td>
+<td headers="estimate" class="gt_row gt_center">-0.0070</td>
+<td headers="conf.low" class="gt_row gt_center">-0.1857, 0.1667</td>
+<td headers="p.value" class="gt_row gt_center">&gt;0.9</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Hypertension_History</td>
+<td headers="estimate" class="gt_row gt_center">-0.0783</td>
+<td headers="conf.low" class="gt_row gt_center">-0.2481, 0.0873</td>
+<td headers="p.value" class="gt_row gt_center">0.4</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Family_History</td>
+<td headers="estimate" class="gt_row gt_center">-0.0365</td>
+<td headers="conf.low" class="gt_row gt_center">-0.1927, 0.1170</td>
+<td headers="p.value" class="gt_row gt_center">0.6</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Physical_Activity</td>
+<td headers="estimate" class="gt_row gt_center">-0.0416</td>
+<td headers="conf.low" class="gt_row gt_center">-0.1325, 0.0491</td>
+<td headers="p.value" class="gt_row gt_center">0.4</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Diet_Quality</td>
+<td headers="estimate" class="gt_row gt_center">-0.0249</td>
+<td headers="conf.low" class="gt_row gt_center">-0.1189, 0.0697</td>
+<td headers="p.value" class="gt_row gt_center">0.6</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Alcohol_Consumption</td>
+<td headers="estimate" class="gt_row gt_center">-0.0572</td>
+<td headers="conf.low" class="gt_row gt_center">-0.1543, 0.0395</td>
+<td headers="p.value" class="gt_row gt_center">0.2</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Cholesterol_Level</td>
+<td headers="estimate" class="gt_row gt_center">0.4521</td>
+<td headers="conf.low" class="gt_row gt_center">-0.1493, 1.054</td>
+<td headers="p.value" class="gt_row gt_center">0.14</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Stress</td>
+<td headers="estimate" class="gt_row gt_center">0.0161</td>
+<td headers="conf.low" class="gt_row gt_center">-0.0891, 0.1209</td>
+<td headers="p.value" class="gt_row gt_center">0.8</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">BMI</td>
+<td headers="estimate" class="gt_row gt_center">-0.0839</td>
+<td headers="conf.low" class="gt_row gt_center">-0.6571, 0.4890</td>
+<td headers="p.value" class="gt_row gt_center">0.8</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Systolic_BP</td>
+<td headers="estimate" class="gt_row gt_center">-0.1254</td>
+<td headers="conf.low" class="gt_row gt_center">-0.7022, 0.4516</td>
+<td headers="p.value" class="gt_row gt_center">0.7</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Diastolic_BP</td>
+<td headers="estimate" class="gt_row gt_center">-0.0169</td>
+<td headers="conf.low" class="gt_row gt_center">-0.5616, 0.5280</td>
+<td headers="p.value" class="gt_row gt_center">&gt;0.9</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">Heart_Rate</td>
+<td headers="estimate" class="gt_row gt_center">0.2741</td>
+<td headers="conf.low" class="gt_row gt_center">-0.2785, 0.8270</td>
+<td headers="p.value" class="gt_row gt_center">0.3</td></tr>
+  </tbody>
+  <tfoot class="gt_sourcenotes">
+    <tr>
+      <td class="gt_sourcenote" colspan="4"><div data-qmd-base64="QUlDID0gNSw2NTg7IEJJQyA9IDUsNzcxOyBEZXZpYW5jZSA9IDUsNjI2OyBSZXNpZHVhbCBkZiA9IDgsNzMx"><div class="gt_from_md"><p>AIC = 5,658; BIC = 5,771; Deviance = 5,626; Residual df = 8,731</p>
+</div></div></td>
+    </tr>
+  </tfoot>
+  <tfoot class="gt_footnotes">
+    <tr>
+      <td class="gt_footnote" colspan="4"><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span> <div data-qmd-base64="T1IgPSBPZGRzIFJhdGlvLCBDSSA9IENvbmZpZGVuY2UgSW50ZXJ2YWw="><div class="gt_from_md"><p>OR = Odds Ratio, CI = Confidence Interval</p>
+</div></div></td>
+    </tr>
+  </tfoot>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled" style="color: black; background-color: #e0f3f9">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Insights
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<section id="significance-of-predictors" class="level4">
+<h4 class="anchored" data-anchor-id="significance-of-predictors"><strong>1. Significance of Predictors:</strong></h4>
+<ul>
+<li><p><strong>Young Category</strong>: Significant predictors such as&nbsp;Diabetes History&nbsp;(positive relationship with heart attack risk) and&nbsp;Stress Levels (negative relationship with heart attack risk) suggest that lifestyle and health conditions like diabetes, alongside stress, play an important role in the likelihood of heart attacks in the young.</p></li>
+<li><p><strong>Old Category</strong>: There are no significant predictors in the old category.The lack of significant results may be due to the age group having a more homogeneous risk factor profile, with factors such as age playing a dominant role in heart attack occurrence.</p></li>
+</ul>
+</section>
+<section id="model-fit" class="level4">
+<h4 class="anchored" data-anchor-id="model-fit">2. <strong>Model Fit:</strong></h4>
+<ul>
+<li><p><strong>Young Category</strong>: The model for the young category has a&nbsp;residual deviance&nbsp;of 6077 and an&nbsp;AIC&nbsp;of 6109.6, indicating that the model fits the data moderately well. The significance of a few variables suggests that the model explains some variation in heart attack occurrence.</p></li>
+<li><p><strong>Old Category</strong>: The&nbsp;residual deviance&nbsp;for the old category is 5625, and the&nbsp;AIC&nbsp;is 5658, which also indicates a reasonable model fit, although no variables were found to be statistically significant.</p></li>
+</ul>
+</section>
+</div>
+</div>
+<hr>
+</section>
+</section>
 <section id="summary" class="level1">
-<h1>7 Summary</h1>
-<p>This study provides insights into the relationship between stress, age, gender, and heart attack occurrence. While stress levels show a statistically significant difference between individuals with and without a heart attack, the clinical relevance remains minimal. Notably, older patients exhibit higher stress levels and greater variability in diastolic blood pressure (DBP) under stress, indicating a potential risk of stress-induced hypertension. Younger individuals, in contrast, display better cardiovascular adaptability, with lower systolic and diastolic blood pressure under stress.</p>
-<p>Gender and geographic location also appear to influence heart attack risk in Japan, with males and rural populations being more vulnerable. These findings highlight the importance of considering age, stress, and access to healthcare in heart attack prevention and management.</p>
+<h1>8 Summary</h1>
+<p>This study examines the relationship between stress, age, gender, and heart attack occurrence. While stress levels show a statistically significant difference between individuals with and without a heart attack, the clinical relevance remains minimal. Older patients exhibit higher stress levels and greater variability in diastolic blood pressure (DBP), suggesting potential stress-induced hypertension. In contrast, younger individuals show better cardiovascular adaptability, with lower systolic and diastolic blood pressure under stress.</p>
+<p>Gender and geographic location also influence heart attack risk, with males and rural populations being more vulnerable. These findings emphasize the importance of considering age, stress, and access to healthcare in heart attack prevention and management.</p>
+<p>The logistic regression results support these insights, highlighting that stress levels are marginally significant for young individuals, aligning with the earlier observation that stress plays a crucial role in heart attack risk. Additionally, diabetes history emerged as a significant predictor for younger individuals, reinforcing that health conditions like diabetes are important in determining heart attack vulnerability. For the older group, the lack of significant predictors contrasts with the earlier insight about stress’s impact, possibly reflecting the complexity of risk factors in older populations that are not fully captured by the model.</p>
 <hr>
 </section>
 <section id="references" class="level1">
@@ -1300,6 +2856,7 @@ Insights
 <p>Iso H. (2011). Lifestyle and cardiovascular disease in Japan.&nbsp;<em>Journal of atherosclerosis and thrombosis</em>,&nbsp;<em>18</em>(2), 83–88. https://doi.org/10.5551/jat.6866</p>
 <p>Jung, E., Kong, S. Y., Ro, Y. S., Ryu, H. H., &amp; Shin, S. D. (2022). Serum Cholesterol Levels and Risk of Cardiovascular Death: A Systematic Review and a Dose-Response Meta-Analysis of Prospective Cohort Studies. <em>International journal of environmental research and public health</em>, <em>19</em>(14), 8272. https://doi.org/10.3390/ijerph19148272</p>
 <p>Lauer, M. S., Okin, P. M., Larson, M. G., Evans, J. C., Levy, D. (2004). Impaired heart rate response to graded exercise: Prognostic implications of chronotropic incompetence in the Framingham Heart Study.&nbsp;<em>Circulation, 109</em>(7), 988–994.&nbsp;<a href="https://www.ahajournals.org/doi/10.1161/01.CIR.0000141564.89465.4E">https://doi.org/10.1161/01.CIR.0000141564.89465.4E</a></p>
+<p>Matheus, A. S., Tannus, L. R., Cobas, R. A., Palma, C. C., Negrato, C. A., &amp; Gomes, M. B. (2013). Impact of diabetes on cardiovascular disease: an update.&nbsp;<em>International journal of hypertension</em>,&nbsp;<em>2013</em>, 653789. https://doi.org/10.1155/2013/653789</p>
 
 
 </section>
