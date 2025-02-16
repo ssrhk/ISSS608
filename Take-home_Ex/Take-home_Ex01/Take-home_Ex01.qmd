@@ -32,9 +32,9 @@ Through data-driven visualizations, we will highlight the prevalence, underlying
 
 # 2 Methodology & R Packages Used
 
-We will follow the outlined methodology flow for this exercise, starting with data import, followed by data preparation, and concluding with statistical graphics, including exploratory analysis to draw insights.
+We will follow the outlined methodology flow for this exercise, starting with data import, followed by data preparation, and concluding with insights from statistical graphics and multiple logistic regression.
 
-![](/Take-home_Ex/Methodology.png)
+![](Methodology.png)
 
 The following R packages will be used to achieve the objective.
 
