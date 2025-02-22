@@ -1,0 +1,774 @@
+---
+title: "Take-home Exercise 02: Be Tradewise or Otherwise"
+format: html
+author: "Sei Sar Hla Kyi"
+date: "February 22, 2025"
+date-modified: "`r Sys.Date()`"
+execute: 
+  eval: true
+  echo: true
+  message: false
+  freeze: true
+  warning: false
+---
+
+# 1 Overview
+
+## 1.1 Background
+
+Since Donald Trump assumed the U.S. presidency on January 20, 2025, global trade has been a focal point of economic discussions. Singapore, as a highly open economy, is deeply affected by shifts in international trade policies and global economic trends. Understanding how Singapore’s merchandise trade has evolved since 2015 provides valuable insights into the country’s trade resilience, shifting market dependencies, and economic positioning.
+
+This study focuses on leveraging visual analytics and time-series techniques to explore Singapore’s international trade data. By analyzing historical trade patterns, identifying trends, and applying forecasting methods, this study aims to generate actionable insights into Singapore’s trade performance over the past decade.
+
+## 1.2 Objectives
+
+The primary objectives of this study are:
+
+1.  **Data Visualization Critique & Redesign:** Select three existing data visualizations from the dataset’s [webpage](https://www.singstat.gov.sg/modules/infographics/singapore-international-trade), critically evaluate their effectiveness, identify strengths and weaknesses, and propose and create improved visual representations.
+
+2.  **Time-Series Analysis:** Apply appropriate time-series techniques to analyze trends in Singapore’s merchandise trade. Derive meaningful conclusions from the visualizations and time-series analysis, explaining key trade trends, shifts in trade regions, and potential implications for Singapore’s economy.
+
+------------------------------------------------------------------------
+
+# 2 Methodology & R Packages Used
+
+We will follow the outlined methodology flow for this study, starting with data import and data wrangling, and discussion and makeover of selected visualizations and time series analysis.
+
+![](methodology2.png){fig-align="center" width="669"}
+
+::: panel-tabset
+## Packages Used
+
+| Package | Explanation |
+|------------------------------------|------------------------------------|
+| tidyverse | to efficiently manipulate and clean data, utilizing functions from packages like `dplyr` and `tidyr` for data wrangling. |
+| readxl | allows us to import and work with excel file |
+| ggplot2 | to create informative and aesthetically pleasing visualizations, such as histograms and boxplots, to analyze the data |
+| patchwork | to combine multiple ggplot2 plots into a cohesive layout, making it easier to present related visualizations side by side |
+| SmartEDA | to help summarize dataset by providing insights such as missing values |
+| plotly | for creating interactive visualizations like zoom, and hover. |
+|  |  |
+|  |  |
+|  |  |
+|  |  |
+
+## Code to Launch
+
+```{r}
+pacman::p_load(tidyverse,readxl,SmartEDA,patchwork,plotly)
+```
+:::
+
+------------------------------------------------------------------------
+
+# 3 The Dataset
+
+The dataset, **Merchandise Trade by Region/Market**, is obtained from the Department of Statistics Singapore (DOS) and provides detailed records of Singapore’s international trade. It consists of three Excel tabs: *Imports, Domestic Exports, and Re-Exports*, capturing monthly trade values (in million SGD) with various countries from January 2003 to January 2025. This dataset enables an in-depth analysis of Singapore’s trade flows, helping to identify key trading partners, shifting trade patterns, and trends in import and export activities over time.
+
+------------------------------------------------------------------------
+
+# 4 Data Preparation
+
+## 4.1 Importing the Data and Removing Irrelevant Rows
+
+The code chunk below imports *MerchanciseTrade.xlsx* as three dataframes - imports, exports and reexports- into R environment by using *read_xlsx( )* from **readxl** package. "sheet =" tells which worksheet to read as our dataset contains multiple worksheets.
+
+The Excel sheets also contain irrelevant rows, including data descriptions and footnotes, which need to be removed as we import. Specifically:
+
+-   **Rows 1 to 9** contain metadata and are not part of the actual dataset.
+
+-   **Row 10** contains column headers and should be set as variable names.
+
+-   **Rows 171 to 191** contain footnotes and other non-relevant information that should be excluded.
+
+To ensure a clean dataset, we will remove these rows and set Row 10 as the header.
+
+::: panel-tabset
+## Imports
+
+```{r}
+imports <- read_xlsx("data/MerchandiseTrade.xlsx", sheet = "T1",skip = 9) %>%
+  slice(1:161)
+colnames(imports) <- as.character(imports[1, ])  # Assign first row as column names
+imports <- imports[-1, ]
+```
+
+## Exports
+
+```{r}
+exports <- read_xlsx("data/MerchandiseTrade.xlsx", sheet = "T2",skip = 9) %>%
+  slice(1:161)
+colnames(exports) <- as.character(exports[1, ])  # Assign first row as column names
+exports <- exports[-1, ]
+```
+
+## Re-Exports
+
+```{r}
+reexports <- read_xlsx("data/MerchandiseTrade.xlsx", sheet = "T3",skip = 9) %>%
+  slice(1:161)
+colnames(reexports) <- as.character(reexports[1, ])  # Assign first row as column names
+reexports <- reexports[-1, ]
+```
+:::
+
+## 4.2 Checking for Missing values
+
+The *ExpData* from **SmartEDA** package provides a quick overview of data types and missing values.
+
+::: panel-tabset
+## Imports
+
+```{r}
+imports %>%
+  ExpData(type=1)
+```
+
+## Exports
+
+```{r}
+exports %>%
+  ExpData(type=1)
+```
+
+## Reexports
+
+```{r}
+reexports %>%
+  ExpData(type=1)
+```
+:::
+
+Based on the results, all three data frames contain 100% complete cases, indicating the absence of missing values.
+
+## 4.3 Renaming Columns and Converting Data Type
+
+Initially, all variables in the dataset are stored as character data types. However, since all columns (except for Data Series) represent trade values in millions of SGD, they should be converted to numeric format. Additionally, we will rename the Data Series column to Markets for better readability.
+
+The column names represent dates in the **"YYYY MMM"** format (e.g., `"2025 Jan"`, `"2024 Dec"`). To analyze the data effectively as a **time series**, we will need to :
+
+1.  **Reshape the dataset from wide to long format** – Instead of having separate columns for each month, we will structure the data so that each row represents a month and its corresponding trade value. A long format is particularly beneficial when working with **ggplot2** because it simplifies faceting and makes data manipulation and visualization more flexible.
+
+2.  **Convert the date column to a proper date format (`YYYY-MM`)** – This ensures consistency and compatibility with time series analysis and visualization.
+
+::: panel-tabset
+## Imports
+
+```{r}
+imports <- imports %>%
+  rename(Markets = `Data Series`) %>% 
+  mutate(across(-Markets, as.numeric)) %>%
+  pivot_longer(cols = -Markets, names_to = "Date", values_to = "Trade_Value")%>%
+  mutate(Date = parse_date_time(Date, orders = "ym"))%>%
+  mutate(Date = as.Date(Date)) %>%
+  arrange(Date)
+
+head(imports)
+```
+
+## Exports
+
+```{r}
+exports <- exports %>%
+  rename(Markets = `Data Series`) %>% 
+  mutate(across(-Markets, as.numeric))%>%
+  pivot_longer(cols = -Markets, names_to = "Date", values_to = "Trade_Value")%>%
+  mutate(Date = parse_date_time(Date, orders = "ym"))%>%
+  mutate(Date = as.Date(Date)) %>%
+  arrange(Date)
+```
+
+## Reexports
+
+```{r}
+reexports <- reexports %>%
+  rename(Markets = `Data Series`) %>% 
+  mutate(across(-Markets, as.numeric))%>%
+  pivot_longer(cols = -Markets, names_to = "Date", values_to = "Trade_Value")%>%
+  mutate(Date = parse_date_time(Date, orders = "ym"))%>%
+  mutate(Date = as.Date(Date)) %>%
+  arrange(Date)
+```
+:::
+
+## 4.4 Grouping Region or Country
+
+The dataset contains rows that represent regions (e.g., "Total All Market", "America", "Asia", "Oceania", "Europe", and "Africa") alongside rows for individual countries. To facilitate analysis, we will add a new column (*RegionorCountry*) to classify each row as either a **region** or a **country**.
+
+This classification allows us to easily filter out the region rows from analyses focused on country-level data, such as when creating visualizations or performing modeling tasks.
+
+If we choose to exclude the region rows for specific analyses, we can filter them out using the newly created column, keeping only the country data for detailed exploration.
+
+::: panel-tabset
+## Imports
+
+```{r}
+# Adding new coulumn 
+imports <- imports %>%
+  mutate(RegionorCountry = ifelse(Markets %in% c("Total All Markets", "America", "Asia", "Oceania", "Europe", "Africa"), 
+                                    "Region", "Country"))
+
+head(imports)
+```
+
+## Exports
+
+```{r}
+# Adding new coulumn 
+exports <- exports %>%
+  mutate(RegionorCountry = ifelse(Markets %in% c("Total All Markets", "America", "Asia", "Oceania", "Europe", "Africa"), 
+                                    "Region", "Country"))
+```
+
+## Reexports
+
+```{r}
+# Adding new coulumn 
+reexports <- reexports %>%
+  mutate(RegionorCountry = ifelse(Markets %in% c("Total All Markets", "America", "Asia", "Oceania", "Europe", "Africa"), 
+                                    "Region", "Country"))
+```
+:::
+
+## 4.5 Combining into One Dataframe
+
+After all our data preparation, we can combine the three newly prepared datasets into a single unified dataframe. This step allows us to work with the data as a whole while preserving the distinction between the different trade categories. To achieve this, we use the `bind_rows()` function to stack the datasets and add a new column, `Type`, which indicates whether a row corresponds to Imports, Exports, or Re-Exports.
+
+This combined dataframe will be more convenient for analysis, as it enables us to analyze trade data across different categories while keeping the data structured.
+
+```{r}
+imports <- imports %>%
+  mutate(Type = "Import")
+
+exports <- exports %>%
+  mutate(Type = "Export")
+
+reexports <- reexports %>%
+  mutate(Type = "Re-Export")
+
+# Combine all three datasets using bind_rows()
+trade <- bind_rows(imports, exports, reexports)
+
+head(trade)
+```
+
+Now, we can proceed to keep a subset of the dataframe on country-level data by excluding the regions.
+
+```{r}
+# Filter only countries (exclude regions)
+country <- trade %>% filter(RegionorCountry == "Country")
+```
+
+------------------------------------------------------------------------
+
+# 5 Three Visualizations & Their Makeovers
+
+## 5.1 Visualization 1: Barchart of **Total Merchandise Trade, 2020 - 2024**
+
+![](1.png){fig-align="center" width="731"}
+
+The barchart presents the total merchandise trade for the years 2020 through 2024, with each year showing two bars—representing export and import values. There are bubbles beside the bars indicating the combined total trade value for each year. A textbox also notes a 6.6% increase in trade in 2024.
+
+### 5.1.1 Pros and Cons
+
+**Pros:**
+
+-   The color coding by year makes it easier to distinguish between the different years, providing clarity at a glance.
+
+-   Clear trade value labels in each bar help viewers quickly identify the trade volume for both exports and imports.
+
+**Cons:**
+
+-   The textbox stating "Increased 6.6% in 2024" is not effectively supported by the barchart itself. The viewer is left wondering what exactly increased and from which point the 6.6% growth is being measured (compared to 2023 or from the beginning of 2020).
+
+-   The description does not explicitly explain that "exports" include "re-exports," which could lead to confusion for viewers since exports are higher than imports every year.
+
+-   The total trade value for each year is not immediately clear, as it is displayed separately in a bubble, which might make it harder for viewers to correlate the bubble value with the corresponding bars.
+
+### 5.1.2 Makeover
+
+To improve the visualization, several changes were made:
+
+-   A line chart was added alongside the bar chart to show percentage changes in trade over the years, providing context to fluctuations. This highlights trends, such as the recovery from a sharp decline in 2023 (-11.7%), emphasizing that the 6.6% increase in 2024 is part of a broader recovery. 
+
+-   A footnote was added to clarify that "exports include re-exports." This is an important piece of information that was missing in the original description, and its inclusion ensures the viewer has a complete understanding of what is meant by "exports" and why it might be higher than imports.
+
+::: panel-tabset
+## The Plot
+
+```{r}
+#| echo: False
+#| fig-width: 12
+#| fig_height: 30
+
+country <- country %>%
+  mutate(Year = format(as.Date(Date), "%Y"))
+
+# Calculate total trade value for export, import, and re-export (from 2019 to 2024)
+summary_data <- country %>%
+  filter(Type %in% c("Export", "Import", "Re-Export"), Year %in% c("2019", "2020", "2021", "2022", "2023", "2024")) %>%
+  mutate(Trade_Value = as.numeric(Trade_Value)) %>%
+  mutate(Type = ifelse(Type == "Re-Export", "Export", Type)) %>%
+  group_by(Year, Type) %>%
+  summarise(Total_Trade_Value = sum(Trade_Value, na.rm = TRUE)) %>%
+  mutate(Total_Trade_Value_Billions = Total_Trade_Value / 1000,  # Convert to billions
+         Label = paste0("$", round(Total_Trade_Value_Billions, 1))) 
+
+# Calculate the total trade value for Export, Import, and Re-Export combined for each year
+total_trade_by_year <- summary_data %>%
+  group_by(Year) %>%
+  summarise(Total_Trade_Value_Billions = sum(Total_Trade_Value_Billions, na.rm = TRUE))
+
+# Get the 2019 total trade value for calculating the 2020 percentage change
+total_trade_2019_value <- total_trade_by_year$Total_Trade_Value_Billions[total_trade_by_year$Year == "2019"]
+
+# Calculate percentage change, keeping 2019 for reference
+total_trade_by_year <- total_trade_by_year %>%
+  mutate(Percentage_Change = (Total_Trade_Value_Billions / lag(Total_Trade_Value_Billions) - 1) * 100)
+
+# Manually compute the 2020 percentage change using 2019's value
+total_trade_by_year[total_trade_by_year$Year == "2020", "Percentage_Change"] <- 
+  (total_trade_by_year$Total_Trade_Value_Billions[total_trade_by_year$Year == "2020"] - total_trade_2019_value) / total_trade_2019_value * 100
+
+# Remove 2019 from the dataset to only plot 2020-2024
+total_trade_by_year <- total_trade_by_year %>%
+  filter(Year >= 2020)
+
+summary_data <- summary_data %>%
+  filter(Year >= 2020)
+
+summary_data$Year <- as.integer(summary_data$Year)
+total_trade_by_year$Year <- as.integer(total_trade_by_year$Year)
+
+# Define limits for both axes
+ylim.prim <- c(0, max(summary_data$Total_Trade_Value_Billions, na.rm = TRUE))
+ylim.sec <- c(-50, 25)
+
+# Transformation coefficients for scaling percentage change
+b <- diff(ylim.prim) / diff(ylim.sec)
+a <- ylim.prim[1] - b * ylim.sec[1] 
+
+
+ggplot() +
+  # Bar chart for Total Trade Value in Billions
+  geom_bar(data = summary_data, aes(x = Year, y = Total_Trade_Value_Billions, fill = Type),
+           stat = "identity", position = "dodge") +
+  
+  # Line chart for Percentage Change, scaled appropriately
+  geom_line(data = total_trade_by_year, aes(x = Year, y = a + Percentage_Change * b), 
+            color = "#e79251", size = 1) +
+  geom_point(data = total_trade_by_year, aes(x = Year, y = a + Percentage_Change * b), 
+             color = "#e79251", size = 3) + 
+  
+  # Add labels for the bar chart
+  geom_text(data = summary_data, aes(x = Year, y = 0, label = Label, group = Type),
+            position = position_dodge(width = 0.9), color= "#737373", vjust = -4, size = 5) +
+  
+  # Label the line chart with percentage values
+  geom_text(data = total_trade_by_year, aes(x = Year, y = a + Percentage_Change * b, 
+                                             label = paste0(round(Percentage_Change, 1), "%")), 
+            color = "black", vjust = -0.5, size = 5) +
+  
+  # Add a red dotted line at 0% percentage change
+  geom_hline(yintercept = a, color = "#ff9c07", linetype = "dotted", size = 1) +
+  
+  # Add total value labels on the line chart
+  geom_text(data = total_trade_by_year, aes(x = Year, y = a + Percentage_Change * b,
+                                             label = paste0("$", round(Total_Trade_Value_Billions, 1), " bil")),
+            color = "#004aad", vjust = 1.5, size = 5) +
+  
+  # Set the primary Y-axis (Total Trade Value) and secondary Y-axis (Percentage Change)
+  scale_y_continuous(
+    name = "Total Trade Value (in Billions)",
+    sec.axis = sec_axis(~(. - a) / b, name = "Percentage Change (%)") 
+  ) +
+  scale_x_continuous("Year", breaks = 2020:2024) +
+  
+  # Customize the fill colors for Export and Import
+  scale_fill_manual(values = c("Export" = "#b4ceff", "Import" = "#cfe7af")) +
+  
+  # Add title and axis labels
+  labs(
+    title = "Annual Exports and Imports with Percentage Change in Total Trade Value (2020-2024)",
+    x = "Year",
+    y = "Total Trade Value (in Billions)",
+    caption = "*Note: Exports include Re-exports",
+    subtitle = "Line chart shows total trade value"
+  ) +
+  theme_minimal() +
+  
+  # Adjust the size of the title and axis titles
+  theme(
+    plot.title = element_text(size = 18, face = "bold"),
+    axis.title.x = element_text(size = 16, face = "bold"),
+    axis.text.x = element_text(size = 12),
+    axis.title.y = element_text(size = 16, face = "bold"),
+    axis.text.y = element_text(size = 12),
+    plot.margin = margin(t = 20, r = 10, b = 10, l = 10)
+  )
+
+```
+
+## The Code
+
+```{r}
+#| eval: False
+#| fig-width: 12
+#| fig_height: 30
+
+country <- country %>%
+  mutate(Year = format(as.Date(Date), "%Y"))
+
+# Calculate total trade value for export, import, and re-export (from 2019 to 2024)
+summary_data <- country %>%
+  filter(Type %in% c("Export", "Import", "Re-Export"), Year %in% c("2019", "2020", "2021", "2022", "2023", "2024")) %>%
+  mutate(Trade_Value = as.numeric(Trade_Value)) %>%
+  mutate(Type = ifelse(Type == "Re-Export", "Export", Type)) %>%
+  group_by(Year, Type) %>%
+  summarise(Total_Trade_Value = sum(Trade_Value, na.rm = TRUE)) %>%
+  mutate(Total_Trade_Value_Billions = Total_Trade_Value / 1000,  # Convert to billions
+         Label = paste0("$", round(Total_Trade_Value_Billions, 1))) 
+
+# Calculate the total trade value for Export, Import, and Re-Export combined for each year
+total_trade_by_year <- summary_data %>%
+  group_by(Year) %>%
+  summarise(Total_Trade_Value_Billions = sum(Total_Trade_Value_Billions, na.rm = TRUE))
+
+# Get the 2019 total trade value for calculating the 2020 percentage change
+total_trade_2019_value <- total_trade_by_year$Total_Trade_Value_Billions[total_trade_by_year$Year == "2019"]
+
+# Calculate percentage change, keeping 2019 for reference
+total_trade_by_year <- total_trade_by_year %>%
+  mutate(Percentage_Change = (Total_Trade_Value_Billions / lag(Total_Trade_Value_Billions) - 1) * 100)
+
+# Manually compute the 2020 percentage change using 2019's value
+total_trade_by_year[total_trade_by_year$Year == "2020", "Percentage_Change"] <- 
+  (total_trade_by_year$Total_Trade_Value_Billions[total_trade_by_year$Year == "2020"] - total_trade_2019_value) / total_trade_2019_value * 100
+
+# Remove 2019 from the dataset to only plot 2020-2024
+total_trade_by_year <- total_trade_by_year %>%
+  filter(Year >= 2020)
+
+summary_data <- summary_data %>%
+  filter(Year >= 2020)
+
+summary_data$Year <- as.integer(summary_data$Year)
+total_trade_by_year$Year <- as.integer(total_trade_by_year$Year)
+
+# Define limits for both axes
+ylim.prim <- c(0, max(summary_data$Total_Trade_Value_Billions, na.rm = TRUE))
+ylim.sec <- c(-50, 25)
+
+# Transformation coefficients for scaling percentage change
+b <- diff(ylim.prim) / diff(ylim.sec)
+a <- ylim.prim[1] - b * ylim.sec[1] 
+
+
+ggplot() +
+  # Bar chart for Total Trade Value in Billions
+  geom_bar(data = summary_data, aes(x = Year, y = Total_Trade_Value_Billions, fill = Type),
+           stat = "identity", position = "dodge") +
+  
+  # Line chart for Percentage Change, scaled appropriately
+  geom_line(data = total_trade_by_year, aes(x = Year, y = a + Percentage_Change * b), 
+            color = "#e79251", size = 1) +
+  geom_point(data = total_trade_by_year, aes(x = Year, y = a + Percentage_Change * b), 
+             color = "#e79251", size = 3) + 
+  
+  # Add labels for the bar chart
+  geom_text(data = summary_data, aes(x = Year, y = 0, label = Label, group = Type),
+            position = position_dodge(width = 0.9), color= "#737373", vjust = -4, size = 5) +
+  
+  # Label the line chart with percentage values
+  geom_text(data = total_trade_by_year, aes(x = Year, y = a + Percentage_Change * b, 
+                                             label = paste0(round(Percentage_Change, 1), "%")), 
+            color = "black", vjust = -0.5, size = 5) +
+  
+  # Add a red dotted line at 0% percentage change
+  geom_hline(yintercept = a, color = "#ff9c07", linetype = "dotted", size = 1) +
+  
+  # Add total value labels on the line chart
+  geom_text(data = total_trade_by_year, aes(x = Year, y = a + Percentage_Change * b,
+                                             label = paste0("$", round(Total_Trade_Value_Billions, 1), " bil")),
+            color = "#004aad", vjust = 1.5, size = 5) +
+  
+  # Set the primary Y-axis (Total Trade Value) and secondary Y-axis (Percentage Change)
+  scale_y_continuous(
+    name = "Total Trade Value (in Billions)",
+    sec.axis = sec_axis(~(. - a) / b, name = "Percentage Change (%)") 
+  ) +
+  scale_x_continuous("Year", breaks = 2020:2024) +
+  
+  # Customize the fill colors for Export and Import
+  scale_fill_manual(values = c("Export" = "#b4ceff", "Import" = "#cfe7af")) +
+  
+  # Add title and axis labels
+  labs(
+    title = "Annual Exports and Imports with Percentage Change in Total Trade Value (2020-2024)",
+    x = "Year",
+    y = "Total Trade Value (in Billions)",
+    caption = "*Note: Exports include Re-exports",
+    subtitle = "Line chart shows total trade value"
+  ) +
+  theme_minimal() +
+  
+  # Adjust the size of the title and axis titles
+  theme(
+    plot.title = element_text(size = 18, face = "bold"),
+    axis.title.x = element_text(size = 16, face = "bold"),
+    axis.text.x = element_text(size = 12),
+    axis.title.y = element_text(size = 16, face = "bold"),
+    axis.text.y = element_text(size = 12),
+    plot.margin = margin(t = 20, r = 10, b = 10, l = 10)
+  )
+```
+:::
+
+## 5.2 Visualization 2: Bubble Chart of **Merchandise Trade Performance with Major Trading Partners, 2024**
+
+![](2.png){fig-align="center" width="681"}
+
+This bubble chart provides a visual comparison of Singapore’s exports and imports with its major trading partners in 2024. The x-axis represents total export values, while the y-axis represents total import values for each country. The size of each bubble corresponds to the total trade value, with larger bubbles indicating higher overall trade volume. Each bubble is labeled with the respective country name and total trade value.
+
+A distinctive feature of this chart is its background, which is divided diagonally into two colors: blue and green. The blue section represents countries where Singapore’s exports exceed its imports, while the green section highlights countries where Singapore imports more than it exports.
+
+### 5.2.1 Pros and Cons
+
+**Pros:**
+
+-   A clear distinction between trade surpluses and deficits is made using background colors, simplifying the identification of Singapore’s trade balance with each country.
+-   Varying bubble sizes effectively represent the scale of total trade with each country, enabling quick assessments of trading partners' significance.
+
+**Cons:**
+
+-   The EU is represented as a single entity, making comparisons with individual countries difficult due to the aggregation of trade data from multiple member states.
+-   The use of different bubble colors for each country does not carry any specific meaning, which can be misleading or add unnecessary complexity. 
+-   The chart displays total trade value but doesn’t show exact export and import values immediately, requiring further interaction to access detailed information.
+
+### 5.2.2 Makeover
+
+To improve the visualization, several modifications have been made.
+
+-   The top 10 trading countries have been selected instead of using the EU as a single entity. This allows for a more consistent comparison between individual countries.
+
+-   Instead of using background colors to distinguish trade surpluses and deficits, the bubble colors themselves now indicate whether Singapore exports more than it imports to the particular country (orange) or imports more than it exports (green). This change provides a clearer and more intuitive representation of the trade balance without relying on the background color.
+
+-   Tooltip enhancements provide clearer data when hovering over a bubble. In addition to total trade value, the exact export and import values for each country are now displayed, making it easier to grasp the trade breakdown instantly.
+
+::: panel-tabset
+## The Plot
+
+```{r}
+#| echo: False
+country_2024 <- country %>%
+  filter(Year == 2024)
+
+# Summarize Import values
+import_2024 <- country_2024 %>%
+  filter(Type == "Import") %>%
+  group_by(Markets) %>%
+  summarise(Total_Import_Value = sum(Trade_Value, na.rm = TRUE)) %>%
+  ungroup()
+
+# Summarize Export values
+export_2024 <- country_2024 %>%
+  filter(Type == "Export") %>%
+  group_by(Markets) %>%
+  summarise(Total_Export_Value = sum(Trade_Value, na.rm = TRUE)) %>%
+  ungroup()
+
+# Summarize Re-Export values
+reexport_2024 <- country_2024 %>%
+  filter(Type == "Re-Export") %>%
+  group_by(Markets) %>%
+  summarise(Total_ReExport_Value = sum(Trade_Value, na.rm = TRUE)) %>%
+  ungroup()
+
+# Merge all datasets into one
+trade_2024 <- import_2024 %>%
+  full_join(export_2024, by = "Markets") %>%
+  full_join(reexport_2024, by = "Markets") %>%
+  mutate(Total_Export_Value = coalesce(Total_Export_Value, 0) + coalesce(Total_ReExport_Value, 0)) %>%
+  select(Markets, Total_Import_Value, Total_Export_Value) 
+
+trade_2024 <- trade_2024 %>%
+  mutate(Total_Trade_Value = Total_Import_Value + Total_Export_Value)
+
+# Select top 10 markets by total trade value
+top_10_markets <- trade_2024 %>%
+  arrange(desc(Total_Trade_Value)) %>%
+  slice_head(n = 10)%>%
+  mutate(Markets = ifelse(Markets == "Korea, Rep Of", "South Korea", Markets))
+
+
+# Create a new variable to color the bubbles
+top_10_markets$BubbleColor <- ifelse(top_10_markets$Total_Export_Value > top_10_markets$Total_Import_Value, "Imports from
+that country exceeds
+exports to
+that country", "Exports to
+the country exceeds
+imports from
+that country")
+
+# Bubble plot
+p <- ggplot(top_10_markets, aes(y = Total_Import_Value / 1000, 
+                                x = Total_Export_Value / 1000, 
+                                size = Total_Trade_Value / 1000, 
+                                label = Markets, 
+                                text = paste("Total Export to", Markets, ": S$", round(Total_Export_Value / 1000, 1), "Bil",
+                                             "\nTotal Import from",Markets, ": S$", round(Total_Import_Value / 1000, 1), "Bil",
+                                             "\nTotal Trade Value : S$", round(Total_Trade_Value / 1000, 1), "Bil"),
+                                fill = BubbleColor)) +
+  
+  # Bubbles
+  geom_point(alpha = 0.7, shape = 21, color = "black") +  
+  geom_text(vjust = -1, size = 3) +  
+  
+  scale_fill_manual(values = c("Imports from
+that country exceeds
+exports to
+that country" = "#9cc567", "Exports to
+the country exceeds
+imports from
+that country" = "#e79251")) +  # Define colors
+  scale_size_continuous(range = c(5, 30), 
+                        name = "Total Trade Value (Billion $)", 
+                        breaks = c(50, 100, 150), 
+                        labels = c("50", "100", "150")) +  
+  scale_x_continuous(limits = c(0, 100), 
+                     breaks = seq(0, 100, by = 10), 
+                     labels = paste(seq(0, 100, by = 10))) + 
+  scale_y_continuous(limits = c(0, 100), 
+                     breaks = seq(0, 100, by = 10), 
+                     labels = paste(seq(0, 100, by = 10))) + 
+  
+  # Title and axis labels
+  labs(title = "Top 10 Merchandise Trade Markets (2024)", 
+       y = "Total Import Value (Billion $)", 
+       x = "Total Export Value (Billion $)") +   
+  theme_minimal() +
+  
+  # Removing legend
+  guides(size = guide_none(), color = guide_none()) 
+
+# Interactivity-Show Trade value on hover
+ggplotly(p, tooltip = "text")
+
+
+```
+
+## The Code
+
+```{r}
+#| eval: False
+#| fig-width: 12
+#| fig_height: 10
+country_2024 <- country %>%
+  filter(Year == 2024)
+
+# Summarize Import values
+import_2024 <- country_2024 %>%
+  filter(Type == "Import") %>%
+  group_by(Markets) %>%
+  summarise(Total_Import_Value = sum(Trade_Value, na.rm = TRUE)) %>%
+  ungroup()
+
+# Summarize Export values
+export_2024 <- country_2024 %>%
+  filter(Type == "Export") %>%
+  group_by(Markets) %>%
+  summarise(Total_Export_Value = sum(Trade_Value, na.rm = TRUE)) %>%
+  ungroup()
+
+# Summarize Re-Export values
+reexport_2024 <- country_2024 %>%
+  filter(Type == "Re-Export") %>%
+  group_by(Markets) %>%
+  summarise(Total_ReExport_Value = sum(Trade_Value, na.rm = TRUE)) %>%
+  ungroup()
+
+# Merge all datasets into one
+trade_2024 <- import_2024 %>%
+  full_join(export_2024, by = "Markets") %>%
+  full_join(reexport_2024, by = "Markets") %>%
+  mutate(Total_Export_Value = coalesce(Total_Export_Value, 0) + coalesce(Total_ReExport_Value, 0)) %>%
+  select(Markets, Total_Import_Value, Total_Export_Value) 
+
+trade_2024 <- trade_2024 %>%
+  mutate(Total_Trade_Value = Total_Import_Value + Total_Export_Value)
+
+# Select top 10 markets by total trade value
+top_10_markets <- trade_2024 %>%
+  arrange(desc(Total_Trade_Value)) %>%
+  slice_head(n = 10)%>%
+  mutate(Markets = ifelse(Markets == "Korea, Rep Of", "South Korea", Markets))
+
+
+# Create a new variable to color the bubbles
+top_10_markets$BubbleColor <- ifelse(top_10_markets$Total_Export_Value > top_10_markets$Total_Import_Value, "Imports from
+that country exceeds
+exports to
+that country", "Exports to
+the country exceeds
+imports from
+that country")
+
+# Bubble plot
+p <- ggplot(top_10_markets, aes(y = Total_Import_Value / 1000, 
+                                x = Total_Export_Value / 1000, 
+                                size = Total_Trade_Value / 1000, 
+                                label = Markets, 
+                                text = paste("Total Export to", Markets, ": S$", round(Total_Export_Value / 1000, 1), "Bil",
+                                             "\nTotal Import from",Markets, ": S$", round(Total_Import_Value / 1000, 1), "Bil",
+                                             "\nTotal Trade Value : S$", round(Total_Trade_Value / 1000, 1), "Bil"),
+                                fill = BubbleColor)) +
+  
+  # Bubbles
+  geom_point(alpha = 0.7, shape = 21, color = "black") +  
+  geom_text(vjust = -1, size = 3) +  
+  
+  scale_fill_manual(values = c("Imports from
+that country exceeds
+exports to
+that country" = "#9cc567", "Exports to
+the country exceeds
+imports from
+that country" = "#e79251")) +  # Define colors
+  scale_size_continuous(range = c(5, 30), 
+                        name = "Total Trade Value (Billion $)", 
+                        breaks = c(50, 100, 150), 
+                        labels = c("50", "100", "150")) +  
+  scale_x_continuous(limits = c(0, 100), 
+                     breaks = seq(0, 100, by = 10), 
+                     labels = paste(seq(0, 100, by = 10))) + 
+  scale_y_continuous(limits = c(0, 100), 
+                     breaks = seq(0, 100, by = 10), 
+                     labels = paste(seq(0, 100, by = 10))) + 
+  
+  # Title and axis labels
+  labs(title = "Top 10 Merchandise Trade Markets (2024)", 
+       y = "Total Import Value (Billion $)", 
+       x = "Total Export Value (Billion $)") +   
+  theme_minimal() +
+  
+  # Removing legend
+  guides(size = guide_none(), color = guide_none()) 
+
+# Interactivity-Show Trade value on hover
+ggplotly(p, tooltip = "text")
+```
+:::
+
+## 5.3 Visualization 3:
+
+### 5.3.1 Pros and Cons
+
+### 5.3.2 Makeover
+
+------------------------------------------------------------------------
+
+# 6 Time-Series Analysis
+
+------------------------------------------------------------------------
+
+# References
