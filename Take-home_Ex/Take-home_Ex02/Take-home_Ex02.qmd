@@ -2,7 +2,7 @@
 title: "Take-home Exercise 02: Be Tradewise or Otherwise"
 format: html
 author: "Sei Sar Hla Kyi"
-date: "February 22, 2025"
+date: "`r Sys.Date()`"
 date-modified: "`r Sys.Date()`"
 execute: 
   eval: true
@@ -40,7 +40,7 @@ We will follow the outlined methodology flow for this study, starting with data 
 ## Packages Used
 
 | Package | Explanation |
-|----|----|
+|------------------------------------|------------------------------------|
 | tidyverse | to efficiently manipulate and clean data, utilizing functions from packages like `dplyr` and `tidyr` for data wrangling. |
 | readxl | allows us to import and work with excel file |
 | ggplot2 | to create informative and aesthetically pleasing visualizations, such as histograms and boxplots, to analyze the data |
