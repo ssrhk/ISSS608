@@ -1,0 +1,365 @@
+---
+title: "Hands-on Exercise 07: Visualising and Analysing Time-oriented Data"
+format: html
+author: "Sei Sar Hla Kyi"
+date: "`r Sys.Date()`"
+date-modified: "`r Sys.Date()`"
+execute: 
+  eval: true
+  echo: true
+  message: false
+  freeze: true
+  warning: false
+---
+
+# 1 Loading R Packages
+
+```{r}
+pacman::p_load(scales, viridis, lubridate, ggthemes, gridExtra, readxl, knitr, data.table, CGPfunctions, ggHoriPlot, tidyverse)
+```
+
+# **2** Plotting Calendar Heatmap
+
+## 2.1 The Data
+
+This data file consists of 199,999 rows of time-series cyber attack records by country.
+
+```{r}
+attacks <- read_csv("data/eventlog.csv")
+```
+
+### **2.1.1 Examining the data structure**
+
+*kable()* can be used to review the structure of the imported data frame.
+
+```{r}
+kable(head(attacks))
+```
+
+### **2.1.2 Data Preparation**
+
+Step 1: Deriving *weekday* and *hour of day* fields
+
+Before we can plot the calender heatmap, two new fields namely *wkday* and *hour* need to be derived. In this step, we will write a function to perform the task.
+
+```{r}
+make_hr_wkday <- function(ts, sc, tz) {
+  real_times <- ymd_hms(ts, 
+                        tz = tz[1], 
+                        quiet = TRUE)
+  dt <- data.table(source_country = sc,
+                   wkday = weekdays(real_times),
+                   hour = hour(real_times))
+  return(dt)
+  }
+```
+
+Step 2: Deriving the attacks tibble data frame
+
+```{r}
+wkday_levels <- c('Saturday', 'Friday', 
+                  'Thursday', 'Wednesday', 
+                  'Tuesday', 'Monday', 
+                  'Sunday')
+
+attacks <- attacks %>%
+  group_by(tz) %>%
+  do(make_hr_wkday(.$timestamp, 
+                   .$source_country, 
+                   .$tz)) %>% 
+  ungroup() %>% 
+  mutate(wkday = factor(
+    wkday, levels = wkday_levels),
+    hour  = factor(
+      hour, levels = 0:23))
+```
+
+```{r}
+kable(head(attacks))
+```
+
+## **2.2 Building the Calendar Heatmap**
+
+::: panel-tabset
+## The Code
+
+```{r}
+grouped <- attacks %>% 
+  count(wkday, hour) %>% 
+  ungroup() %>%
+  na.omit()
+
+ggplot(grouped, 
+       aes(hour, 
+           wkday, 
+           fill = n)) + 
+geom_tile(color = "white", 
+          size = 0.1) + 
+theme_tufte(base_family = "Helvetica") + 
+coord_equal() +
+scale_fill_gradient(name = "# of attacks",
+                    low = "sky blue", 
+                    high = "dark blue") +
+labs(x = NULL, 
+     y = NULL, 
+     title = "Attacks by weekday and time of day") +
+theme(axis.ticks = element_blank(),
+      plot.title = element_text(hjust = 0.5),
+      legend.title = element_text(size = 8),
+      legend.text = element_text(size = 6) )
+```
+
+## Things to Learn
+
+-   a tibble data table called *grouped* is derived by aggregating the attack by *wkday* and *hour* fields.
+
+-   a new field called *n* is derived by using `group_by()` and `count()` functions.
+
+-   `na.omit()` is used to exclude missing value.
+
+-   `geom_tile()` is used to plot tiles (grids) at each x and y position. `color` and `size` arguments are used to specify the border color and line size of the tiles.
+
+-   [`theme_tufte()`](https://jrnold.github.io/ggthemes/reference/theme_tufte.html) of [**ggthemes**](https://jrnold.github.io/ggthemes/reference/index.html) package is used to remove unnecessary chart junk. To learn which visual components of default ggplot2 have been excluded, you are encouraged to comment out this line to examine the default plot.
+
+-   `coord_equal()` is used to ensure the plot will have an aspect ratio of 1:1.
+
+-   `scale_fill_gradient()` function is used to creates a two colour gradient (low-high).
+:::
+
+::: callout-note
+## Insights
+
+-   Peak Attack Hours: The highest number of attacks occurred on Wednesday at 8 AM,Friday around 5-6 AM and Tuesday between 10-12 PM.
+
+-   Weekly Trends: Tuesday and Wednesday seem to have slightly more activity overall compared to other days.
+
+-   Hourly Patterns: Attacks occur throughout the 24-hour period, but there are clear spikes during the early morning (5-9 AM).This could suggest automated attack scripts running on a scheduled basis.
+:::
+
+## **2.3 Plotting Multiple Calendar Heatmaps**
+
+Step 1: Deriving attack by country object
+
+In order to identify the top 4 countries with the highest number of attacks, you are required to do the followings:
+
+-   count the number of attacks by country,
+
+-   calculate the percent of attackes by country, and
+
+-   save the results in a tibble data frame.
+
+```{r}
+attacks_by_country <- count(
+  attacks, source_country) %>%
+  mutate(percent = percent(n/sum(n))) %>%
+  arrange(desc(n))
+```
+
+Step 2: Preparing the tidy data frame
+
+In this step, you are required to extract the attack records of the top 4 countries from *attacks* data frame and save the data in a new tibble data frame (i.e. *top4_attacks*).
+
+```{r}
+top4 <- attacks_by_country$source_country[1:4]
+top4_attacks <- attacks %>%
+  filter(source_country %in% top4) %>%
+  count(source_country, wkday, hour) %>%
+  ungroup() %>%
+  mutate(source_country = factor(
+    source_country, levels = top4)) %>%
+  na.omit()
+```
+
+Step 3: Plotting the Multiple Calender Heatmap by using ggplot2 package.
+
+```{r}
+ggplot(top4_attacks, 
+       aes(hour, 
+           wkday, 
+           fill = n)) + 
+  geom_tile(color = "white", 
+          size = 0.1) + 
+  theme_tufte(base_family = "Helvetica") + 
+  coord_equal() +
+  scale_fill_gradient(name = "# of attacks",
+                    low = "sky blue", 
+                    high = "dark blue") +
+  facet_wrap(~source_country, ncol = 2) +
+  labs(x = NULL, y = NULL, 
+     title = "Attacks on top 4 countries by weekday and time of day") +
+  theme(axis.ticks = element_blank(),
+        axis.text.x = element_text(size = 7),
+        plot.title = element_text(hjust = 0.5),
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 6) )
+```
+
+# **3 Plotting Cycle Plot**
+
+## 3.1 **Data Import**
+
+The code chunk below imports *arrivals_by_air.xlsx* by using `read_excel()` of **readxl** package and save it as a tibble data frame called *air*.
+
+```{r}
+air <- read_excel("data/arrivals_by_air.xlsx")
+```
+
+## **3.2 Deriving month and year fields**
+
+Next, two new fields called *month* and *year* are derived from *Month-Year* field.
+
+```{r}
+air$month <- factor(month(air$`Month-Year`), 
+                    levels=1:12, 
+                    labels=month.abb, 
+                    ordered=TRUE) 
+air$year <- year(ymd(air$`Month-Year`))
+```
+
+## **3.3 Extracting the target country**
+
+```{r}
+Vietnam <- air %>% 
+  select(`Vietnam`, 
+         month, 
+         year) %>%
+  filter(year >= 2010)
+```
+
+## **3.4 Computing year average arrivals by month**
+
+The code chunk below uses `group_by()` and `summarise()` of **dplyr** to compute year average arrivals by month.
+
+```{r}
+hline.data <- Vietnam %>% 
+  group_by(month) %>%
+  summarise(avgvalue = mean(`Vietnam`))
+```
+
+## **3.5 Plotting the cycle plot**
+
+```{r}
+ggplot() + 
+  geom_line(data=Vietnam,
+            aes(x=year, 
+                y=`Vietnam`, 
+                group=month), 
+            colour="black") +
+  geom_hline(aes(yintercept=avgvalue), 
+             data=hline.data, 
+             linetype=6, 
+             colour="red", 
+             size=0.5) + 
+  facet_grid(~month) +
+  labs(axis.text.x = element_blank(),
+       title = "Visitor arrivals from Vietnam by air, Jan 2010-Dec 2019") +
+  xlab("") +
+  ylab("No. of Visitors") +
+  theme_tufte(base_family = "Helvetica")
+```
+
+::: callout-note
+## Insights
+
+-   The number of visitors has steadily increased across all months from 2010 to 2019.The increasing trend is most noticeable in the later years, especially after 2015.
+
+-   There are distinct peaks in visitor arrivals during mid-year (June July) and towards the end of the year (December). This suggests that travel from Vietnam experiences higher arrivals during summer and year-end holidays.
+
+-   Some months, such as June, July, and August, show a sharper increase compared to others, meaning these months are likely peak travel periods.
+
+-   The mean arrivals (red dashed lines) are significantly higher in mid-year months (June, July, August) than in other months.
+:::
+
+## 3.6 Comparison in Two Countries (Vietnam vs Thailand)
+
+```{r}
+#Modify data extraction step to include Thailand
+Vietnam_Thailand <- air %>% 
+  select(`Vietnam`, `Thailand`, month, year) %>%
+  filter(year >= 2010) %>%
+  pivot_longer(cols = c(`Vietnam`, `Thailand`), 
+               names_to = "Country", 
+               values_to = "Arrivals")
+
+#Compute Yearly Average Arrivals by Month
+hline.data <- Vietnam_Thailand %>% 
+  group_by(month, Country) %>%
+  summarise(avgvalue = mean(Arrivals), .groups = 'drop')
+
+```
+
+```{r}
+ggplot() + 
+  geom_line(data=Vietnam_Thailand,
+            aes(x=year, 
+                y=Arrivals, 
+                group=interaction(month, Country), 
+                colour=Country)) +  # Different colors for each country
+  geom_hline(aes(yintercept=avgvalue, colour=Country), 
+             data=hline.data, 
+             linetype=6, 
+             size=0.5) + 
+  facet_grid(~month) +
+  labs(title = "Visitor Arrivals from Vietnam & Thailand by Air (2010-2019)") +
+  xlab("") +
+  ylab("No. of Visitors") +
+  theme_tufte(base_family = "Helvetica") +
+  scale_colour_manual(values = c("black", "blue"))
+
+```
+
+# **4 Plotting Slopegraph**
+
+## 4.1 **Data Import**
+
+```{r}
+rice <- read_csv("data/rice.csv")
+```
+
+## **4.2 Plotting the slopegraph**
+
+For effective data visualisation design, `factor()` is used convert the value type of *Year* field from numeric to factor.
+
+```{r}
+rice %>% 
+  mutate(Year = factor(Year)) %>%
+  filter(Year %in% c(1961, 1980)) %>%
+  newggslopegraph(Year, Yield, Country,
+                Title = "Rice Yield of Top 11 Asian Counties",
+                SubTitle = "1961-1980")
+```
+
+::: callout-note
+## Insights
+
+-   All 11 countries experienced an increase in rice yield from 1961 to 1980 due to improved agricultural techniques, better irrigation and improved seed varieties.
+
+-   Japan maintained its position as the highest-yielding country, increasing from 48,793 to 51,279. Countries like Japan and Korea showed relatively smaller increases, likely due to already high initial yields.
+
+-   China had one of the most remarkable improvements, jumping from 21,096 (1961) to 41,435 (1980), nearly doubling its rice yield, pushing China into third place, overtaking many other countries.The steepest slopes (indicating the fastest growth) are seen in China and Indonesia.
+
+-   Countries like Malaysia, Myanmar, Sri Lanka, and Vietnam showed steady but less dramatic improvements.
+:::
+
+For further insights, we will view the the entire trend (1961\~2010) for all countries using a line chart.
+
+```{r}
+#| fig-width: 10
+#Keep all years instead of filtering for just 1961 and 1980
+rice <- rice %>% mutate(Year = factor(Year)) 
+
+#Plot the line chart using ggplot
+ggplot(rice, aes(x = Year, y = Yield, group = Country, colour = Country)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  labs(title = "Rice Yield Trends (1961-2010)",
+       subtitle = "Tracking the Rice Yield of Top 11 Asian Countries Over Time",
+       x = "Year",
+       y = "Yield (kg per hectare)") +
+  theme_minimal() +
+  theme(legend.position = "right",
+        axis.text.x=element_text(angle=50))  
+
+```
+
+We note that Korea and Japan have been the top rice producers. However, interestingly in 1992 China yielded more than both of these countries. Vietnam and Indonesia only switched positions as the 4th largest rice producer in 2001. It is really important to see the full trend using the full dataset.

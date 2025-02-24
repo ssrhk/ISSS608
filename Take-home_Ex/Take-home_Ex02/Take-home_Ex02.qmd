@@ -277,19 +277,27 @@ The barchart presents the total merchandise trade for the years 2020 through 202
 
 -   Clear trade value labels in each bar help viewers quickly identify the trade volume for both exports and imports.
 
+-   The inclusion of total trade values beside each year simplifies interpretation and avoids requiring viewers to manually sum exports and imports.
+
 **Cons:**
+
+-   While the bar chart shows year-by-year comparisons, it does not explicitly illustrate trends over time.
 
 -   The textbox stating "Increased 6.6% in 2024" is not effectively supported by the barchart itself. The viewer is left wondering what exactly increased and from which point the 6.6% growth is being measured (compared to 2023 or from the beginning of 2020).
 
 -   The description does not explicitly explain that "exports" include "re-exports," which could lead to confusion for viewers since exports are higher than imports every year.
 
--   The total trade value for each year is not immediately clear, as it is displayed separately in a bubble, which might make it harder for viewers to correlate the bubble value with the corresponding bars.
+-   The total trade value for each year is not immediately clear, as it is displayed separately in a bubble, which might make it harder for viewers to correlate the textbox value with the corresponding bars.
+
+-   The use of container-shaped bars might look aesthetically appealing but adds unnecessary visual elements that do not enhance data interpretation.
 
 ### 5.1.2 Makeover
 
 To improve the visualization, several changes were made:
 
--   A line chart was added alongside the bar chart to show percentage changes in trade over the years, providing context to fluctuations. This highlights trends, such as the recovery from a sharp decline in 2023 (-11.7%), emphasizing that the 6.6% increase in 2024 is part of a broader recovery. 
+-   A line chart was added alongside the bar chart to show percentage changes in trade over the years, providing context to fluctuations. This highlights trends, such as the recovery from a sharp decline in 2023 (-11.7%), emphasizing that the 6.6% increase in 2024 is part of a broader recovery.
+
+-   The linechart also displays the total trade value on top of the bars to make it easy to follow.
 
 -   A footnote was added to clarify that "exports include re-exports." This is an important piece of information that was missing in the original description, and its inclusion ensures the viewer has a complete understanding of what is meant by "exports" and why it might be higher than imports.
 
@@ -538,12 +546,13 @@ A distinctive feature of this chart is its background, which is divided diagonal
 
 -   A clear distinction between trade surpluses and deficits is made using background colors, simplifying the identification of Singapore’s trade balance with each country.
 -   Varying bubble sizes effectively represent the scale of total trade with each country, enabling quick assessments of trading partners' significance.
+-   Using exports on the x-axis and imports on the y-axis provides an intuitive way to understand trade relationships. Countries positioned above the diagonal line represent a trade deficit (more imports), while those below indicate a trade surplus (more exports).
 
 **Cons:**
 
 -   The EU is represented as a single entity, making comparisons with individual countries difficult due to the aggregation of trade data from multiple member states.
 -   The use of different bubble colors for each country does not carry any specific meaning, which can be misleading or add unnecessary complexity. 
--   The chart displays total trade value but doesn’t show exact export and import values immediately, requiring further interaction to access detailed information.
+-   The chart displays total trade value but doesn’t show exact export and import values immediately, requiring further interaction to access detailed information. Since Singapore is a major hub for re-exports, combining exports and re-exports might obscure insights into Singapore’s domestic trade strength.
 
 ### 5.2.2 Makeover
 
@@ -553,56 +562,30 @@ To improve the visualization, several modifications have been made.
 
 -   Instead of using background colors to distinguish trade surpluses and deficits, the bubble colors themselves now indicate whether Singapore exports more than it imports to the particular country (orange) or imports more than it exports (green). This change provides a clearer and more intuitive representation of the trade balance without relying on the background color.
 
--   Tooltip enhancements provide clearer data when hovering over a bubble. In addition to total trade value, the exact export and import values for each country are now displayed, making it easier to grasp the trade breakdown instantly.
+-   Tooltip enhancements provide clearer data and engagement when hovering over a bubble. In addition to total trade value, the exact re-export, export and import values for each country are now displayed, making it easier to grasp the trade breakdown instantly.
 
 ::: panel-tabset
 ## The Plot
 
 ```{r}
 #| echo: False
-country_2024 <- country %>%
-  filter(Year == 2024)
-
-# Summarize Import values
-import_2024 <- country_2024 %>%
-  filter(Type == "Import") %>%
+top_10_markets_2024 <- country %>%
+  filter(Year == 2024) %>%
   group_by(Markets) %>%
-  summarise(Total_Import_Value = sum(Trade_Value, na.rm = TRUE)) %>%
-  ungroup()
-
-# Summarize Export values
-export_2024 <- country_2024 %>%
-  filter(Type == "Export") %>%
-  group_by(Markets) %>%
-  summarise(Total_Export_Value = sum(Trade_Value, na.rm = TRUE)) %>%
-  ungroup()
-
-# Summarize Re-Export values
-reexport_2024 <- country_2024 %>%
-  filter(Type == "Re-Export") %>%
-  group_by(Markets) %>%
-  summarise(Total_ReExport_Value = sum(Trade_Value, na.rm = TRUE)) %>%
-  ungroup()
-
-# Merge all datasets into one
-trade_2024 <- import_2024 %>%
-  full_join(export_2024, by = "Markets") %>%
-  full_join(reexport_2024, by = "Markets") %>%
-  mutate(Total_Export_Value = coalesce(Total_Export_Value, 0) + coalesce(Total_ReExport_Value, 0)) %>%
-  select(Markets, Total_Import_Value, Total_Export_Value) 
-
-trade_2024 <- trade_2024 %>%
-  mutate(Total_Trade_Value = Total_Import_Value + Total_Export_Value)
-
-# Select top 10 markets by total trade value
-top_10_markets <- trade_2024 %>%
+  summarise(
+    Total_Import_Value = sum(Trade_Value[Type == "Import"]),
+    Total_ReandExport_Value = sum(Trade_Value[Type %in% c("Export", "Re-Export")]),
+    Total_Export_Value = sum(Trade_Value[Type == "Export"]), 
+    Total_ReExport_Value = sum(Trade_Value[Type == "Re-Export"]),
+    Total_Trade_Value = Total_Import_Value + Total_Export_Value + Total_ReExport_Value
+  ) %>%
   arrange(desc(Total_Trade_Value)) %>%
-  slice_head(n = 10)%>%
+  head(10)%>%
   mutate(Markets = ifelse(Markets == "Korea, Rep Of", "South Korea", Markets))
 
 
 # Create a new variable to color the bubbles
-top_10_markets$BubbleColor <- ifelse(top_10_markets$Total_Export_Value > top_10_markets$Total_Import_Value, "Imports from
+top_10_markets_2024$BubbleColor <- ifelse(top_10_markets_2024$Total_ReandExport_Value < top_10_markets_2024$Total_Import_Value, "Imports from
 that country exceeds
 exports to
 that country", "Exports to
@@ -611,13 +594,16 @@ imports from
 that country")
 
 # Bubble plot
-p <- ggplot(top_10_markets, aes(y = Total_Import_Value / 1000, 
-                                x = Total_Export_Value / 1000, 
+p <- ggplot(top_10_markets_2024, aes(y = Total_Import_Value / 1000, 
+                                x = Total_ReandExport_Value / 1000, 
                                 size = Total_Trade_Value / 1000, 
                                 label = Markets, 
-                                text = paste("Total Export to", Markets, ": S$", round(Total_Export_Value / 1000, 1), "Bil",
-                                             "\nTotal Import from",Markets, ": S$", round(Total_Import_Value / 1000, 1), "Bil",
-                                             "\nTotal Trade Value : S$", round(Total_Trade_Value / 1000, 1), "Bil"),
+                                text = paste(
+    "Total Export to", Markets, ": S$", round(Total_Export_Value / 1000, 1), "Bil",
+    "\nTotal Re-Export to", Markets, ": S$", round(Total_ReExport_Value / 1000, 1), "Bil",
+    "\nTotal Import from", Markets, ": S$", round(Total_Import_Value / 1000, 1), "Bil",
+    "\nTotal Trade Value: S$", round(Total_Trade_Value / 1000, 1), "Bil"
+  ),
                                 fill = BubbleColor)) +
   
   # Bubbles
@@ -661,51 +647,23 @@ ggplotly(p, tooltip = "text")
 
 ```{r}
 #| eval: False
-#| fig-width: 12
-#| fig_height: 10
-country_2024 <- country %>%
-  filter(Year == 2024)
-
-# Summarize Import values
-import_2024 <- country_2024 %>%
-  filter(Type == "Import") %>%
+top_10_markets_2024 <- country %>%
+  filter(Year == 2024) %>%
   group_by(Markets) %>%
-  summarise(Total_Import_Value = sum(Trade_Value, na.rm = TRUE)) %>%
-  ungroup()
-
-# Summarize Export values
-export_2024 <- country_2024 %>%
-  filter(Type == "Export") %>%
-  group_by(Markets) %>%
-  summarise(Total_Export_Value = sum(Trade_Value, na.rm = TRUE)) %>%
-  ungroup()
-
-# Summarize Re-Export values
-reexport_2024 <- country_2024 %>%
-  filter(Type == "Re-Export") %>%
-  group_by(Markets) %>%
-  summarise(Total_ReExport_Value = sum(Trade_Value, na.rm = TRUE)) %>%
-  ungroup()
-
-# Merge all datasets into one
-trade_2024 <- import_2024 %>%
-  full_join(export_2024, by = "Markets") %>%
-  full_join(reexport_2024, by = "Markets") %>%
-  mutate(Total_Export_Value = coalesce(Total_Export_Value, 0) + coalesce(Total_ReExport_Value, 0)) %>%
-  select(Markets, Total_Import_Value, Total_Export_Value) 
-
-trade_2024 <- trade_2024 %>%
-  mutate(Total_Trade_Value = Total_Import_Value + Total_Export_Value)
-
-# Select top 10 markets by total trade value
-top_10_markets <- trade_2024 %>%
+  summarise(
+    Total_Import_Value = sum(Trade_Value[Type == "Import"]),
+    Total_ReandExport_Value = sum(Trade_Value[Type %in% c("Export", "Re-Export")]),
+    Total_Export_Value = sum(Trade_Value[Type == "Export"]), 
+    Total_ReExport_Value = sum(Trade_Value[Type == "Re-Export"]),
+    Total_Trade_Value = Total_Import_Value + Total_Export_Value + Total_ReExport_Value
+  ) %>%
   arrange(desc(Total_Trade_Value)) %>%
-  slice_head(n = 10)%>%
+  head(10)%>%
   mutate(Markets = ifelse(Markets == "Korea, Rep Of", "South Korea", Markets))
 
 
 # Create a new variable to color the bubbles
-top_10_markets$BubbleColor <- ifelse(top_10_markets$Total_Export_Value > top_10_markets$Total_Import_Value, "Imports from
+top_10_markets_2024$BubbleColor <- ifelse(top_10_markets_2024$Total_ReandExport_Value < top_10_markets_2024$Total_Import_Value, "Imports from
 that country exceeds
 exports to
 that country", "Exports to
@@ -714,13 +672,16 @@ imports from
 that country")
 
 # Bubble plot
-p <- ggplot(top_10_markets, aes(y = Total_Import_Value / 1000, 
-                                x = Total_Export_Value / 1000, 
+p <- ggplot(top_10_markets_2024, aes(y = Total_Import_Value / 1000, 
+                                x = Total_ReandExport_Value / 1000, 
                                 size = Total_Trade_Value / 1000, 
                                 label = Markets, 
-                                text = paste("Total Export to", Markets, ": S$", round(Total_Export_Value / 1000, 1), "Bil",
-                                             "\nTotal Import from",Markets, ": S$", round(Total_Import_Value / 1000, 1), "Bil",
-                                             "\nTotal Trade Value : S$", round(Total_Trade_Value / 1000, 1), "Bil"),
+                                text = paste(
+    "Total Export to", Markets, ": S$", round(Total_Export_Value / 1000, 1), "Bil",
+    "\nTotal Re-Export to", Markets, ": S$", round(Total_ReExport_Value / 1000, 1), "Bil",
+    "\nTotal Import from", Markets, ": S$", round(Total_Import_Value / 1000, 1), "Bil",
+    "\nTotal Trade Value: S$", round(Total_Trade_Value / 1000, 1), "Bil"
+  ),
                                 fill = BubbleColor)) +
   
   # Bubbles
@@ -759,11 +720,255 @@ ggplotly(p, tooltip = "text")
 ```
 :::
 
-## 5.3 Visualization 3:
+## 5.3 Visualization 3: Major Trading Partners, 2023 
+
+![](3.png){fig-align="center" width="541"}
+
+The chart displays a dual-bar comparison of trade data for the top 10 countries by total trade value. On the left side, it shows the sum of exports in 2023 compared to 2019 (including re-exports), while the right side shows the sum of imports in 2023 compared to 2019.
 
 ### 5.3.1 Pros and Cons
 
+**Pros:**
+
+-   The dual bar chart clearly contrasts exports and imports for each country, making it easy to identify shifts in trade patterns and allows for direct comparison of export and import trends over the two years for each of the leading trade partners
+
+-   Color coordination among different country labels and bars helps in associating the country with the bars.
+
+**Cons:**
+
+-   Including the EU and ASEAN as entities, rather than individual countries, makes it difficult to compare them directly with other countries, as they represent regional groups rather than single trade partners.
+
+-   The countries appear ranked by total trade value for 2023, but it’s not immediately clear.
+
+-   The labels only appear far outside the bars making it hard to follow and there is a repetitive use of the labels 2023 and 2019.
+
 ### 5.3.2 Makeover
+
+Several modifications have been made to improve the visualization and provide a clearer comparison.
+
+-   Exports & Imports are placed side-by-side (not separated) to immediately shows if Singapore has a trade surplus or deficit with each major trade partner.
+
+-   2023 data was replaced by 2024 data since it is most recent data and darker color to emphasize it.
+
+-   Trading partners were sorted by overall Trade Growth percentage from 2019 to 2024 to shows which partners are increasing/decreasing in importance and added a small text at the top to explain this. Percentage growth labels (e.g., `+12%`, `-5%`) were also added beside bars to highlight changes. Now, it can be seen that South Korea has an increasing importance over the years with the highest growth in import.
+
+-   Value labels are now inside of the bars for better readability at a glance.
+
+::: panel-tabset
+## The Plot
+
+```{r}
+#| echo: False
+#| fig-width: 10
+
+# find top 10 markets for 2019
+top_10_markets_2019 <- country %>%
+  mutate(Markets = ifelse(Markets == "Korea, Rep Of", "South Korea", Markets))%>%
+  filter(Year == 2019, Markets %in% top_10_markets_2024$Markets) %>%
+  group_by(Markets) %>%
+  summarise(
+    Total_Import_Value = sum(Trade_Value[Type == "Import"], na.rm = TRUE),
+    Total_ReandExport_Value = sum(Trade_Value[Type %in% c("Export", "Re-export")], na.rm = TRUE),
+    Total_Trade_Value = Total_Import_Value + Total_ReandExport_Value
+  ) %>%
+  arrange(match(Markets, top_10_markets_2024$Markets))
+
+# Calculate percentage change
+percentage_change <- top_10_markets_2024 %>%
+  left_join(top_10_markets_2019, by = "Markets", suffix = c(".2024", ".2019")) %>%
+  mutate(
+    Import_Change = (Total_Import_Value.2024 - Total_Import_Value.2019) / Total_Import_Value.2019 * 100,
+    Export_Change = (Total_ReandExport_Value.2024 - Total_ReandExport_Value.2019) / Total_ReandExport_Value.2019 * 100
+  ) %>%
+  select(Markets, Import_Change, Export_Change)
+
+# Merge data
+dual_chart_data <- bind_rows(
+  top_10_markets_2019 %>%
+    mutate(Year = "2019"),
+  top_10_markets_2024 %>%
+    mutate(Year = "2024")
+) %>%
+  pivot_longer(cols = c(Total_Import_Value, Total_ReandExport_Value),
+               names_to = "Type", values_to = "Value") %>%
+  mutate(Value = ifelse(Type == "Total_ReandExport_Value", -Value, Value),
+         Type = ifelse(Type == "Total_Import_Value", "Imports", "Exports"))
+
+dual_chart_data <- dual_chart_data %>%
+  left_join(percentage_change, by = "Markets")
+
+
+color_mapping <- c("Exports.2019" = "#cde7f0", "Exports.2024" = "#83bace",
+                               "Imports.2019" = "#ffcccc", "Imports.2024" = "#f2677d")
+
+ggplot(dual_chart_data, aes(x = reorder(Markets, Import_Change + Export_Change), y = Value, fill = interaction(Type, Year))) +
+  geom_bar(stat = "identity", position = position_stack(reverse = TRUE), width = 0.7) +
+  scale_y_continuous(labels = abs) +  # Keep labels positive
+  labs(title = "Trade Value Comparison and Percentage Change (2019 vs 2024) for Top 10 Markets",
+       subtitle = "Trading Partners Sorted from Highest to Lowest Overall Trade Growth % from 2019 to 2024",
+       x = "Top 10 Trading Partners as of 2024", 
+       y = "Trade Value (in Billions SGD)") +
+  theme_minimal() +
+  scale_fill_manual(values = color_mapping) +
+  coord_flip() + 
+  
+  #Trade value labels for each bar
+  geom_text(aes(label = ifelse(Type == "Exports", 
+                             scales::comma(abs(Value) / 1000, accuracy = 0.1), 
+                             scales::comma(Value / 1000, accuracy = 0.1))),  
+          position = position_dodge(width = 0.6),
+          size = 3, color = "black",
+          hjust = ifelse(dual_chart_data$Year == "2024" & dual_chart_data$Type == "Exports", -0.5, 
+                         ifelse(dual_chart_data$Year == "2019" & dual_chart_data$Type == "Exports", -0.1,
+                                ifelse(dual_chart_data$Year == "2024" & dual_chart_data$Type == "Imports", -0.2, 
+                                       1))),
+          
+
+          vjust = ifelse(dual_chart_data$Year == "2024" & dual_chart_data$Type == "Exports", 1, 
+                         ifelse(dual_chart_data$Year == "2019" & dual_chart_data$Type == "Exports",-0.7,
+                                ifelse(dual_chart_data$Year == "2024" & dual_chart_data$Type == "Imports", 2, 
+                                       0.3))))+ 
+  
+  # Percentage Change label for Imports 
+geom_text(data = dual_chart_data %>% filter(Type == "Imports" & Year == "2024") %>% 
+            group_by(Markets) %>% 
+            slice_tail(n = 1), 
+          aes(label = ifelse(Import_Change >= 0, 
+                             paste0("+", round(Import_Change, 1), "%"), 
+                             paste0(round(Import_Change, 1), "%"))),
+          hjust = -1.5,
+          vjust = 0.5,   
+          size = 5,
+          color="#608e24",
+          fontface = "bold") +  
+
+# Percentage Change label for Exports 
+geom_text(data = dual_chart_data %>% filter(Type == "Exports" & Year == "2024") %>% 
+            group_by(Markets) %>% 
+            slice_tail(n = 1),
+          aes(
+              label = ifelse(Export_Change >= 0, 
+                             paste0("+", round(Export_Change, 1), "%"), 
+                             paste0(round(Export_Change, 1), "%"))),
+          hjust = 2,
+          vjust = 0.5,   
+          size = 5,
+          color = "#608e24",
+          fontface = "bold") +
+
+  
+  theme(plot.title = element_text(size = 14, face = "bold"),
+        plot.subtitle = element_text(size = 10, face = "italic"),
+        axis.text.x = element_blank())
+```
+
+## The Code
+
+```{r}
+#| eval: False
+#| fig-width: 10
+
+# find top 10 markets for 2019
+top_10_markets_2019 <- country %>%
+  mutate(Markets = ifelse(Markets == "Korea, Rep Of", "South Korea", Markets))%>%
+  filter(Year == 2019, Markets %in% top_10_markets_2024$Markets) %>%
+  group_by(Markets) %>%
+  summarise(
+    Total_Import_Value = sum(Trade_Value[Type == "Import"], na.rm = TRUE),
+    Total_ReandExport_Value = sum(Trade_Value[Type %in% c("Export", "Re-export")], na.rm = TRUE),
+    Total_Trade_Value = Total_Import_Value + Total_ReandExport_Value
+  ) %>%
+  arrange(match(Markets, top_10_markets_2024$Markets))
+
+# Calculate percentage change
+percentage_change <- top_10_markets_2024 %>%
+  left_join(top_10_markets_2019, by = "Markets", suffix = c(".2024", ".2019")) %>%
+  mutate(
+    Import_Change = (Total_Import_Value.2024 - Total_Import_Value.2019) / Total_Import_Value.2019 * 100,
+    Export_Change = (Total_ReandExport_Value.2024 - Total_ReandExport_Value.2019) / Total_ReandExport_Value.2019 * 100
+  ) %>%
+  select(Markets, Import_Change, Export_Change)
+
+# Merge data
+dual_chart_data <- bind_rows(
+  top_10_markets_2019 %>%
+    mutate(Year = "2019"),
+  top_10_markets_2024 %>%
+    mutate(Year = "2024")
+) %>%
+  pivot_longer(cols = c(Total_Import_Value, Total_ReandExport_Value),
+               names_to = "Type", values_to = "Value") %>%
+  mutate(Value = ifelse(Type == "Total_ReandExport_Value", -Value, Value),
+         Type = ifelse(Type == "Total_Import_Value", "Imports", "Exports"))
+
+dual_chart_data <- dual_chart_data %>%
+  left_join(percentage_change, by = "Markets")
+
+
+color_mapping <- c("Exports.2019" = "#cde7f0", "Exports.2024" = "#83bace",
+                               "Imports.2019" = "#ffcccc", "Imports.2024" = "#f2677d")
+
+ggplot(dual_chart_data, aes(x = reorder(Markets, Import_Change + Export_Change), y = Value, fill = interaction(Type, Year))) +
+  geom_bar(stat = "identity", position = position_stack(reverse = TRUE), width = 0.7) +
+  scale_y_continuous(labels = abs) +  # Keep labels positive
+  labs(title = "Trade Value Comparison and Percentage Change (2019 vs 2024) for Top 10 Markets",
+       subtitle = "Trading Partners Sorted from Highest to Lowest Overall Trade Growth % from 2019 to 2024",
+       x = "Top 10 Trading Partners as of 2024", 
+       y = "Trade Value (in Billions SGD)") +
+  theme_minimal() +
+  scale_fill_manual(values = color_mapping) +
+  coord_flip() + 
+  
+  #Trade value labels for each bar
+  geom_text(aes(label = ifelse(Type == "Exports", 
+                             scales::comma(abs(Value) / 1000, accuracy = 0.1), 
+                             scales::comma(Value / 1000, accuracy = 0.1))),  
+          position = position_dodge(width = 0.6),
+          size = 3, color = "black",
+          hjust = ifelse(dual_chart_data$Year == "2024" & dual_chart_data$Type == "Exports", -0.5, 
+                         ifelse(dual_chart_data$Year == "2019" & dual_chart_data$Type == "Exports", -0.1,
+                                ifelse(dual_chart_data$Year == "2024" & dual_chart_data$Type == "Imports", -0.2, 
+                                       1))),
+          
+
+          vjust = ifelse(dual_chart_data$Year == "2024" & dual_chart_data$Type == "Exports", 1, 
+                         ifelse(dual_chart_data$Year == "2019" & dual_chart_data$Type == "Exports",-0.7,
+                                ifelse(dual_chart_data$Year == "2024" & dual_chart_data$Type == "Imports", 2, 
+                                       0.3))))+ 
+  
+  # Percentage Change label for Imports 
+geom_text(data = dual_chart_data %>% filter(Type == "Imports" & Year == "2024") %>% 
+            group_by(Markets) %>% 
+            slice_tail(n = 1), 
+          aes(label = ifelse(Import_Change >= 0, 
+                             paste0("+", round(Import_Change, 1), "%"), 
+                             paste0(round(Import_Change, 1), "%"))),
+          hjust = -1.5,
+          vjust = 0.5,   
+          size = 5,
+          color="#608e24",
+          fontface = "bold") +  
+
+# Percentage Change label for Exports 
+geom_text(data = dual_chart_data %>% filter(Type == "Exports" & Year == "2024") %>% 
+            group_by(Markets) %>% 
+            slice_tail(n = 1),
+          aes(
+              label = ifelse(Export_Change >= 0, 
+                             paste0("+", round(Export_Change, 1), "%"), 
+                             paste0(round(Export_Change, 1), "%"))),
+          hjust = 2,
+          vjust = 0.5,   
+          size = 5,
+          color = "#608e24",
+          fontface = "bold") +
+
+  
+  theme(plot.title = element_text(size = 14, face = "bold"),
+        plot.subtitle = element_text(size = 10, face = "italic"),
+        axis.text.x = element_blank())
+```
+:::
 
 ------------------------------------------------------------------------
 
