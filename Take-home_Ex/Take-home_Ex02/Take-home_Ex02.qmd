@@ -2,7 +2,7 @@
 title: "Take-home Exercise 02: Be Tradewise or Otherwise"
 format: html
 author: "Sei Sar Hla Kyi"
-date: "`r Sys.Date()`"
+date: "February 21, 2025"
 date-modified: "`r Sys.Date()`"
 execute: 
   eval: true
@@ -16,7 +16,7 @@ execute:
 
 ## 1.1 Background
 
-Since Donald Trump assumed the U.S. presidency on January 20, 2025, global trade has been a focal point of economic discussions. Singapore, as a highly open economy, is deeply affected by shifts in international trade policies and global economic trends. Understanding how Singapore’s merchandise trade has evolved since 2015 provides valuable insights into the country’s trade resilience, shifting market dependencies, and economic positioning.
+Since Donald Trump assumed the U.S. presidency on January 20, 2025, global trade has been a focal point of economic discussions. Singapore, as a highly open economy, is deeply affected by shifts in international trade policies and global economic trends. Understanding how Singapore’s merchandise trade has evolved since 2003 provides valuable insights into the country’s trade resilience, shifting market dependencies, and economic positioning.
 
 This study focuses on leveraging visual analytics and time-series techniques to explore Singapore’s international trade data. By analyzing historical trade patterns, identifying trends, and applying forecasting methods, this study aims to generate actionable insights into Singapore’s trade performance over the past decade.
 
@@ -24,9 +24,9 @@ This study focuses on leveraging visual analytics and time-series techniques to 
 
 The primary objectives of this study are:
 
-1.  **Data Visualization Critique & Redesign:** Select three existing data visualizations from the dataset’s [webpage](https://www.singstat.gov.sg/modules/infographics/singapore-international-trade), critically evaluate their effectiveness, identify strengths and weaknesses, and propose and create improved visual representations.
+1.  To select three existing data visualizations from the dataset’s [webpage](#0), critically evaluate their effectiveness(with pros and cons) and propose and recreate improved visual representations.
 
-2.  **Time-Series Analysis:** Apply appropriate time-series techniques to analyze trends in Singapore’s merchandise trade. Derive meaningful conclusions from the visualizations and time-series analysis, explaining key trade trends, shifts in trade regions, and potential implications for Singapore’s economy.
+2.  To implement time-series techniques to analyze trends in Singapore’s merchandise trade and use historical data to forecast for the next year. Derive meaningful conclusions from the visualizations, explaining key trade trends, shifts in trade regions, and potential implications for Singapore’s economy.
 
 ------------------------------------------------------------------------
 
@@ -40,22 +40,24 @@ We will follow the outlined methodology flow for this study, starting with data 
 ## Packages Used
 
 | Package | Explanation |
-|------------------------------------|------------------------------------|
-| tidyverse | to efficiently manipulate and clean data, utilizing functions from packages like `dplyr` and `tidyr` for data wrangling. |
+|-------------|--------------------------------------------------------------------|
+| tidyverse | to efficiently manipulate and clean data, utilizing functions from packages like `dplyr` and `tidyr` for data wrangling |
 | readxl | allows us to import and work with excel file |
+| lubridate | for working with dates and times, making it easier to manipulate and extract components like years, months, and days from date values. |
 | ggplot2 | to create informative and aesthetically pleasing visualizations, such as histograms and boxplots, to analyze the data |
 | patchwork | to combine multiple ggplot2 plots into a cohesive layout, making it easier to present related visualizations side by side |
 | SmartEDA | to help summarize dataset by providing insights such as missing values |
 | plotly | for creating interactive visualizations like zoom, and hover. |
-|  |  |
-|  |  |
-|  |  |
-|  |  |
+| ggHoriPlot | for creating horizon plots, which are useful for visualizing deviations over time in a compact format. |
+| CGPfunctions | contains functions to create slope graphs |
+| viridis | offers colorblind-friendly color palettes for visualizations |
+| ggthemes | Provides additional themes and styles for ggplot2 |
+| forecast | for time series forecasting, including methods like ARIMA |
 
 ## Code to Launch
 
 ```{r}
-pacman::p_load(tidyverse,readxl,SmartEDA,patchwork,plotly)
+pacman::p_load(tidyverse,readxl,lubridate,SmartEDA,patchwork,plotly,ggHoriPlot,CGPfunctions,viridis,ggthemes,forecast)
 ```
 :::
 
@@ -75,7 +77,7 @@ The code chunk below imports *MerchanciseTrade.xlsx* as three dataframes - impor
 
 The Excel sheets also contain irrelevant rows, including data descriptions and footnotes, which need to be removed as we import. Specifically:
 
--   **Rows 1 to 9** contain metadata and are not part of the actual dataset.
+-   **Rows 1 to 9** contain metadata and are not part of the actual dataset.
 
 -   **Row 10** contains column headers and should be set as variable names.
 
@@ -149,7 +151,7 @@ The column names represent dates in the **"YYYY MMM"** format (e.g., `"2025 J
 
 1.  **Reshape the dataset from wide to long format** – Instead of having separate columns for each month, we will structure the data so that each row represents a month and its corresponding trade value. A long format is particularly beneficial when working with **ggplot2** because it simplifies faceting and makes data manipulation and visualization more flexible.
 
-2.  **Convert the date column to a proper date format (`YYYY-MM`)** – This ensures consistency and compatibility with time series analysis and visualization.
+2.  **Convert the date column to a proper date format (`YYYY-MM`)** – Lubridating ensures consistency and compatibility with time series analysis and visualization.
 
 ::: panel-tabset
 ## Imports
@@ -252,7 +254,7 @@ trade <- bind_rows(imports, exports, reexports)
 head(trade)
 ```
 
-Now, we can proceed to keep a subset of the dataframe on country-level data by excluding the regions.
+Now, we can proceed to extract a subset of the dataframe on country-level data by excluding the regions.
 
 ```{r}
 # Filter only countries (exclude regions)
@@ -289,7 +291,7 @@ The barchart presents the total merchandise trade for the years 2020 through 202
 
 -   The total trade value for each year is not immediately clear, as it is displayed separately in a bubble, which might make it harder for viewers to correlate the textbox value with the corresponding bars.
 
--   The use of container-shaped bars might look aesthetically appealing but adds unnecessary visual elements that do not enhance data interpretation.
+-   The use of container shaped bars might look aesthetically appealing but adds unnecessary visual elements that do not enhance data interpretation.
 
 ### 5.1.2 Makeover
 
@@ -310,7 +312,8 @@ To improve the visualization, several changes were made:
 #| fig_height: 30
 
 country <- country %>%
-  mutate(Year = format(as.Date(Date), "%Y"))
+  mutate(Year = format(as.Date(Date), "%Y"),
+         Month = factor(month(Date), levels = 1:12))
 
 # Calculate total trade value for export, import, and re-export (from 2019 to 2024)
 summary_data <- country %>%
@@ -425,7 +428,8 @@ ggplot() +
 #| fig_height: 30
 
 country <- country %>%
-  mutate(Year = format(as.Date(Date), "%Y"))
+  mutate(Year = format(as.Date(Date), "%Y"),
+         Month = factor(month(Date), levels = 1:12))
 
 # Calculate total trade value for export, import, and re-export (from 2019 to 2024)
 summary_data <- country %>%
@@ -720,7 +724,7 @@ ggplotly(p, tooltip = "text")
 ```
 :::
 
-## 5.3 Visualization 3: Major Trading Partners, 2023 
+## 5.3 Visualization 3: Major Trading Partners, 2023
 
 ![](3.png){fig-align="center" width="541"}
 
@@ -740,13 +744,13 @@ The chart displays a dual-bar comparison of trade data for the top 10 countries 
 
 -   The countries appear ranked by total trade value for 2023, but it’s not immediately clear.
 
--   The labels only appear far outside the bars making it hard to follow and there is a repetitive use of the labels 2023 and 2019.
+-   The labels only appear far outside the bars making it hard to follow and there is a repetitive use of the labels "2023" and "2019".
 
 ### 5.3.2 Makeover
 
 Several modifications have been made to improve the visualization and provide a clearer comparison.
 
--   Exports & Imports are placed side-by-side (not separated) to immediately shows if Singapore has a trade surplus or deficit with each major trade partner.
+-   Exports & Imports are placed side-by-side (not separated) to immediately shows if Singapore has a trade surplus or deficit with each major trade partner.
 
 -   2023 data was replaced by 2024 data since it is most recent data and darker color to emphasize it.
 
@@ -974,6 +978,468 @@ geom_text(data = dual_chart_data %>% filter(Type == "Exports" & Year == "2024") 
 
 # 6 Time-Series Analysis
 
+## 6.1 Long-Term Trends in Singapore’s Top 10 Trading Partners
+
+### 6.1.1 Ranking Changes: The Slopegraph
+
+To first understand the trend of the top 10 trading partners of Singapore from the start of the dataset (2003) to the current day, we will first visualize the slopegraph using **newggslopegraph** from **CGPfunctions**.
+
+::: panel-tabset
+## The Plot
+
+```{r}
+#| echo: False
+
+country_filtered <- country %>%
+  filter(Markets %in% top_10_markets_2024$Markets, Year != 2025) %>%
+  mutate(Year = as.numeric(Year)) %>%
+  group_by(Markets, Year) %>%  # Group by country and year
+  summarise(Total_Trade_Value = sum(Trade_Value, na.rm = TRUE)) %>% 
+  ungroup()
+
+# Scale Total_Trade_Value by dividing by 1000 to show values in Billions
+country_filtered <- country_filtered %>%
+  mutate(Total_Trade_Value_Billions = Total_Trade_Value / 1000)
+
+country_filtered %>% 
+  mutate(Year = factor(Year)) %>%
+  filter(Year %in% c(2003, 2024)) %>%
+  newggslopegraph(Year, Total_Trade_Value_Billions, Markets,
+                Title = "Total Trade Value of Top 10 Markets",
+                SubTitle = "2003-2024")
+```
+
+## The Code
+
+```{r}
+#| eval: False
+country_filtered <- country %>%
+  filter(Markets %in% top_10_markets_2024$Markets, Year != 2025) %>%
+  mutate(Year = as.numeric(Year)) %>%
+  group_by(Markets, Year) %>%  # Group by country and year
+  summarise(Total_Trade_Value = sum(Trade_Value, na.rm = TRUE)) %>% 
+  ungroup()
+
+# Scale Total_Trade_Value by dividing by 1000 to show values in Billions
+country_filtered <- country_filtered %>%
+  mutate(Total_Trade_Value_Billions = Total_Trade_Value / 1000)
+
+country_filtered %>% 
+  mutate(Year = factor(Year)) %>%
+  filter(Year %in% c(2003, 2024)) %>%
+  newggslopegraph(Year, Total_Trade_Value_Billions, Markets,
+                Title = "Total Trade Value of Top 10 Markets",
+                SubTitle = "2003-2024")
+```
+:::
+
+::: {.callout-note style="color: black; background-color: #e0f3f9"}
+## Insights
+
+-   **China’s Dominance in Trade Growth:** In 2003, China ranked 4th. By 2024, it became Singapore’s largest trading partner at \$170.18 billion, showing the highest absolute growth among all countries.This reflects China’s rapid economic rise, stronger trade ties with ASEAN, and its role as a global manufacturing hub.
+
+-   **Taiwan’s Growth:** Taiwan surged from 7th place in 2003 to 4th place in 2024. This suggests increasing trade ties.
+
+-   **Japan’s Declining Relative Position:** Japan was 5th in 2003 but dropped to 7th place in 2024. Although Japan’s trade value increased, its growth rate was much slower than China, Taiwan, and Indonesia. This suggests a relative decline in Singapore’s dependence on Japan, possibly due to competition from other Asian economies.
+
+-   **India’s Strong Growth but still a smaller partner:** India had the lowest trade value in 2003 but more than quadrupled to \$31.89 billioin by 2024. Despite strong growth, India remains the smallest of the top 10 markets, indicating untapped potential for further trade expansion.
+:::
+
+### 6.1.2 Yearly Trade Trends: The Line Chart
+
+To capture fluctuations and economic shocks, showing how trade evolved dynamically rather than just at two points (2003 vs. 2024), we will visualize the trend further with a line chart using **geom_line** from ggplot2.
+
+::: panel-tabset
+## The Plot
+
+```{r}
+#| echo: False
+#| fig-width: 10
+
+ggplot(country_filtered, aes(x = Year, y = Total_Trade_Value_Billions, group = Markets, color = Markets)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  scale_x_continuous(breaks = seq(min(country_filtered$Year), max(country_filtered$Year), by = 2)) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(title = "Total Trade Value of Top 10 Trading Partners Over Time",
+       subtitle = "*Top 10 Trading Partners as of 2024",
+       x = "Year",
+       y = "Total Trade Value (in Billions SGD)") +
+  theme_minimal() +
+  theme(legend.position = "right",
+        plot.title = element_text(size=12,face="bold"),
+        plot.subtitle =element_text(size=8),
+        axis.text.x = element_text(angle = 50, hjust = 1))
+```
+
+## The Code
+
+```{r}
+#| eval: False
+#| fig-width: 10
+
+# Plot the line chart
+ggplot(country_filtered, aes(x = Year, y = Total_Trade_Value_Billions, group = Markets, color = Markets)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  scale_x_continuous(breaks = seq(min(country_filtered$Year), max(country_filtered$Year), by = 2)) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(title = "Total Trade Value of Top 10 Trading Partners Over Time",
+       subtitle = "*Top 10 Trading Partners as of 2024",
+       x = "Year",
+       y = "Total Trade Value (in Billions SGD)") +
+  theme_minimal() +
+  theme(legend.position = "right",
+        plot.title = element_text(size=12,face="bold"),
+        plot.subtitle =element_text(size=8),
+        axis.text.x = element_text(angle = 50, hjust = 1))
+```
+:::
+
+::: {.callout-note style="color: black; background-color: #e0f3f9"}
+## Insights
+
+-   **China’s Rapid Growth & Market Dominance:** China (red line) shows a steady upward trend, becoming the top trading partner by 2024. Significant growth occurs post 2018.
+
+-   **Malaysia & the U.S. Retain Strong Positions:** Malaysia (blue line) had the highest trade value in the early 2000s but was surpassed by China after 2013. The U.S. (pink line) shows fluctuations but remains a top-tier trading partner, with a notable decline around 2009 (financial crisis) and recovery post 2020.
+
+-   **Japan’s Decline:** Japan (dark green line) shows decline post-2012, reinforcing its reduced significance in Singapore’s trade network.
+:::
+
+**Comparison to the Slopegraph**
+
+The line chart supports the slopegraph’s findings asboth visualizations confirm China’s dominance, Malaysia & the U.S. as steady top-tier partners, Taiwan’s surge, and Japan’s relative decline. The slopegraph highlights rank changes, while the line chart shows the exact trajectory over time.
+
+**Unique to the Line Chart:** The financial crisis (2008-2009) and COVID-19 (2020) impacts are visible, while the slopegraph only reflects net change.
+
+## 6.2 Impact of COVID Pandemic on Trade
+
+The COVID-19 pandemic significantly disrupted global trade, affecting Singapore’s trading patterns from Feb 2020 to Apr 2022. To analyze the extent of this impact, we use a horizon graph with ***geom_horizon*** to visualize trade fluctuations across different countries. This helps highlight the severity and duration of trade disruptions during the pandemic.
+
+::: panel-tabset
+## The Plot
+
+```{r}
+#| echo: False
+# Convert Date column to proper format and filter data for 2019-2024
+country_horizongraph <- country %>%
+  filter(Markets %in% top_10_markets_2024$Markets, 
+         Date < "2025-01-01") %>% 
+  mutate(Date = as.Date(paste0(Date, "-01")),  # Convert YYYY-MM to Date format
+         Trade_Value = as.numeric(Trade_Value),
+         Trade_Value_Billions = Trade_Value / 1000) %>% 
+  group_by(Markets, Date) %>%
+  summarise(Total_Trade_Value = sum(Trade_Value_Billions, na.rm = TRUE)) %>%
+  ungroup()
+
+# covid period for reference lines
+covid_dates <- as.Date(c("2020-02-01", "2022-04-01")) 
+
+# Horizon Graph 
+ggplot(country_horizongraph) +
+  geom_horizon(aes(x = Date, y = Total_Trade_Value), 
+               origin = "midpoint", 
+               horizonscale = 6) +  
+  facet_grid(Markets ~ .) +  
+  theme_few() +
+  scale_fill_hcl(palette = 'RdBu') +
+  theme(
+    panel.spacing.y = unit(0, "lines"), 
+    strip.text.y = element_text(size = 7, angle = 0, hjust = 0), 
+    legend.position = 'none',
+    axis.text.y = element_blank(),
+    axis.text.x = element_text(size = 5, angle = 50, hjust = 1),  
+    axis.title.y = element_blank(),
+    axis.title.x = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.border = element_blank()
+  ) +
+  scale_x_date(expand = c(0, 0), date_breaks = "3 months", date_labels = "%b %y") +
+  ggtitle('Trade Value Deviations Over Time for Top 10 Trading Partners') +
+  labs(subtitle = "COVID-19 period (Feb 2020 - Apr 2022) is highlighted with dashed lines.",size=4) + 
+  geom_vline(xintercept = covid_dates, color = "black", linetype = "dashed", alpha = 1.5)
+```
+
+## The Code
+
+```{r}
+#| eval: False
+# Convert Date column to proper format and filter data for 2019-2024
+country_horizongraph <- country %>%
+  filter(Markets %in% top_10_markets_2024$Markets, 
+         Date < "2025-01-01") %>% 
+  mutate(Date = as.Date(paste0(Date, "-01")),  # Convert YYYY-MM to Date format
+         Trade_Value = as.numeric(Trade_Value),
+         Trade_Value_Billions = Trade_Value / 1000) %>% 
+  group_by(Markets, Date) %>%
+  summarise(Total_Trade_Value = sum(Trade_Value_Billions, na.rm = TRUE)) %>%
+  ungroup()
+
+
+# covid period for reference lines
+covid_dates <- as.Date(c("2020-02-01", "2022-04-01")) 
+
+# Horizon Graph 
+ggplot(country_horizongraph) +
+  geom_horizon(aes(x = Date, y = Total_Trade_Value), 
+               origin = "midpoint", 
+               horizonscale = 6) +  
+  facet_grid(Markets ~ .) +  
+  theme_few() +
+  scale_fill_hcl(palette = 'RdBu') +
+  theme(
+    panel.spacing.y = unit(0, "lines"), 
+    strip.text.y = element_text(size = 7, angle = 0, hjust = 0), 
+    legend.position = 'none',
+    axis.text.y = element_blank(),
+    axis.text.x = element_text(size = 5, angle = 50, hjust = 1),  
+    axis.title.y = element_blank(),
+    axis.title.x = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.border = element_blank()
+  ) +
+  scale_x_date(expand = c(0, 0), date_breaks = "3 months", date_labels = "%b %y") +
+  ggtitle('Trade Value Deviations Over Time for Top 10 Trading Partners') +
+  labs(subtitle = "COVID-19 period (Feb 2020 - Apr 2022) is highlighted with dashed lines.",size=4) + 
+  geom_vline(xintercept = covid_dates, color = "black", linetype = "dashed", alpha = 1.5)
+
+```
+:::
+
+::: {.callout-note style="color: black; background-color: #e0f3f9"}
+## Insights
+
+-   **Trade Disruptions During COVID-19 (2020-2022)**
+
+    -   A sharp drop in trade volume was noted across multiple countries during early 2020, reflecting the initial impact of the pandemic on global supply chains.
+
+    -   India, Indonesia, Japan and Malaysia show particularly steep declines, suggesting stricter lockdown measures or disruptions in trade routes.
+
+    -   China and the Hong Kong rebounded faster, possibly due to their quicker economic recovery and policy responses. The trade impact of COVID-19 was not uniform among the top 10 trading partners—some countries recovered faster.
+
+-   **Post-Pandemic Recovery (2022-Present)**
+
+    -   Around Apr 2022, there is a strong resurgence in trade activity, indicated by increasing intensity in the blue-shaded areas, aligning with Singapore’s lifting of major COVID-19 restrictions.
+
+    -   The strong rebound post-pandemic suggests Singapore's trade ecosystem is resilient, bouncing back quickly after restrictions were lifted.
+:::
+
+## 6.3 Seasonality in Trade Volumes
+
+Examining seasonal trends in trade volumes allows us to uncover cyclical patterns that shape economic policies and business strategies in Singapore. To detect these trends, we utilize a calendar heatmap with ***geom_tile***, which provides a clear visualization of monthly trade fluctuations over the years.
+
+::: panel-tabset
+## The Plot
+
+```{r}
+#| echo: False
+#| fig-width: 10
+country_seasonality <- country %>%
+  mutate(Date = as.Date(paste0(Date, "-01")), 
+         Year = year(Date), 
+         Month = factor(month(Date), levels = 1:12)) %>%
+  group_by(Year, Month) %>%
+  summarise(Total_Trade = sum(Trade_Value, na.rm = TRUE) / 1000) %>%
+  ungroup()
+
+ggplot(country_seasonality, aes(x = Month, y = factor(Year), fill = Total_Trade)) +
+  geom_tile(color = "white", size = 0.2) +
+  scale_fill_viridis(name = "Trade Value (Billion SGD)", option = "C", labels = scales::number_format(accuracy = 0.1)) +
+  theme_tufte(base_family = "Helvetica") +
+  labs(title = "Trade Value by Year and Month",
+       x = "Month", y = "Year") +
+  theme(axis.ticks = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 8))
+
+```
+
+## The Code
+
+```{r}
+#| eval: False
+#| fig-width: 10
+country_seasonality <- country %>%
+  mutate(Date = as.Date(paste0(Date, "-01")), 
+         Year = year(Date), 
+         Month = factor(month(Date), levels = 1:12)) %>%
+  group_by(Year, Month) %>%
+  summarise(Total_Trade = sum(Trade_Value, na.rm = TRUE) / 1000) %>%
+  ungroup()
+
+ggplot(country_seasonality, aes(x = Month, y = factor(Year), fill = Total_Trade)) +
+  geom_tile(color = "white", size = 0.2) +
+  scale_fill_viridis(name = "Trade Value (Billion SGD)", option = "C", labels = scales::number_format(accuracy = 0.1)) +
+  theme_tufte(base_family = "Helvetica") +
+  labs(title = "Trade Value by Year and Month",
+       x = "Month", y = "Year") +
+  theme(axis.ticks = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 8))
+
+
+```
+:::
+
+::: {.callout-note style="color: black; background-color: #e0f3f9"}
+## Insights
+
+-   **Trade Growth Over Time:** Trade values increase consistently over the years, as indicated by the gradual shift from dark purple (low trade) in the early 2000s to yellow (high trade) in recent years. This aligns with the line chart’s trend.
+
+-   **Sharp Trade Surges in Recent Years:** 2022 stands out with exceptionally high trade values, especially around mid-year (bright yellow region), confirming the post-pandemic economic rebound observed in the line chart.
+
+-   **Economic Crises:** The 2009 period is darker among the earlier years, indicating a trade decline due to the Global Financial Crisis, which aligns with previous findings.
+
+-   **Seasonal Trends in Trade:** While the overall trend is upward, the heatmap does not show clear month-to-month variations. Some mid-year peaks (June–August) appear in recent years, but no strong seasonal pattern can be seen.
+:::
+
+**Comparison to Previous Findings**: The overall trade growth trend, disruptions during economic crises, and strong post-pandemic recovery align with findings from the line chart and slopegraph.
+
+**New insights from the heatmap:**
+
+-   2022 stands out as an exceptionally strong trade year, even more than 2023–2024.
+
+-   Trade dips during economic shocks are more visible across all months, not just in annual summaries.
+
+-   This analysis suggests that Singapore’s trade is more influenced by macroeconomic events than strong seasonal patterns
+
 ------------------------------------------------------------------------
 
-# References
+# 7 Time-Series Forecasting
+
+To predict the total trade volume trend for 2025 using historical trade data from January 2003 to December 2024, we employ the **ARIMA** (Auto Regressive Integrated Moving Average) model. The ARIMA model is suitable for time-series forecasting as it captures trends and underlying patterns in the data.
+
+For this analysis, we utilize the **forecast** package in R to preprocess the data, fit the ARIMA model, and generate forecasts for the next 12 months (January–December 2025). We also used **ggplotly** to display the trade volume on hover.
+
+::: panel-tabset
+## The Plot
+
+```{r}
+#| echo: False
+#| fig-width: 10
+
+countryhistorical <- country %>%
+  filter(Date < "2025-01-01") %>%  # Keep data up to 2024
+  mutate(Date = as.Date(paste0(Date, "-01")), 
+         Trade_Value = as.numeric(Trade_Value),
+         Trade_Value_Billions = Trade_Value / 1000) %>% 
+  group_by(Date) %>%
+  summarise(Total_Trade_Value = sum(Trade_Value_Billions, na.rm = TRUE)) %>%  # Sum across all markets
+  ungroup()
+
+
+# Convert to time series object (monthly)
+trade_ts <- ts(countryhistorical$Total_Trade_Value, 
+               start = c(year(min(countryhistorical$Date)), month(min(countryhistorical$Date))),  
+               frequency = 12)
+
+# ARIMA model
+model <- auto.arima(trade_ts)
+
+# Forecast for the next 24 months
+forecasted_values <- forecast(model, h = 12)
+
+# Convert forecast to dataframe
+forecast_df <- data.frame(
+  Date = seq(from = max(countryhistorical$Date) + months(1), 
+             by = "month", 
+             length.out = 12),
+  Forecast = forecasted_values$mean,
+  Lower_80 = forecasted_values$lower[,1],
+  Upper_80 = forecasted_values$upper[,1],
+  Lower_95 = forecasted_values$lower[,2],
+  Upper_95 = forecasted_values$upper[,2]
+)
+
+
+forecastplot <- ggplot() +
+  # Historical data
+  geom_line(data = countryhistorical, aes(x = Date, y = Total_Trade_Value), color = "black", size = 0.4, alpha = 0.7) +
+  # Forecast line
+  geom_line(data = forecast_df, aes(x = Date, y = Forecast), color = "red", size = 0.6) +
+  # Confidence intervals
+  geom_ribbon(data = forecast_df, aes(x = Date, ymin = Lower_80, ymax = Upper_80), fill = "orange", alpha = 0.3) +
+  geom_ribbon(data = forecast_df, aes(x = Date, ymin = Lower_95, ymax = Upper_95), fill = "pink", alpha = 0.2) +
+  labs(title = "Total Trade Value Forecast for Jan to Dec 2025", 
+       x = "Year", 
+       y = "Total Trade Value (Billion SGD)") +
+  theme_minimal()
+
+ggplotly(forecastplot) 
+
+```
+
+## The Code
+
+```{r}
+#| eval: False
+#| fig-width: 10
+
+countryhistorical <- country %>%
+  filter(Date < "2025-01-01") %>%  # Keep data up to 2024
+  mutate(Date = as.Date(paste0(Date, "-01")), 
+         Trade_Value = as.numeric(Trade_Value),
+         Trade_Value_Billions = Trade_Value / 1000) %>% 
+  group_by(Date) %>%
+  summarise(Total_Trade_Value = sum(Trade_Value_Billions, na.rm = TRUE)) %>%  # Sum across all markets
+  ungroup()
+
+
+# Convert to time series object (monthly)
+trade_ts <- ts(countryhistorical$Total_Trade_Value, 
+               start = c(year(min(countryhistorical$Date)), month(min(countryhistorical$Date))),  
+               frequency = 12)
+
+# ARIMA model
+model <- auto.arima(trade_ts)
+
+# Forecast for the next 24 months
+forecasted_values <- forecast(model, h = 12)
+
+# Convert forecast to dataframe
+forecast_df <- data.frame(
+  Date = seq(from = max(countryhistorical$Date) + months(1), 
+             by = "month", 
+             length.out = 12),
+  Forecast = forecasted_values$mean,
+  Lower_80 = forecasted_values$lower[,1],
+  Upper_80 = forecasted_values$upper[,1],
+  Lower_95 = forecasted_values$lower[,2],
+  Upper_95 = forecasted_values$upper[,2]
+)
+
+
+forecastplot <- ggplot() +
+  # Historical data
+  geom_line(data = countryhistorical, aes(x = Date, y = Total_Trade_Value), color = "black", size = 0.4, alpha = 0.7) +
+  # Forecast line
+  geom_line(data = forecast_df, aes(x = Date, y = Forecast), color = "red", size = 0.6) +
+  # Confidence intervals
+  geom_ribbon(data = forecast_df, aes(x = Date, ymin = Lower_80, ymax = Upper_80), fill = "orange", alpha = 0.3) +
+  geom_ribbon(data = forecast_df, aes(x = Date, ymin = Lower_95, ymax = Upper_95), fill = "pink", alpha = 0.2) +
+  labs(title = "Total Trade Value Forecast for Jan to Dec 2025", 
+       x = "Year", 
+       y = "Total Trade Value (Billion SGD)") +
+  theme_minimal()
+
+ggplotly(forecastplot) 
+```
+:::
+
+::: {.callout-note style="color: black; background-color: #e0f3f9"}
+## Insights
+
+-   **Upward Trend:** The forecast shows a gradual increase in total trade value, suggesting that Singapore's trade volume is expected to grow steadily in 2025, following the upward trend observed in recent years.
+
+-   **Confidence Interval:** The shaded area represents the 95% confidence interval, showing the range within which the actual trade value is likely to fall. The widening interval over time indicates increasing uncertainty in long-term predictions.
+
+-   Despite temporary dips in previous years, the model suggests that trade volumes are recovering and are expected to reach higher levels in 2025.
+:::
+
+------------------------------------------------------------------------
+
+# 8 Conclusion
+
+Singapore’s trade has seen some shifts over the past two decades. China has solidified its dominance, Malaysia and the U.S. remain major partners, Taiwan’s role has expanded, while Japan’s influence has declined. The COVID-19 pandemic caused temporary disruptions, but a strong post-pandemic recovery followed. While trade volumes have grown steadily, clear seasonal patterns were not found. The ARIMA model's forecast for 2025 suggests that Singapore’s trade value is likely to continue its upward trajectory, reflecting the country's economic resilience. 
