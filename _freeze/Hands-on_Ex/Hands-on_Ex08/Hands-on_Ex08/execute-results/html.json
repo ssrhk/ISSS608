@@ -1,0 +1,15 @@
+{
+  "hash": "21dc87f589bf5c6a3b9aa9d7d0fa4175",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"Hands-on_Ex08\"\nformat: html\nauthor: \"Sei Sar Hla Kyi\"\ndate: \"2025-03-01\"\ndate-modified: \"2025-03-01\"\nexecute: \n  eval: true\n  echo: true\n  message: false\n  freeze: true\n  warning: false\n---\n\n\n\n\n\n# Install and Load the R Packages\n\n\n\n\n\n::: {.cell}\n\n:::\n\n\n\n\n\n# Importing the Data\n\n\n\n\n\n::: {.cell}\n\n:::\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

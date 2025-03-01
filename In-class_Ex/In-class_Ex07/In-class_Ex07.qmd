@@ -1,0 +1,275 @@
+---
+title: "In-class Exercise 07: Visualizing, Analyzing, and Forecasting Time Series Data: tidyverts methods"
+format: html
+author: "Sei Sar Hla Kyi"
+date: "`r Sys.Date()`"
+date-modified: "`r Sys.Date()`"
+execute: 
+  eval: true
+  echo: true
+  message: false
+  freeze: true
+  warning: false
+---
+
+# 1 Install and Load the R Packages
+
+```{r}
+pacman::p_load(readr,tidyverse, tsibble, feasts, fable, seasonal)
+```
+
+# 2 Data Preparation
+
+## 2.1 Importing the Data
+
+```{r}
+ts_data <- read_csv(
+  "data/visitor_arrivals_by_air.csv")
+```
+
+`dmy()` of **lubridate** package is used to convert data type of Month-Year field from Character to Date.
+
+```{r}
+ts_data$`Month-Year` <- dmy(
+  ts_data$`Month-Year`)
+```
+
+## **2.2 Conventional base `ts` object versus `tibble` object**
+
+Convert to ts object after cleaning the data.
+
+```{r}
+ts_data_ts <- ts(ts_data)     
+class (ts_data_ts)
+```
+
+## **2.3 Converting `tibble` object to `tsibble` object**
+
+```{r}
+ts_tsibble <- ts_data %>%
+  mutate(Month = yearmonth(`Month-Year`)) %>%
+  as_tsibble(index = `Month`)
+class (ts_tsibble)
+```
+
+# **3 Visualising Time-series Data**
+
+We need to organise the data frame from wide to long format by using [`pivot_longer()`](https://tidyr.tidyverse.org/reference/pivot_longer.html) of **tidyr** package as shown below.
+
+```{r}
+ts_longer <- ts_data %>%
+  pivot_longer(cols = c(2:34),
+               names_to = "Country",
+               values_to = "Arrivals")
+```
+
+## **3.1 Visualising single time-series: ggplot2 methods**
+
+```{r}
+ts_longer %>%
+  filter(Country == "Vietnam") %>%
+  ggplot(aes(x = `Month-Year`, 
+             y = Arrivals))+
+  geom_line(size = 0.5)
+```
+
+## **3.2 Plotting multiple time-series data with ggplot2 methods**
+
+```{r}
+#| fig-height: 8
+ggplot(data = ts_longer, 
+       aes(x = `Month-Year`, 
+           y = Arrivals,
+           color = Country))+
+  geom_line(size = 0.5) +
+  theme(legend.position = "bottom", 
+        legend.box.spacing = unit(0.5, "cm"))
+```
+
+```{r}
+#| fig-height: 12
+ggplot(data = ts_longer, 
+       aes(x = `Month-Year`, 
+           y = Arrivals))+
+  geom_line(size = 0.5) +
+  facet_wrap(~ Country,
+             ncol = 3,
+             scales = "free_y") +
+  theme_bw()
+```
+
+# **4 Visual Analysis of Time-series Data**
+
+```{r}
+tsibble_longer <- ts_tsibble %>%
+  pivot_longer(cols = c(2:34),
+               names_to = "Country",
+               values_to = "Arrivals")
+```
+
+## **4.1 Visual Analysis of Seasonality with Seasonal Plot**
+
+```{r}
+#| fig-height: 12
+tsibble_longer %>%
+  filter(Country == "Italy" |
+         Country == "Vietnam" |
+         Country == "United Kingdom" |
+         Country == "Germany") %>% 
+  gg_season(Arrivals)
+```
+
+## **4.2 Visual Analysis of Seasonality with Cycle Plot**
+
+```{r}
+#| fig-height: 6
+tsibble_longer %>%
+  filter(Country == "Vietnam" |
+         Country == "Italy") %>% 
+  gg_subseries(Arrivals)
+```
+
+Visitors from Vietnam has an increasing trend. July and August is quite high. For Italy, for most of the months it is at a low level (hover around 5000). Only in the month of August, there is a sharp increase.
+
+# **5 Time series Analysis - decomposition**
+
+## **5.1 Single time series decomposition**
+
+Autocorrelation Plot: Whether the time series is related to previous month. Correlation among time series(T) and their lags (T-1)
+
+```{r}
+tsibble_longer %>%
+  filter(`Country` == "Vietnam") %>%
+  ACF(Arrivals) %>% 
+  autoplot()
+```
+
+## **5.2 Multiple time-series decomposition**
+
+```{r}
+tsibble_longer %>%
+  filter(`Country` == "Vietnam" |
+         `Country` == "Italy" |
+         `Country` == "United Kingdom" |
+         `Country` == "China") %>%
+  ACF(Arrivals) %>%
+  autoplot()
+```
+
+Autocorrelation of China is in a 6 month period.
+
+Look at 95% confidence interval (above the blue line): For China and Vietnam, most of the cases are statistically significant.
+
+There are both seasonality and trend in China and Vietnam.
+
+```{r}
+tsibble_longer %>%
+  filter(`Country` == "Vietnam" |
+         `Country` == "Italy" |
+         `Country` == "United Kingdom" |
+         `Country` == "China") %>%
+  PACF(Arrivals) %>%
+  autoplot()
+```
+
+Partial Autocorrelation: Further decompose the autocorrelation, Compare autocorrelation from previous time lag versus next time lag. Inverse(negative): visitor arrival decrease.
+
+For UK, in lag 2 significantly reduced.
+
+# **6 Visual STL Diagnostics**
+
+## **6.1 Visual STL diagnostics with feasts**
+
+```{r}
+tsibble_longer %>%
+  filter(`Country` == "Vietnam") %>%
+  model(stl = STL(Arrivals)) %>%
+  components() %>%
+  autoplot()
+```
+
+Remainder: white noise. No clear pattern
+
+If Remainder still give patterns, it is not good.
+
+# **7 Visual Forecasting**
+
+## **7.1 Time Series Data Sampling**
+
+Intentionally keep back some data based on time, must follow the sequence.
+
+2 Levels: Holdout and Training
+
+```{r}
+vietnam_ts <- tsibble_longer %>%
+  filter(Country == "Vietnam") %>% 
+  mutate(Type = if_else(
+    `Month-Year` >= "2019-01-01", 
+    "Hold-out", "Training"))
+```
+
+```{r}
+vietnam_train <- vietnam_ts %>%
+  filter(`Month-Year` < "2019-01-01")
+```
+
+## **7.2 Fitting forecasting models**
+
+```{r}
+fit_ses <- vietnam_train %>%
+  model(ETS(Arrivals ~ error("A") 
+            + trend("N") 
+            + season("N")))
+gg_tsresiduals(fit_ses)
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+fit_ETS <- vietnam_train %>%
+  model(`SES` = ETS(Arrivals ~ error("A") + 
+                      trend("N") + 
+                      season("N")),
+        `Holt`= ETS(Arrivals ~ error("A") +
+                      trend("A") +
+                      season("N")),
+        `damped Holt` = 
+          ETS(Arrivals ~ error("A") +
+                trend("Ad") + 
+                season("N")),
+        `WH_A` = ETS(
+          Arrivals ~ error("A") + 
+            trend("A") + 
+            season("A")),
+        `WH_M` = ETS(Arrivals ~ error("M") 
+                         + trend("A") 
+                         + season("M"))
+  )
+```
+
+```{r}
+fit_ETS %>%
+  tidy()
+```
+
+## 7.3 Model Comparison
+
+```{r}
+fit_ETS %>% 
+  report()
+```
+
+## **7.4 Forecasting future values**
+
+```{r}
+fit_ETS %>%
+  forecast(h = "12 months") %>%
+  autoplot(vietnam_ts, 
+           level = NULL)
+```

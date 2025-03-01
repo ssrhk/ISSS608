@@ -1076,5 +1076,117 @@
     "title": "Take-home Exercise 02: Be Tradewise or Otherwise",
     "section": "6.2 Impact of COVID Pandemic on Trade",
     "text": "6.2 Impact of COVID Pandemic on Trade\nThe COVID-19 pandemic significantly disrupted global trade, affecting Singapore’s trading patterns from Feb 2020 to Apr 2022. To analyze the extent of this impact, we use a horizon graph with geom_horizon to visualize trade fluctuations across different countries. This helps highlight the severity and duration of trade disruptions during the pandemic.\n\nThe PlotThe Code\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n# Convert Date column to proper format and filter data for 2019-2024\ncountry_horizongraph &lt;- country %&gt;%\n  filter(Markets %in% top_10_markets_2024$Markets, \n         Date &lt; \"2025-01-01\") %&gt;% \n  mutate(Date = as.Date(paste0(Date, \"-01\")),  # Convert YYYY-MM to Date format\n         Trade_Value = as.numeric(Trade_Value),\n         Trade_Value_Billions = Trade_Value / 1000) %&gt;% \n  group_by(Markets, Date) %&gt;%\n  summarise(Total_Trade_Value = sum(Trade_Value_Billions, na.rm = TRUE)) %&gt;%\n  ungroup()\n\n\n# covid period for reference lines\ncovid_dates &lt;- as.Date(c(\"2020-02-01\", \"2022-04-01\")) \n\n# Horizon Graph \nggplot(country_horizongraph) +\n  geom_horizon(aes(x = Date, y = Total_Trade_Value), \n               origin = \"midpoint\", \n               horizonscale = 6) +  \n  facet_grid(Markets ~ .) +  \n  theme_few() +\n  scale_fill_hcl(palette = 'RdBu') +\n  theme(\n    panel.spacing.y = unit(0, \"lines\"), \n    strip.text.y = element_text(size = 7, angle = 0, hjust = 0), \n    legend.position = 'none',\n    axis.text.y = element_blank(),\n    axis.text.x = element_text(size = 5, angle = 50, hjust = 1),  \n    axis.title.y = element_blank(),\n    axis.title.x = element_blank(),\n    axis.ticks.y = element_blank(),\n    panel.border = element_blank()\n  ) +\n  scale_x_date(expand = c(0, 0), date_breaks = \"3 months\", date_labels = \"%b %y\") +\n  ggtitle('Trade Value Deviations Over Time for Top 10 Trading Partners') +\n  labs(subtitle = \"COVID-19 period (Feb 2020 - Apr 2022) is highlighted with dashed lines.\",size=4) + \n  geom_vline(xintercept = covid_dates, color = \"black\", linetype = \"dashed\", alpha = 1.5)\n\n\n\n\n\n\n\n\n\n\nInsights\n\n\n\n\nTrade Disruptions During COVID-19 (2020-2022)\n\nA sharp drop in trade volume was noted across multiple countries during early 2020, reflecting the initial impact of the pandemic on global supply chains.\nIndia, Indonesia, Japan and Malaysia show particularly steep declines, suggesting stricter lockdown measures or disruptions in trade routes.\nChina and the Hong Kong rebounded faster, possibly due to their quicker economic recovery and policy responses. The trade impact of COVID-19 was not uniform among the top 10 trading partners—some countries recovered faster.\n\nPost-Pandemic Recovery (2022-Present)\n\nAround Apr 2022, there is a strong resurgence in trade activity, indicated by increasing intensity in the blue-shaded areas, aligning with Singapore’s lifting of major COVID-19 restrictions.\nThe strong rebound post-pandemic suggests Singapore’s trade ecosystem is resilient, bouncing back quickly after restrictions were lifted."
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex07/In-class_Ex07.html",
+    "href": "In-class_Ex/In-class_Ex07/In-class_Ex07.html",
+    "title": "In-class Exercise 07: Visualizing, Analyzing, and Forecasting Time Series Data: tidyverts methods",
+    "section": "",
+    "text": "pacman::p_load(readr,tidyverse, tsibble, feasts, fable, seasonal)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#importing-the-data",
+    "href": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#importing-the-data",
+    "title": "In-class Exercise 07: Visualizing, Analyzing, and Forecasting Time Series Data: tidyverts methods",
+    "section": "2.1 Importing the Data",
+    "text": "2.1 Importing the Data\n\nts_data &lt;- read_csv(\n  \"data/visitor_arrivals_by_air.csv\")\n\ndmy() of lubridate package is used to convert data type of Month-Year field from Character to Date.\n\nts_data$`Month-Year` &lt;- dmy(\n  ts_data$`Month-Year`)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#conventional-base-ts-object-versus-tibble-object",
+    "href": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#conventional-base-ts-object-versus-tibble-object",
+    "title": "In-class Exercise 07: Visualizing, Analyzing, and Forecasting Time Series Data: tidyverts methods",
+    "section": "2.2 Conventional base ts object versus tibble object",
+    "text": "2.2 Conventional base ts object versus tibble object\nConvert to ts object after cleaning the data.\n\nts_data_ts &lt;- ts(ts_data)     \nclass (ts_data_ts)\n\n[1] \"mts\"    \"ts\"     \"matrix\" \"array\""
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#converting-tibble-object-to-tsibble-object",
+    "href": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#converting-tibble-object-to-tsibble-object",
+    "title": "In-class Exercise 07: Visualizing, Analyzing, and Forecasting Time Series Data: tidyverts methods",
+    "section": "2.3 Converting tibble object to tsibble object",
+    "text": "2.3 Converting tibble object to tsibble object\n\nts_tsibble &lt;- ts_data %&gt;%\n  mutate(Month = yearmonth(`Month-Year`)) %&gt;%\n  as_tsibble(index = `Month`)\nclass (ts_tsibble)\n\n[1] \"tbl_ts\"     \"tbl_df\"     \"tbl\"        \"data.frame\""
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#visualising-single-time-series-ggplot2-methods",
+    "href": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#visualising-single-time-series-ggplot2-methods",
+    "title": "In-class Exercise 07: Visualizing, Analyzing, and Forecasting Time Series Data: tidyverts methods",
+    "section": "3.1 Visualising single time-series: ggplot2 methods",
+    "text": "3.1 Visualising single time-series: ggplot2 methods\n\nts_longer %&gt;%\n  filter(Country == \"Vietnam\") %&gt;%\n  ggplot(aes(x = `Month-Year`, \n             y = Arrivals))+\n  geom_line(size = 0.5)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#plotting-multiple-time-series-data-with-ggplot2-methods",
+    "href": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#plotting-multiple-time-series-data-with-ggplot2-methods",
+    "title": "In-class Exercise 07: Visualizing, Analyzing, and Forecasting Time Series Data: tidyverts methods",
+    "section": "3.2 Plotting multiple time-series data with ggplot2 methods",
+    "text": "3.2 Plotting multiple time-series data with ggplot2 methods\n\nggplot(data = ts_longer, \n       aes(x = `Month-Year`, \n           y = Arrivals,\n           color = Country))+\n  geom_line(size = 0.5) +\n  theme(legend.position = \"bottom\", \n        legend.box.spacing = unit(0.5, \"cm\"))\n\n\n\n\n\n\n\n\n\nggplot(data = ts_longer, \n       aes(x = `Month-Year`, \n           y = Arrivals))+\n  geom_line(size = 0.5) +\n  facet_wrap(~ Country,\n             ncol = 3,\n             scales = \"free_y\") +\n  theme_bw()"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#visual-analysis-of-seasonality-with-seasonal-plot",
+    "href": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#visual-analysis-of-seasonality-with-seasonal-plot",
+    "title": "In-class Exercise 07: Visualizing, Analyzing, and Forecasting Time Series Data: tidyverts methods",
+    "section": "4.1 Visual Analysis of Seasonality with Seasonal Plot",
+    "text": "4.1 Visual Analysis of Seasonality with Seasonal Plot\n\ntsibble_longer %&gt;%\n  filter(Country == \"Italy\" |\n         Country == \"Vietnam\" |\n         Country == \"United Kingdom\" |\n         Country == \"Germany\") %&gt;% \n  gg_season(Arrivals)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#visual-analysis-of-seasonality-with-cycle-plot",
+    "href": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#visual-analysis-of-seasonality-with-cycle-plot",
+    "title": "In-class Exercise 07: Visualizing, Analyzing, and Forecasting Time Series Data: tidyverts methods",
+    "section": "4.2 Visual Analysis of Seasonality with Cycle Plot",
+    "text": "4.2 Visual Analysis of Seasonality with Cycle Plot\n\ntsibble_longer %&gt;%\n  filter(Country == \"Vietnam\" |\n         Country == \"Italy\") %&gt;% \n  gg_subseries(Arrivals)\n\n\n\n\n\n\n\n\nVisitors from Vietnam has an increasing trend. July and August is quite high. For Italy, for most of the months it is at a low level (hover around 5000). Only in the month of August, there is a sharp increase."
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#single-time-series-decomposition",
+    "href": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#single-time-series-decomposition",
+    "title": "In-class Exercise 07: Visualizing, Analyzing, and Forecasting Time Series Data: tidyverts methods",
+    "section": "5.1 Single time series decomposition",
+    "text": "5.1 Single time series decomposition\nAutocorrelation Plot: Whether the time series is related to previous month. Correlation among time series(T) and their lags (T-1)\n\ntsibble_longer %&gt;%\n  filter(`Country` == \"Vietnam\") %&gt;%\n  ACF(Arrivals) %&gt;% \n  autoplot()"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#multiple-time-series-decomposition",
+    "href": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#multiple-time-series-decomposition",
+    "title": "In-class Exercise 07: Visualizing, Analyzing, and Forecasting Time Series Data: tidyverts methods",
+    "section": "5.2 Multiple time-series decomposition",
+    "text": "5.2 Multiple time-series decomposition\n\ntsibble_longer %&gt;%\n  filter(`Country` == \"Vietnam\" |\n         `Country` == \"Italy\" |\n         `Country` == \"United Kingdom\" |\n         `Country` == \"China\") %&gt;%\n  ACF(Arrivals) %&gt;%\n  autoplot()\n\n\n\n\n\n\n\n\nAutocorrelation of China is in a 6 month period.\nLook at 95% confidence interval (above the blue line): For China and Vietnam, most of the cases are statistically significant.\nThere are both seasonality and trend in China and Vietnam.\n\ntsibble_longer %&gt;%\n  filter(`Country` == \"Vietnam\" |\n         `Country` == \"Italy\" |\n         `Country` == \"United Kingdom\" |\n         `Country` == \"China\") %&gt;%\n  PACF(Arrivals) %&gt;%\n  autoplot()\n\n\n\n\n\n\n\n\nPartial Autocorrelation: Further decompose the autocorrelation, Compare autocorrelation from previous time lag versus next time lag. Inverse(negative): visitor arrival decrease.\nFor UK, in lag 2 significantly reduced."
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#visual-stl-diagnostics-with-feasts",
+    "href": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#visual-stl-diagnostics-with-feasts",
+    "title": "In-class Exercise 07: Visualizing, Analyzing, and Forecasting Time Series Data: tidyverts methods",
+    "section": "6.1 Visual STL diagnostics with feasts",
+    "text": "6.1 Visual STL diagnostics with feasts\n\ntsibble_longer %&gt;%\n  filter(`Country` == \"Vietnam\") %&gt;%\n  model(stl = STL(Arrivals)) %&gt;%\n  components() %&gt;%\n  autoplot()\n\n\n\n\n\n\n\n\nRemainder: white noise. No clear pattern\nIf Remainder still give patterns, it is not good."
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#time-series-data-sampling",
+    "href": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#time-series-data-sampling",
+    "title": "In-class Exercise 07: Visualizing, Analyzing, and Forecasting Time Series Data: tidyverts methods",
+    "section": "7.1 Time Series Data Sampling",
+    "text": "7.1 Time Series Data Sampling\nIntentionally keep back some data based on time, must follow the sequence.\n2 Levels: Holdout and Training\n\nvietnam_ts &lt;- tsibble_longer %&gt;%\n  filter(Country == \"Vietnam\") %&gt;% \n  mutate(Type = if_else(\n    `Month-Year` &gt;= \"2019-01-01\", \n    \"Hold-out\", \"Training\"))\n\n\nvietnam_train &lt;- vietnam_ts %&gt;%\n  filter(`Month-Year` &lt; \"2019-01-01\")"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#fitting-forecasting-models",
+    "href": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#fitting-forecasting-models",
+    "title": "In-class Exercise 07: Visualizing, Analyzing, and Forecasting Time Series Data: tidyverts methods",
+    "section": "7.2 Fitting forecasting models",
+    "text": "7.2 Fitting forecasting models\n\nfit_ses &lt;- vietnam_train %&gt;%\n  model(ETS(Arrivals ~ error(\"A\") \n            + trend(\"N\") \n            + season(\"N\")))\ngg_tsresiduals(fit_ses)\n\n\n\n\n\n\n\n\n\nfit_ETS &lt;- vietnam_train %&gt;%\n  model(`SES` = ETS(Arrivals ~ error(\"A\") + \n                      trend(\"N\") + \n                      season(\"N\")),\n        `Holt`= ETS(Arrivals ~ error(\"A\") +\n                      trend(\"A\") +\n                      season(\"N\")),\n        `damped Holt` = \n          ETS(Arrivals ~ error(\"A\") +\n                trend(\"Ad\") + \n                season(\"N\")),\n        `WH_A` = ETS(\n          Arrivals ~ error(\"A\") + \n            trend(\"A\") + \n            season(\"A\")),\n        `WH_M` = ETS(Arrivals ~ error(\"M\") \n                         + trend(\"A\") \n                         + season(\"M\"))\n  )\n\n\nfit_ETS %&gt;%\n  tidy()\n\n# A tibble: 45 × 4\n   Country .model      term      estimate\n   &lt;chr&gt;   &lt;chr&gt;       &lt;chr&gt;        &lt;dbl&gt;\n 1 Vietnam SES         alpha     1.00    \n 2 Vietnam SES         l[0]  10313.      \n 3 Vietnam Holt        alpha     1.00    \n 4 Vietnam Holt        beta      0.000100\n 5 Vietnam Holt        l[0]  13673.      \n 6 Vietnam Holt        b[0]    526.      \n 7 Vietnam damped Holt alpha     1.00    \n 8 Vietnam damped Holt beta      0.000110\n 9 Vietnam damped Holt phi       0.978   \n10 Vietnam damped Holt l[0]  13257.      \n# ℹ 35 more rows"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#model-comparison",
+    "href": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#model-comparison",
+    "title": "In-class Exercise 07: Visualizing, Analyzing, and Forecasting Time Series Data: tidyverts methods",
+    "section": "7.3 Model Comparison",
+    "text": "7.3 Model Comparison\n\nfit_ETS %&gt;% \n  report()\n\n# A tibble: 5 × 10\n  Country .model       sigma2 log_lik   AIC  AICc   BIC       MSE   AMSE     MAE\n  &lt;chr&gt;   &lt;chr&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;\n1 Vietnam SES         2.79e+7  -1453. 2912. 2912. 2920. 27515844. 5.99e7 3.91e+3\n2 Vietnam Holt        2.86e+7  -1453. 2917. 2917. 2931. 27718599. 6.03e7 3.92e+3\n3 Vietnam damped Holt 2.86e+7  -1453. 2918. 2919. 2935. 27556629. 5.97e7 3.92e+3\n4 Vietnam WH_A        5.33e+6  -1336. 2706. 2711. 2755.  4684271. 8.56e6 1.72e+3\n5 Vietnam WH_M        4.55e-3  -1300. 2635. 2640. 2684.  3046059. 3.42e6 5.20e-2"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#forecasting-future-values",
+    "href": "In-class_Ex/In-class_Ex07/In-class_Ex07.html#forecasting-future-values",
+    "title": "In-class Exercise 07: Visualizing, Analyzing, and Forecasting Time Series Data: tidyverts methods",
+    "section": "7.4 Forecasting future values",
+    "text": "7.4 Forecasting future values\n\nfit_ETS %&gt;%\n  forecast(h = \"12 months\") %&gt;%\n  autoplot(vietnam_ts, \n           level = NULL)"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex08/Hands-on_Ex08.html",
+    "href": "Hands-on_Ex/Hands-on_Ex08/Hands-on_Ex08.html",
+    "title": "Hands-on_Ex08",
+    "section": "",
+    "text": "Install and Load the R Packages\n\n\nImporting the Data"
   }
 ]

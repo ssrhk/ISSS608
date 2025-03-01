@@ -1,5 +1,5 @@
 ---
-title: "In-class_Ex05"
+title: "In-class Exercise 05: Building Explanatory Model"
 format: html
 author: "Sei Sar Hla Kyi"
 date: "`r Sys.Date()`"
