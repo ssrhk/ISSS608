@@ -40,7 +40,7 @@ We will follow the outlined methodology flow for this study, starting with data 
 ## Packages Used
 
 | Package | Explanation |
-|-------------|--------------------------------------------------------------------|
+|---------------------|---------------------------------------------------|
 | tidyverse | to efficiently manipulate and clean data, utilizing functions from packages like `dplyr` and `tidyr` for data wrangling |
 | readxl | allows us to import and work with excel file |
 | lubridate | for working with dates and times, making it easier to manipulate and extract components like years, months, and days from date values. |
@@ -52,12 +52,18 @@ We will follow the outlined methodology flow for this study, starting with data 
 | CGPfunctions | contains functions to create slope graphs |
 | viridis | offers colorblind-friendly color palettes for visualizations |
 | ggthemes | Provides additional themes and styles for ggplot2 |
-| forecast | for time series forecasting, including methods like ARIMA |
+| tsibble | for manipulating time series data in a tidy format |
+| feasts | to calculate a variety of summary statistics and transformations that help in analyzing time series data for forecasting |
+| fable | for time series forecasting and for model evaluation and forecast visualization. |
+| rsample | for splitting data into training and test set |
+| modeltime | for time series modeling and forecasting that works with tidymodels. |
+| prophet | for forecasting time series data with strong seasonal effects and multiple seasonality with irregular time series data |
+| tidymodels | for machine learning and modeling in R. It provides a consistent framework for building, tuning, and evaluating models |
 
 ## Code to Launch
 
 ```{r}
-pacman::p_load(tidyverse,readxl,lubridate,SmartEDA,patchwork,plotly,ggHoriPlot,CGPfunctions,viridis,ggthemes,forecast)
+pacman::p_load(tidyverse,readxl,lubridate,SmartEDA,patchwork,plotly,ggHoriPlot,CGPfunctions,viridis,ggthemes,tsibble,feasts,fable,rsample,modeltime,tidymodels)
 ```
 :::
 
@@ -259,6 +265,15 @@ Now, we can proceed to extract a subset of the dataframe on country-level data b
 ```{r}
 # Filter only countries (exclude regions)
 country <- trade %>% filter(RegionorCountry == "Country")
+```
+
+For our time series analysis, we will prepare the data by converting the Date column into YearMonth format, which allows us to aggregate the total trade values for each month.
+
+```{r}
+country_tsibble <- country %>%
+  mutate(Month = yearmonth(Date)) %>%  # Convert Date to YearMonth format
+  as_tsibble(index = Month, key = c(Markets, Type)) 
+
 ```
 
 ------------------------------------------------------------------------
@@ -976,11 +991,152 @@ geom_text(data = dual_chart_data %>% filter(Type == "Exports" & Year == "2024") 
 
 ------------------------------------------------------------------------
 
-# 6 Time-Series Analysis
+# 6 Time Series Analysis
 
-## 6.1 Long-Term Trends in Singapore’s Top 10 Trading Partners
+## 6.1 Long-Term Trends
 
-### 6.1.1 Ranking Changes: The Slopegraph
+### 6.1.1 Overview of Trade Trends
+
+To gain insights into the overall trends of exports and imports to Singapore, we visualize the data using a line chart created with the `geom_line` function from the `ggplot2` package.
+
+::: panel-tabset
+## The Plot
+
+```{r}
+#| echo: False
+#| fig-width: 10
+# Summarize data for exports and imports, excluding 2025
+trade_summary <- country %>%
+  filter(Type %in% c("Export", "Import"), Year != 2025) %>%  # Exclude 2025
+  group_by(Year) %>%
+  summarise(
+    TotalExport = sum(Trade_Value[Type == "Export"]/1000, na.rm = TRUE),  
+    TotalImport = sum(Trade_Value[Type == "Import"]/1000, na.rm = TRUE)  
+  ) %>%
+  ungroup()
+
+trade_summary$Year <- as.numeric(trade_summary$Year)
+
+linetrade <- ggplot(trade_summary, aes(x = Year)) +
+  # Export line
+  geom_line(aes(y = TotalExport, color = "Total Exports"), size = 1) +
+  # Import line
+  geom_line(aes(y = TotalImport, color = "Total Imports"), size = 1) +
+  labs(
+    title = "Overview on Trade: Exports vs Imports",
+    x = "Year",
+    y = "Trade Value (Billions)",
+    color = "Trade Type"
+  ) +
+  scale_color_manual(values = c("Total Exports" = "#83bace", "Total Imports" = "#f2677d")) +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle=45)) +
+  scale_x_continuous(breaks = seq(min(trade_summary$Year), max(trade_summary$Year), by = 1))
+
+# Add static text labels for Exports and Imports
+linetrade <- linetrade + 
+  geom_text(aes(x = max(trade_summary$Year), y = TotalExport, label = "Exports"), 
+            data = trade_summary %>% filter(Year == max(Year)),
+            color = "#83bace", vjust = -2, size = 3, fontface = "bold") +
+  geom_text(aes(x = max(trade_summary$Year), y = TotalImport, label = "Imports"), 
+            data = trade_summary %>% filter(Year == max(Year)),
+            color = "#f2677d", vjust = -1.6, size = 3, fontface = "bold")
+
+# Convert ggplot to interactive plotly object
+interactive_plot <- ggplotly(linetrade, tooltip = c("x", "y"))
+
+# Customize the tooltip text to show "Year: 2020, Total Imports: S$ 431.2 Bil"
+interactive_plot <- interactive_plot %>%
+  layout(
+    hoverlabel = list(
+      font = list(size = 12),
+      bgcolor = "white"
+    )
+  )
+
+interactive_plot %>%
+  style(
+    hovertemplate = paste("Year: %{x}<br>Total Imports: S$ %{y:.1f} Bil")
+  )
+
+
+```
+
+## The Code
+
+```{r}
+#| eval: False
+#| fig-width: 10
+# Summarize data for exports and imports, excluding 2025
+trade_summary <- country %>%
+  filter(Type %in% c("Export", "Import"), Year != 2025) %>%  # Exclude 2025
+  group_by(Year) %>%
+  summarise(
+    TotalExport = sum(Trade_Value[Type == "Export"]/1000, na.rm = TRUE),  
+    TotalImport = sum(Trade_Value[Type == "Import"]/1000, na.rm = TRUE)  
+  ) %>%
+  ungroup()
+
+trade_summary$Year <- as.numeric(trade_summary$Year)
+
+linetrade <- ggplot(trade_summary, aes(x = Year)) +
+  # Export line
+  geom_line(aes(y = TotalExport, color = "Total Exports"), size = 1) +
+  # Import line
+  geom_line(aes(y = TotalImport, color = "Total Imports"), size = 1) +
+  labs(
+    title = "Trade Value: Exports vs Imports",
+    x = "Year",
+    y = "Trade Value (Billions)",
+    color = "Trade Type"
+  ) +
+  scale_color_manual(values = c("Total Exports" = "#83bace", "Total Imports" = "#f2677d")) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  scale_x_continuous(breaks = seq(min(trade_summary$Year), max(trade_summary$Year), by = 1))
+
+# Add static text labels for Exports and Imports
+linetrade <- linetrade + 
+  geom_text(aes(x = max(trade_summary$Year), y = TotalExport, label = "Exports"), 
+            data = trade_summary %>% filter(Year == max(Year)),
+            color = "#83bace", vjust = -2, size = 3, fontface = "bold") +
+  geom_text(aes(x = max(trade_summary$Year), y = TotalImport, label = "Imports"), 
+            data = trade_summary %>% filter(Year == max(Year)),
+            color = "#f2677d", vjust = -1.6, size = 3, fontface = "bold")
+
+# Convert ggplot to interactive plotly object
+interactive_plot <- ggplotly(linetrade, tooltip = c("x", "y"))
+
+# Customize the tooltip text to show "Year: 2020, Total Imports: S$ 431.2 Bil"
+interactive_plot <- interactive_plot %>%
+  layout(
+    hoverlabel = list(
+      font = list(size = 12),
+      bgcolor = "white"
+    )
+  )
+
+interactive_plot %>%
+  style(
+    hovertemplate = paste("Year: %{x}<br>Total Imports: S$ %{y:.1f} Bil")
+  )
+```
+:::
+
+::: {.callout-note style="color: black; background-color: #e0f3f9"}
+## Insights
+
+-   Both imports and exports show an upward trend over the years, indicating overall trade growth. Imports consistently exceed exports across the entire period, reflecting a trade deficit. Singapore’s trade deficit is a result of its economic model rather than poor performance. It is a small, resource-scarce country with limited natural resources. As a result, it relies heavily on imports for essential goods like food, energy, and raw materials to sustain its economy.
+
+<!-- -->
+
+-   There is a sharp dip in both imports and exports around 2009, likely due to the Global Financial Crisis.After this drop, trade volumes rebounded quickly by 2010, showing resilience in Singapore’s trade sector.
+
+-   After a dip in 2020, there is significant spike in imports observed around 2021–2022, likely due to pandemic recovery efforts and supply chain disruptions. However, exports did not rise as dramatically.
+:::
+
+### 6.1.2 Ranking Changes in Singapore’s Top 10 Trading Partners: The Slopegraph
 
 To first understand the trend of the top 10 trading partners of Singapore from the start of the dataset (2003) to the current day, we will first visualize the slopegraph using **newggslopegraph** from **CGPfunctions**.
 
@@ -1045,7 +1201,7 @@ country_filtered %>%
 -   **India’s Strong Growth but still a smaller partner:** India had the lowest trade value in 2003 but more than quadrupled to \$31.89 billioin by 2024. Despite strong growth, India remains the smallest of the top 10 markets, indicating untapped potential for further trade expansion.
 :::
 
-### 6.1.2 Yearly Trade Trends: The Line Chart
+### 6.1.3 Yearly Trade Trends in Singapore’s Top 10 Trading Partners: The Line Chart
 
 To capture fluctuations and economic shocks, showing how trade evolved dynamically rather than just at two points (2003 vs. 2024), we will visualize the trend further with a line chart using **geom_line** from ggplot2.
 
@@ -1132,6 +1288,7 @@ country_horizongraph <- country %>%
   summarise(Total_Trade_Value = sum(Trade_Value_Billions, na.rm = TRUE)) %>%
   ungroup()
 
+
 # covid period for reference lines
 covid_dates <- as.Date(c("2020-02-01", "2022-04-01")) 
 
@@ -1158,6 +1315,7 @@ ggplot(country_horizongraph) +
   ggtitle('Trade Value Deviations Over Time for Top 10 Trading Partners') +
   labs(subtitle = "COVID-19 period (Feb 2020 - Apr 2022) is highlighted with dashed lines.",size=4) + 
   geom_vline(xintercept = covid_dates, color = "black", linetype = "dashed", alpha = 1.5)
+
 ```
 
 ## The Code
@@ -1226,10 +1384,10 @@ ggplot(country_horizongraph) +
 
 ## 6.3 Seasonality in Trade Volumes
 
-Examining seasonal trends in trade volumes allows us to uncover cyclical patterns that shape economic policies and business strategies in Singapore. To detect these trends, we utilize a calendar heatmap with ***geom_tile***, which provides a clear visualization of monthly trade fluctuations over the years.
+Examining seasonal trends in trade volumes allows us to uncover cyclical patterns that shape economic policies and business strategies in Singapore. To detect these trends, we utilize a calendar heatmap and cycle plot, which provides a clear visualization of monthly trade fluctuations over the years.
 
 ::: panel-tabset
-## The Plot
+## Heat Map
 
 ```{r}
 #| echo: False
@@ -1255,11 +1413,26 @@ ggplot(country_seasonality, aes(x = Month, y = factor(Year), fill = Total_Trade)
 
 ```
 
-## The Code
+## Cycle Plot
+
+```{r}
+#| echo: False
+country_tsibble_summed <- country_tsibble %>%
+  summarise(Total_Trade = sum(Trade_Value, na.rm = TRUE)) %>%
+  ungroup()
+
+# Create the cycle plot for total trade by month
+country_tsibble_summed %>%
+  gg_subseries(Total_Trade)
+```
+
+## The Codes
 
 ```{r}
 #| eval: False
 #| fig-width: 10
+
+#Heatmap
 country_seasonality <- country %>%
   mutate(Date = as.Date(paste0(Date, "-01")), 
          Year = year(Date), 
@@ -1279,6 +1452,14 @@ ggplot(country_seasonality, aes(x = Month, y = factor(Year), fill = Total_Trade)
         legend.title = element_text(size = 10),
         legend.text = element_text(size = 8))
 
+#Cycle Plot
+country_tsibble_summed <- country_tsibble %>%
+  summarise(Total_Trade = sum(Trade_Value, na.rm = TRUE)) %>%
+  ungroup()
+
+# Create the cycle plot for total trade by month
+country_tsibble_summed %>%
+  gg_subseries(Total_Trade)
 
 ```
 :::
@@ -1292,7 +1473,7 @@ ggplot(country_seasonality, aes(x = Month, y = factor(Year), fill = Total_Trade)
 
 -   **Economic Crises:** The 2009 period is darker among the earlier years, indicating a trade decline due to the Global Financial Crisis, which aligns with previous findings.
 
--   **Seasonal Trends in Trade:** While the overall trend is upward, the heatmap does not show clear month-to-month variations. Some mid-year peaks (June–August) appear in recent years, but no strong seasonal pattern can be seen.
+-   **Seasonal Trends in Trade:** While the overall trend is upward, the cycleplot does not show clear month-to-month variations. Some mid-year peaks (June–August) appear in the heatmap, but no strong seasonal pattern can be seen. From the cycleplot February has the lowest month-to-month variation possibly due to Chinese New Year holidays.
 :::
 
 **Comparison to Previous Findings**: The overall trade growth trend, disruptions during economic crises, and strong post-pandemic recovery align with findings from the line chart and slopegraph.
@@ -1303,143 +1484,444 @@ ggplot(country_seasonality, aes(x = Month, y = factor(Year), fill = Total_Trade)
 
 -   Trade dips during economic shocks are more visible across all months, not just in annual summaries.
 
--   This analysis suggests that Singapore’s trade is more influenced by macroeconomic events than strong seasonal patterns
+-   Although every month displays an increasing trend, February has lowest trade volume.
 
-------------------------------------------------------------------------
+## 6.4 Time Series Decomposition
 
-# 7 Time-Series Forecasting
+### 6.4.1 Autocorrelation in Time-Series
 
-To predict the total trade volume trend for 2025 using historical trade data from January 2003 to December 2024, we employ the **ARIMA** (Auto Regressive Integrated Moving Average) model. The ARIMA model is suitable for time-series forecasting as it captures trends and underlying patterns in the data.
+In this section, we will explore the autocorrelation structure of monthly total trade values. To do this, we will use the ACF (Autocorrelation Function) and PACF (Partial Autocorrelation Function) plots, which are crucial for understanding the temporal dependencies within the data. The ACF plot will help us identify repeating patterns or trends, while the PACF plot will reveal the direct relationships between observations at different time lags.
 
-For this analysis, we utilize the **forecast** package in R to preprocess the data, fit the ARIMA model, and generate forecasts for the next 12 months (January–December 2025). We also used **ggplotly** to display the trade volume on hover.
+We will specifically focus on the top five largest trading partners, as we aim to determine whether differencing is necessary to achieve stationarity in the time series. This analysis will be conducted using the `ACF()` and `PACF()` functions from the `feasts` package, which are essential tools for identifying temporal patterns and guiding the subsequent modeling steps.
 
 ::: panel-tabset
-## The Plot
+## ACF
 
 ```{r}
 #| echo: False
-#| fig-width: 10
-
-countryhistorical <- country %>%
-  filter(Date < "2025-01-01") %>%  # Keep data up to 2024
-  mutate(Date = as.Date(paste0(Date, "-01")), 
-         Trade_Value = as.numeric(Trade_Value),
-         Trade_Value_Billions = Trade_Value / 1000) %>% 
-  group_by(Date) %>%
-  summarise(Total_Trade_Value = sum(Trade_Value_Billions, na.rm = TRUE)) %>%  # Sum across all markets
+#calculate the total trade value for each market 
+country_tsibble_summed <- country_tsibble %>%
+  group_by(Markets) %>% 
+  summarise(Total_Trade = sum(Trade_Value, na.rm = TRUE)) %>%
   ungroup()
 
-
-# Convert to time series object (monthly)
-trade_ts <- ts(countryhistorical$Total_Trade_Value, 
-               start = c(year(min(countryhistorical$Date)), month(min(countryhistorical$Date))),  
-               frequency = 12)
-
-# ARIMA model
-model <- auto.arima(trade_ts)
-
-# Forecast for the next 24 months
-forecasted_values <- forecast(model, h = 12)
-
-# Convert forecast to dataframe
-forecast_df <- data.frame(
-  Date = seq(from = max(countryhistorical$Date) + months(1), 
-             by = "month", 
-             length.out = 12),
-  Forecast = forecasted_values$mean,
-  Lower_80 = forecasted_values$lower[,1],
-  Upper_80 = forecasted_values$upper[,1],
-  Lower_95 = forecasted_values$lower[,2],
-  Upper_95 = forecasted_values$upper[,2]
-)
-
-
-forecastplot <- ggplot() +
-  # Historical data
-  geom_line(data = countryhistorical, aes(x = Date, y = Total_Trade_Value), color = "black", size = 0.4, alpha = 0.7) +
-  # Forecast line
-  geom_line(data = forecast_df, aes(x = Date, y = Forecast), color = "red", size = 0.6) +
-  # Confidence intervals
-  geom_ribbon(data = forecast_df, aes(x = Date, ymin = Lower_80, ymax = Upper_80), fill = "orange", alpha = 0.3) +
-  geom_ribbon(data = forecast_df, aes(x = Date, ymin = Lower_95, ymax = Upper_95), fill = "pink", alpha = 0.2) +
-  labs(title = "Total Trade Value Forecast for Jan to Dec 2025", 
-       x = "Year", 
-       y = "Total Trade Value (Billion SGD)") +
-  theme_minimal()
-
-ggplotly(forecastplot) 
-
+country_tsibble_summed %>%
+  filter(Markets == "China" |
+         Markets == "Malaysia" |
+         Markets == "United States" |
+         Markets == "Taiwan" |
+         Markets == "Hong Kong") %>%
+  ACF(Total_Trade) %>%
+  autoplot()
 ```
 
-## The Code
+## PACF
 
 ```{r}
-#| eval: False
-#| fig-width: 10
-
-countryhistorical <- country %>%
-  filter(Date < "2025-01-01") %>%  # Keep data up to 2024
-  mutate(Date = as.Date(paste0(Date, "-01")), 
-         Trade_Value = as.numeric(Trade_Value),
-         Trade_Value_Billions = Trade_Value / 1000) %>% 
-  group_by(Date) %>%
-  summarise(Total_Trade_Value = sum(Trade_Value_Billions, na.rm = TRUE)) %>%  # Sum across all markets
-  ungroup()
-
-
-# Convert to time series object (monthly)
-trade_ts <- ts(countryhistorical$Total_Trade_Value, 
-               start = c(year(min(countryhistorical$Date)), month(min(countryhistorical$Date))),  
-               frequency = 12)
-
-# ARIMA model
-model <- auto.arima(trade_ts)
-
-# Forecast for the next 24 months
-forecasted_values <- forecast(model, h = 12)
-
-# Convert forecast to dataframe
-forecast_df <- data.frame(
-  Date = seq(from = max(countryhistorical$Date) + months(1), 
-             by = "month", 
-             length.out = 12),
-  Forecast = forecasted_values$mean,
-  Lower_80 = forecasted_values$lower[,1],
-  Upper_80 = forecasted_values$upper[,1],
-  Lower_95 = forecasted_values$lower[,2],
-  Upper_95 = forecasted_values$upper[,2]
-)
-
-
-forecastplot <- ggplot() +
-  # Historical data
-  geom_line(data = countryhistorical, aes(x = Date, y = Total_Trade_Value), color = "black", size = 0.4, alpha = 0.7) +
-  # Forecast line
-  geom_line(data = forecast_df, aes(x = Date, y = Forecast), color = "red", size = 0.6) +
-  # Confidence intervals
-  geom_ribbon(data = forecast_df, aes(x = Date, ymin = Lower_80, ymax = Upper_80), fill = "orange", alpha = 0.3) +
-  geom_ribbon(data = forecast_df, aes(x = Date, ymin = Lower_95, ymax = Upper_95), fill = "pink", alpha = 0.2) +
-  labs(title = "Total Trade Value Forecast for Jan to Dec 2025", 
-       x = "Year", 
-       y = "Total Trade Value (Billion SGD)") +
-  theme_minimal()
-
-ggplotly(forecastplot) 
+#| echo: False
+country_tsibble_summed %>%
+  filter(Markets == "China" |
+         Markets == "Malaysia" |
+         Markets == "United States" |
+         Markets == "Taiwan" |
+         Markets == "Hong Kong") %>%
+  PACF(Total_Trade) %>%
+  autoplot()
 ```
 :::
 
 ::: {.callout-note style="color: black; background-color: #e0f3f9"}
 ## Insights
 
--   **Upward Trend:** The forecast shows a gradual increase in total trade value, suggesting that Singapore's trade volume is expected to grow steadily in 2025, following the upward trend observed in recent years.
+**ACF :** shows how the current trade volume is correlated with its past values (lags).
 
--   **Confidence Interval:** The shaded area represents the 95% confidence interval, showing the range within which the actual trade value is likely to fall. The widening interval over time indicates increasing uncertainty in long-term predictions.
+-   For Hong Kong and Malaysia, there is a high and slowly decaying autocorrelation, indicating strong seasonality or long-term persistence in the trade volume data.
 
--   Despite temporary dips in previous years, the model suggests that trade volumes are recovering and are expected to reach higher levels in 2025.
+-   The presence of seasonality in the trade data for all these countries is not obvious with the decaying autocorrelation.
+
+**PACF:** identifies the lag length where the direct influence of the past values is significant.
+
+-   China,Taiwan and the United States shows a strong first-lag partial autocorrelation, suggesting that the immediate previous month's trade volume heavily influences the current month's value.
+
+-   All countries also shows a significant first-lag but much weaker for later lags.
+
+-   There are inverse spikes at the 13th month lag statiscally significant for all countries except Taiwan.
+
+Conclusion: Since the ACF remains high across many lags, the series is likely non-stationary and must apply differencing.
+:::
+
+### 6.4.2 **STL Diagnostics**
+
+Next, we will perform Seasonal and Trend decomposition using Loess (STL) to better understand the underlying components of the total trade data for the top 5 markets. STL decomposition is a powerful tool for breaking down a time series into three key components: trend, seasonality, and residuals. By analyzing these components, we can gain deeper insights into the patterns driving the data and assess the stability of trends over time. We will use the STL( ) function from the **feasts** package for decomposition and autoplot() to visualize the results.
+
+::: panel-tabset
+## China
+
+```{r}
+#| echo: False
+country_tsibble_summed %>%
+  filter(`Markets` == "China") %>%
+  model(stl = STL(Total_Trade)) %>%
+  components() %>%
+  autoplot()
+```
+
+## Malaysia
+
+```{r}
+#| echo: False
+country_tsibble_summed %>%
+  filter(`Markets` == "Malaysia") %>%
+  model(stl = STL(Total_Trade)) %>%
+  components() %>%
+  autoplot()
+```
+
+## UnitedStates
+
+```{r}
+#| echo: False
+country_tsibble_summed %>%
+  filter(`Markets` == "United States") %>%
+  model(stl = STL(Total_Trade)) %>%
+  components() %>%
+  autoplot()
+```
+
+## Taiwan
+
+```{r}
+#| echo: False
+country_tsibble_summed %>%
+  filter(`Markets` == "Taiwan") %>%
+  model(stl = STL(Total_Trade)) %>%
+  components() %>%
+  autoplot()
+```
+
+## HongKong
+
+```{r}
+#| echo: False
+country_tsibble_summed %>%
+  filter(`Markets` == "Hong Kong") %>%
+  model(stl = STL(Total_Trade)) %>%
+  components() %>%
+  autoplot()
+```
+:::
+
+::: {.callout-note style="color: black; background-color: #e0f3f9"}
+## Insights
+
+-   The trend is not constant — it rises steadily over time with some fluctuations for all countries.
+
+-   This means there is a long-term trend, which often signals non-stationarity. Therefore, there is a need for trend differencing.
+
+-   Since seasonality remains stable over time, seasonal differencing is not necessary.
+
+-   All of the remainder component looks like random noise, which is good.
+:::
+
+------------------------------------------------------------------------
+
+# 7 Time-Series Forecasting
+
+## 7.1 Overall Trade Forecast for 1 Year
+
+In this section, we will use the **`modeltime`** package to generate an overall trade forecast for the next year. The `modeltime`package is particularly useful for this task because it integrates well with models like ETS, ARIMA, and Prophet, and allows for easy visualization of forecast results in an interactive and dynamic way.
+
+### **Step 1: Data Sampling**
+
+We prepare the dataset for forecasting by filtering and aggregating trade values. We calculate the total trade value by summing the individual trade categories on a monthly basis and convert the values to thousands. The data is then split into training and holdout sets using an initial time split with 95.5% of the data allocated to training and the rest to testing.
+
+```{r}
+total_summary <- country %>%
+  filter(Type %in% c("Export", "Re-Export", "Import","Date")) %>%  
+  group_by(Date) %>%
+  summarise(
+    Total = sum(Trade_Value[Type == "Export"]/1000 + 
+                Trade_Value[Type == "Re-Export"]/1000 + 
+                Trade_Value[Type == "Import"]/1000, 
+                na.rm = TRUE)
+  ) %>%
+  ungroup()
+
+
+splits <- total_summary %>%
+  initial_time_split(prop = 0.955)
+training <- training(splits)
+holdout <- testing(splits)
+```
+
+### **Step 2: Create & Fit Multiple Models**
+
+We develop and train three different forecasting models to predict future trade values-the ETS, Auto ARIMA, and Prophet models, each with its specific characteristics. We fit these models to the training dataset to assess their performance using fit() from rsample package.
+
+**Model 1: Exponential Smoothing (Modeltime)**
+
+An Error-Trend-Season (ETS) model by using `exp_smoothing()`.
+
+```{r}
+model_fit_ets <- exp_smoothing() %>%
+    set_engine(engine = "ets") %>%
+    fit(Total ~ `Date`, 
+        data = training(splits))
+```
+
+**Model 2: Auto ARIMA (Modeltime)**
+
+An auto ARIMA model by using `arima_reg()`.
+
+```{r}
+model_fit_arima <- arima_reg() %>%
+  set_engine(engine = "auto_arima") %>%
+  fit(Total ~ `Date`, 
+      data = training(splits))
+```
+
+**Model 3: prophet (Modeltime)**
+
+A prophet model using `prophet_reg()`.
+
+```{r}
+model_fit_prophet <- prophet_reg() %>%
+  set_engine(engine = "prophet") %>%
+  fit(Total ~ `Date`, 
+      data = training(splits))
+```
+
+### **Step 3: Add fitted models to a Model Table**
+
+After fitting the individual models, we consolidate them into a model table using the `modeltime_table` function from the modeltime package. This table serves as a central reference for all the models we’ve created.
+
+```{r}
+models_tbl <- modeltime_table(
+  model_fit_ets,
+  model_fit_arima,
+  model_fit_prophet)
+
+models_tbl
+```
+
+### **Step 4: Calibrate the model to the testing set**
+
+Next, we calibrate the models using the testing set to assess their performance on unseen data. Calibration is essential to evaluate how well each model generalizes to new data. The calibration table provides a detailed summary of each model's performance, including metrics. This step helps to identify the model that performs best under test conditions.
+
+```{r}
+calibration_tbl <- models_tbl %>%
+    modeltime_calibrate(new_data = testing(splits))
+
+calibration_tbl
+```
+
+### **Step 5: Model Accuracy Assessment**
+
+To quantify the performance of the models, we calculate various accuracy metrics. The modeltime_accuracy function evaluates these metrics for each model, providing insights into how well each model captures the underlying trade patterns. A table of accuracy metrics is generated for easy comparison, with the Prophet model emerging as the most accurate and consistent predictor of trade trends, outperforming both the ETS and ARIMA models.
+
+```{r}
+calibration_tbl %>%
+  modeltime_accuracy %>%
+  table_modeltime_accuracy(
+    .interactive = FALSE)
+```
+
+-   **Prophet:** The Prophet model consistently achieves the lowest error rates across almost all metrics the highest R² (0.35). This suggests that the Prophet model captures the underlying trade patterns more effectively than the ETS and ARIMA models.
+
+-   **ETS :** The ETS model performs better than ARIMA in most metrics. However, its R² (0.27) indicates that it explains less variance compared to Prophet.
+
+-   **ARIMA:** The ARIMA model shows the highest error rates across all metrics, suggesting that ARIMA struggles to model the trade trend effectively, possibly due to the complex seasonality and non-linear patterns present in the dataset.
+
+Let's visualize the accuracy on the testing set before we actually visualize the forecast from the models.
+
+```{r}
+calibration_tbl %>%
+  modeltime_forecast(
+    new_data = testing(splits),
+    actual_data = total_summary) %>%
+  plot_modeltime_forecast(
+    .legend_max_width = 25, 
+    .interactive = TRUE,
+    .plotly_slider = TRUE)
+```
+
+::: {.callout-note style="color: black; background-color: #e0f3f9"}
+## Insights
+
+-   ETS (red line) predict a stable or slightly decreasing trend for the trade forecast with more flunctuations.The ARIMA and Prophet model shows a slightly increasing trend. Prophet model(yellow line) is the most aligned with the actual trade. It also has the narrowest confidence interval among the three, implying less uncertainty.
+:::
+
+### **Step 6: Refit to Full Dataset & Forecast Forward**
+
+In this final step, we refit the best-performing models using the full dataset to improve forecast accuracy by leveraging all available data.
+
+```{r}
+refit_tbl <- calibration_tbl %>%
+    modeltime_refit(data = total_summary)
+```
+
+Then, `modeltime_forecast()` is used to forecast to for 12 months.
+
+```{r}
+forecast_tbl <- refit_tbl %>%
+  modeltime_forecast(
+    h = "12 months",
+    actual_data = total_summary,
+    keep_data = TRUE) 
+```
+
+We plot the forecast using plot_modeltime_forecast(
+
+```{r}
+forecast_tbl %>%
+  plot_modeltime_forecast(
+    .legend_max_width = 25, 
+    .interactive = TRUE,
+    .plotly_slider = TRUE)
+```
+
+::: {.callout-note style="color: black; background-color: #e0f3f9"}
+## Insights
+
+-   **Overall Trend:** All three models predict a stable or slightly increasing trend for the trade forecast.The ETS model (red line) shows more fluctuations compared to Prophet and ARIMA, indicating that it is more sensitive to short-term variations.
+
+-   **Confidence Intervals:** The Prophet model (yellow line) has the narrowest confidence intervals, suggesting higher certainty in its predictions. The ARIMA model (green line) shows the widest confidence intervals, reflecting higher uncertainty in its forecasts.
+
+-   **Forecast Horizon:** The Prophet model maintains a steady stable trend. ETS shows a more volatile pattern with an upward trend, indicating that it captures short-term seasonality. ARIMA forecasts slightly downward movements, which may indicate that it is more affected by noise.
+:::
+
+```{r}
+refit_tbl %>%
+  modeltime_accuracy() %>%
+  table_modeltime_accuracy(
+    .interactive = FALSE)
+```
+
+The **Prophet model is the best performer** for forecasting Singapore's trade trend, balancing **both accuracy and consistency**.
+
+## 7.2 Forecast for The Top 5 Trading Partners
+
+For the forecast of the top 5 trading partners, we will use the **`fable`** package. The reason for using `fable` here is its strength in handling multiple time series data and its ability to efficiently forecast and compare the results for each major trading partner individually.
+
+### Step 1: Differencing
+
+We filter to focus on the top 5 countries: China, Malaysia, United States, Taiwan, and Hong Kong. Apply **first-order differencing** (d = 1) to remove the trend as found above.
+
+```{r}
+country_tsibble_summed <- country_tsibble_summed %>%
+  mutate(Month = yearmonth(Month),  # Convert from yearmonth to Date format
+         Date = as.Date(Month))
+
+top5 <- country_tsibble_summed %>%
+  filter(Markets == "China" |
+         Markets == "Malaysia" |
+         Markets == "United States" |
+         Markets == "Taiwan" |
+         Markets == "Hong Kong")
+
+# First-order differencing
+top5_diff <- top5 %>%
+  mutate(Diff_Trade = difference(Total_Trade, lag = 1)) %>%  
+  drop_na(Diff_Trade)  
+```
+
+### Step 2: Data Sampling
+
+Divide the data into training and hold-out sets, splitting from February 2024. Then we create a new column, `trainorhold`, which categorizes each row as either "Training" or "Hold-out" based on whether the Date is before or after the cutoff. Afterward, we select only the rows labeled as "Training", which will be used to fit our forecasting models
+
+```{r}
+top5_train <- top5_diff %>%
+  mutate(trainorhold = if_else(
+    `Date` >= "2024-02-01", 
+    "Hold-out", "Training")) %>%
+  filter(trainorhold == "Training")
+```
+
+### Step 3: Fitting the Models
+
+We fit two types of forecasting models on the training data:
+
+-   **ETS (Exponential Smoothing State Space Model)**
+
+-   **ARIMA (Auto-Regressive Integrated Moving Average)**
+
+The model() function from the fable package is used to fit both models simultaneously on the Total_Trade variable.
+
+```{r}
+top5_fit <- top5_train %>%
+  model(
+    ets = ETS(Total_Trade),
+    arima = ARIMA(Total_Trade)
+  )
+```
+
+### Step 4: Summary of Fitted Models
+
+The glance () function from fabletools provides a quick summary of the fitted models.
+
+```{r}
+top5_fit %>%
+  glance()
+```
+
+For all five countries (China, Hong Kong, Malaysia, Taiwan, and the United States), the **ARIMA model** consistently outperforms the **ETS model** in terms of AIC, AICc, BIC, and log-likelihood. This suggests that ARIMA is a better fit for the total trade data for these countries, as it accounts for the autocorrelations and patterns in the data more effectively than ETS, especially considering the lower AIC and BIC values.
+
+### Step 5: Model Diagnostics
+
+The augment() function provides the original data along with the fitted values and residuals (the differences between the actual and predicted values). This is useful for diagnosing how well the model is performing. 
+
+```{r}
+top5_fit %>%
+  augment()
+```
+
+### Step 6: Compare Performance of Models
+
+We will compare the performances of the two models with metrics such as RMSE, MAE, MAPE and ACF1.
+
+![](accuracy.png)
+
+The ETS model generally exhibits lower Mean Absolute Error (MAE) and Root Mean Square Error (RMSE) compared to the ARIMA model in most markets, suggesting that ETS provides more accurate point forecasts. However, ARIMA tends to yield lower Mean Percentage Error and higher Autocorrelation at Lag 1 across markets like China, Hong Kong, and the United States, which may indicate better handling of trend and seasonality components in certain contexts. Notably, Taiwan shows the smallest performance gap between the two models, implying that both methods offer comparable results in this market.
+
+### Step 7: Forecast future values for 18 months
+
+```{r}
+top5_fc <- top5_fit %>%
+  forecast(h = "18 months")
+```
+
+### Step 8: Plot the forecast
+
+In the code chunk below `autoplot()` of feasts package is used to plot the raw and fitted values.
+
+```{r}
+#| fig_height: 10
+# Filter and plot from January 2023 onwards
+top5 <- top5 %>%
+  filter(Month >= as.Date("2023-01-01"))
+
+top5_fc %>%
+  autoplot(top5)
+```
+
+::: {.callout-note style="color: black; background-color: #e0f3f9"}
+## Insights
+
+-   **China**: The ARIMA and ETS models show diverging forecasts, with ARIMA projecting a more stable trade value, while ETS forecasts a gradual upward trend. The actual trade value in recent months appears to fluctuate, indicating volatility.
+
+-   **Hong Kong**: Both ARIMA and ETS models predict relatively stable trade volumes.The forecast intervals for ETS are narrower than ARIMA, suggesting ETS might fit the recent data trend better. Recent actual trade values align more closely with the ETS projections.
+
+-   **Malaysia**: Trade values exhibit fluctuations in recent months, making forecasting more uncertain.The ETS model suggests a mild upward trend, while ARIMA forecasts more stable values.The wide prediction intervals for both models imply high uncertainty.
+
+-   **Taiwan**:Both models project stable trade, while the actual trade values follow an upward trajectory. There is a huge gap with the models' forecast with the actual which might be due to external factors the models did not catch.
+
+-   **United States**: Both ARIMA and ETS model shows stable trend and a slight downward trend in the recent months. This align with the actual decreasing trend in the recent months for USA.
+
+-   **Overall**: The ETS model tends to align better with the actual trade patterns in China, Hong Kong and Malaysia. ARIMA forecasts are more conservative, projecting stable or slightly fluctuating trade values. In the future months, both models predict to have a slight dip and then recovery to a stable trajectory for all top trading partners.
 :::
 
 ------------------------------------------------------------------------
 
 # 8 Conclusion
 
-Singapore’s trade has seen some shifts over the past two decades. China has solidified its dominance, Malaysia and the U.S. remain major partners, Taiwan’s role has expanded, while Japan’s influence has declined. The COVID-19 pandemic caused temporary disruptions, but a strong post-pandemic recovery followed. While trade volumes have grown steadily, clear seasonal patterns were not found. The ARIMA model's forecast for 2025 suggests that Singapore’s trade value is likely to continue its upward trajectory, reflecting the country's economic resilience. 
+Singapore’s trade has seen some shifts over the past two decades. China has solidified its dominance, Malaysia and the U.S. remain major partners, Taiwan’s role has expanded, while Japan’s influence has declined. The COVID-19 pandemic caused temporary disruptions, but a strong post-pandemic recovery followed. While trade volumes have grown steadily, clear seasonal patterns were not found. The forecast for 2025 suggests that Singapore’s total trade volume (both export and import) is likely to continue its upward trajectory,reflecting the country's economic resilience. However, the ARIMA model and ETS models' forecast for most of the top trading partners, reflects more or less stable trajectory.
