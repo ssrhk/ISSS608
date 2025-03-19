@@ -1,0 +1,404 @@
+---
+title: "Hands-on Exercise 09:Modelling, Visualising and Analysing Network Data with R"
+format: html
+author: "Sei Sar Hla Kyi"
+date: "`r Sys.Date()`"
+date-modified: "`r Sys.Date()`"
+execute: 
+  eval: true
+  echo: true
+  message: false
+  freeze: true
+  warning: false
+---
+
+# 1 Installing and launching R packages
+
+```{r}
+pacman::p_load(igraph, tidygraph, ggraph, 
+               visNetwork, lubridate, clock,
+               tidyverse, graphlayouts)
+```
+
+# **2 The Data**
+
+**The edges data:** *GAStech-email_edges.csv* which consists of two weeks of 9063 emails correspondances between 55 employees.\
+**The nodes data:** *GAStech_email_nodes.csv* which consist of the names, department and title of the 55 employees.
+
+```{r}
+GAStech_nodes <- read_csv("data/GAStech_email_node.csv")
+GAStech_edges <- read_csv("data/GAStech_email_edge-v2.csv")
+```
+
+## **2.1 Reviewing the imported data**
+
+```{r}
+glimpse(GAStech_edges)
+```
+
+## **2.2 Data Wrangling**
+
+::: panel-tabset
+## The Code
+
+```{r}
+GAStech_edges <- GAStech_edges %>%
+  mutate(SendDate = dmy(SentDate)) %>%
+  mutate(Weekday = wday(SentDate,
+                        label = TRUE,
+                        abbr = FALSE))
+```
+
+## Things to note
+
+-   both *dmy()* and *wday()* are functions of **lubridate** package. [lubridate](https://r4va.netlify.app/cran.r-project.org/web/packages/lubridate/vignettes/lubridate.html) is an R package that makes it easier to work with dates and times.
+
+-   *dmy()* transforms the SentDate to Date data type.
+
+-   *wday()* returns the day of the week as a decimal number or an ordered factor if label is TRUE. The argument abbr is FALSE keep the daya spells in full, i.e. Monday. The function will create a new column in the data.frame i.e. Weekday and the output of *wday()* will save in this newly created field.
+
+-   the values in the *Weekday* field are in ordinal scale.
+:::
+
+A close examination of *GAStech_edges* data.frame reveals that it consists of individual e-mail flow records. This is not very useful for visualisation.
+
+In view of this, we will aggregate the individual by date, senders, receivers, main subject and day of the week.
+
+::: panel-tabset
+## The Code
+
+```{r}
+GAStech_edges_aggregated <- GAStech_edges %>%
+  filter(MainSubject == "Work related") %>%
+  group_by(source, target, Weekday) %>%
+    summarise(Weight = n()) %>%
+  filter(source!=target) %>%
+  filter(Weight > 1) %>%
+  ungroup()
+```
+
+## Things to note
+
+-   four functions from **dplyr** package are used. They are: *filter()*, *group()*, *summarise()*, and *ungroup()*.
+
+-   The output data.frame is called **GAStech_edges_aggregated**.
+
+-   A new field called *Weight* has been added in GAStech_edges_aggregated
+:::
+
+# **3 Creating network objects using tidygraph**
+
+## **3.1 Using `tbl_graph()` to build tidygraph data model**
+
+```{r}
+GAStech_graph <- tbl_graph(nodes = GAStech_nodes,
+                           edges = GAStech_edges_aggregated, 
+                           directed = TRUE)
+```
+
+## **3.2 Reviewing the output tidygraph’s graph object**
+
+```{r}
+GAStech_graph
+```
+
+-   The output above reveals that *GAStech_graph* is a tbl_graph object with 54 nodes and 4541 edges.
+
+-   The command also prints the first six rows of “Node Data” and the first three of “Edge Data”.
+
+-   It states that the Node Data is **active**. The notion of an active tibble within a tbl_graph object makes it possible to manipulate the data in one tibble at a time.
+
+## **3.3 Changing the active object**
+
+```{r}
+GAStech_graph %>%
+  activate(edges) %>%
+  arrange(desc(Weight))
+```
+
+If we wanted to rearrange the rows in the edges tibble to list those with the highest “weight” first, we could use *activate()* and then *arrange()*.
+
+# **4 Plotting Static Network Graphs with ggraph package**
+
+## **4.1 Plotting a basic network graph**
+
+```{r}
+ggraph(GAStech_graph) +
+  geom_edge_link() +
+  geom_node_point()
+```
+
+## **4.2 Changing the default network graph theme**
+
+```{r}
+g <- ggraph(GAStech_graph) + 
+  geom_edge_link(aes()) +
+  geom_node_point(aes())
+
+g + theme_graph()
+```
+
+-   **ggraph** introduces a special ggplot theme that provides better defaults for network graphs than the normal ggplot defaults. `theme_graph()`, besides removing axes, grids, and border, changes the font to Arial Narrow (this can be overridden).
+
+-   The ggraph theme can be set for a series of plots with the `set_graph_style()` command run before the graphs are plotted or by using `theme_graph()` in the individual plots.
+
+## **4.3 Changing the coloring of the plot**
+
+```{r}
+g <- ggraph(GAStech_graph) + 
+  geom_edge_link(aes(colour = 'grey50')) +
+  geom_node_point(aes(colour = 'grey40'))
+
+g + theme_graph(background = 'grey10',
+                text_colour = 'white')
+```
+
+## **4.4 Working with ggraph’s layouts**
+
+### **4.4.1 Fruchterman and Reingold layout**
+
+```{r}
+g <- ggraph(GAStech_graph, 
+            layout = "fr") +
+  geom_edge_link(aes()) +
+  geom_node_point(aes())
+
+g + theme_graph()
+```
+
+### **4.4.2 Modifying network nodes**
+
+```{r}
+g <- ggraph(GAStech_graph, 
+            layout = "nicely") + 
+  geom_edge_link(aes()) +
+  geom_node_point(aes(colour = Department, 
+                      size = 3))
+
+g + theme_graph()
+```
+
+-   *geom_node_point* is equivalent in functionality to *geo_point* of **ggplot2**. It allows for simple plotting of nodes in different shapes, colours and sizes. In the codes chnuks above colour and size are used.
+
+### **4.4.3 Modifying edges**
+
+```{r}
+g <- ggraph(GAStech_graph, 
+            layout = "nicely") +
+  geom_edge_link(aes(width=Weight), 
+                 alpha=0.2) +
+  scale_edge_width(range = c(0.1, 5)) +
+  geom_node_point(aes(colour = Department), 
+                  size = 3)
+
+g + theme_graph()
+```
+
+-   *geom_edge_link* draws edges in the simplest way - as straight lines between the start and end nodes. But, it can do more that that. In the example above, argument *width* is used to map the width of the line in proportional to the Weight attribute and argument alpha is used to introduce opacity on the line.
+
+## **4.5 Creating facet graphs**
+
+### 4.5.1 **Working with *facet_edges()***
+
+```{r}
+set_graph_style()
+
+g <- ggraph(GAStech_graph, 
+            layout = "nicely") + 
+  geom_edge_link(aes(width=Weight), 
+                 alpha=0.2) +
+  scale_edge_width(range = c(0.1, 5)) +
+  geom_node_point(aes(colour = Department), 
+                  size = 2)
+
+g + facet_edges(~Weekday)
+```
+
+The code chunk below uses *theme()* to change the position of the legend.
+
+```{r}
+set_graph_style()
+
+g <- ggraph(GAStech_graph, 
+            layout = "nicely") + 
+  geom_edge_link(aes(width=Weight), 
+                 alpha=0.2) +
+  scale_edge_width(range = c(0.1, 5)) +
+  geom_node_point(aes(colour = Department), 
+                  size = 2) +
+  theme(legend.position = 'bottom')
+  
+g + facet_edges(~Weekday)
+```
+
+### 4.5.2 **A framed facet graph**
+
+```{r}
+set_graph_style() 
+
+g <- ggraph(GAStech_graph, 
+            layout = "nicely") + 
+  geom_edge_link(aes(width=Weight), 
+                 alpha=0.2) +
+  scale_edge_width(range = c(0.1, 5)) +
+  geom_node_point(aes(colour = Department), 
+                  size = 2)
+  
+g + facet_edges(~Weekday) +
+  th_foreground(foreground = "grey80",  
+                border = TRUE) +
+  theme(legend.position = 'bottom')
+```
+
+### **4.5.3 Working with *facet_nodes()***
+
+```{r}
+set_graph_style()
+
+g <- ggraph(GAStech_graph, 
+            layout = "nicely") + 
+  geom_edge_link(aes(width=Weight), 
+                 alpha=0.2) +
+  scale_edge_width(range = c(0.1, 5)) +
+  geom_node_point(aes(colour = Department), 
+                  size = 2)
+  
+g + facet_nodes(~Department)+
+  th_foreground(foreground = "grey80",  
+                border = TRUE) +
+  theme(legend.position = 'bottom')
+```
+
+# **5 Network Metrics Analysis**
+
+## **5.1 Computing centrality indices**
+
+```{r}
+g <- GAStech_graph %>%
+  mutate(betweenness_centrality = centrality_betweenness()) %>%
+  ggraph(layout = "fr") + 
+  geom_edge_link(aes(width=Weight), 
+                 alpha=0.2) +
+  scale_edge_width(range = c(0.1, 5)) +
+  geom_node_point(aes(colour = Department,
+            size=betweenness_centrality))
+g + theme_graph()
+```
+
+-   *mutate()* of **dplyr** is used to perform the computation.
+
+-   the algorithm used, on the other hand, is the *centrality_betweenness()* of **tidygraph**.
+
+## **5.2 Visualising network metrics**
+
+```{r}
+g <- GAStech_graph %>%
+  ggraph(layout = "fr") + 
+  geom_edge_link(aes(width=Weight), 
+                 alpha=0.2) +
+  scale_edge_width(range = c(0.1, 5)) +
+  geom_node_point(aes(colour = Department, 
+                      size = centrality_betweenness()))
+g + theme_graph()
+```
+
+## **5.3 Visualising Community**
+
+```{r}
+g <- GAStech_graph %>%
+  mutate(community = as.factor(group_edge_betweenness(weights = Weight, directed = TRUE))) %>%
+  ggraph(layout = "fr") + 
+  geom_edge_link(aes(width=Weight), 
+                 alpha=0.2) +
+  scale_edge_width(range = c(0.1, 5)) +
+  geom_node_point(aes(colour = community))  
+
+g + theme_graph()
+```
+
+# **6 Building Interactive Network Graph with visNetwork**
+
+-   [visNetwork()](http://datastorm-open.github.io/visNetwork/) is a R package for network visualization, using [vis.js](http://visjs.org/) javascript library.
+
+-   *visNetwork()* function uses a nodes list and edges list to create an interactive graph.
+
+    -   The nodes list must include an “id” column, and the edge list must have “from” and “to” columns.
+
+    -   The function also plots the labels for the nodes, using the names of the actors from the “label” column in the node list.
+
+## **6.1 Data preparation**
+
+```{r}
+GAStech_edges_aggregated <- GAStech_edges %>%
+  left_join(GAStech_nodes, by = c("sourceLabel" = "label")) %>%
+  rename(from = id) %>%
+  left_join(GAStech_nodes, by = c("targetLabel" = "label")) %>%
+  rename(to = id) %>%
+  filter(MainSubject == "Work related") %>%
+  group_by(from, to) %>%
+    summarise(weight = n()) %>%
+  filter(from!=to) %>%
+  filter(weight > 1) %>%
+  ungroup()
+```
+
+## **6.2 Plotting the first interactive network graph**
+
+```{r}
+visNetwork(GAStech_nodes, 
+           GAStech_edges_aggregated)
+```
+
+## **6.3 Working with layout**
+
+```{r}
+visNetwork(GAStech_nodes,
+           GAStech_edges_aggregated) %>%
+  visIgraphLayout(layout = "layout_with_fr") 
+```
+
+## **6.4 Working with visual attributes - Nodes**
+
+```{r}
+GAStech_nodes <- GAStech_nodes %>%
+  rename(group = Department) 
+```
+
+```{r}
+visNetwork(GAStech_nodes,
+           GAStech_edges_aggregated) %>%
+  visIgraphLayout(layout = "layout_with_fr") %>%
+  visLegend() %>%
+  visLayout(randomSeed = 123)
+```
+
+## **6.5 Working with visual attributes - Edges**
+
+```{r}
+visNetwork(GAStech_nodes,
+           GAStech_edges_aggregated) %>%
+  visIgraphLayout(layout = "layout_with_fr") %>%
+  visEdges(arrows = "to", 
+           smooth = list(enabled = TRUE, 
+                         type = "curvedCW")) %>%
+  visLegend() %>%
+  visLayout(randomSeed = 123)
+```
+
+## **6.6 Interactivity**
+
+In the code chunk below, *visOptions()* is used to incorporate interactivity features in the data visualisation.
+
+-   The argument *highlightNearest* highlights nearest when clicking a node.
+
+-   The argument *nodesIdSelection* adds an id node selection creating an HTML select element.
+
+```{r}
+visNetwork(GAStech_nodes,
+           GAStech_edges_aggregated) %>%
+  visIgraphLayout(layout = "layout_with_fr") %>%
+  visOptions(highlightNearest = TRUE,
+             nodesIdSelection = TRUE) %>%
+  visLegend() %>%
+  visLayout(randomSeed = 123)
+```
