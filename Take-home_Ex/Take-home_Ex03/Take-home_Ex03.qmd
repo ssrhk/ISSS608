@@ -1,5 +1,5 @@
 ---
-title: "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore"
+title: "Geospatial Prototype for Climate Change in Singapore"
 format: html
 author: "Sei Sar Hla Kyi"
 date: "March 21, 2025"

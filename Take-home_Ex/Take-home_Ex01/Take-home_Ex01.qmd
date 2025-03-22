@@ -1,5 +1,5 @@
 ---
-title: "Take-home Exercise 01: Visualizing and Uncovering Trends on Heart Attacks in Japan"
+title: "Visualizing and Uncovering Trends on Heart Attacks in Japan"
 format: html
 author: "Sei Sar Hla Kyi"
 date: "`r Sys.Date()`"

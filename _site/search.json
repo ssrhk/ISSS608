@@ -1486,98 +1486,98 @@
   {
     "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html",
     "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html",
-    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "title": "Geospatial Prototype for Climate Change in Singapore",
     "section": "",
     "text": "Climate change has become an increasingly pressing issue globally, with significant impacts on temperature, precipitation, and extreme weather events. As a densely populated urban city-state, Singapore faces unique challenges related to climate change, including rising temperatures, increased frequency of heavy rainfall, and shifting wind patterns. These changes can affect public health, infrastructure resilience, and urban sustainability.\nWith Singapore’s equatorial location, the country already experiences high humidity and relatively stable but warm temperatures throughout the year. Understanding these trends through historical weather data is crucial for identifying climate patterns, assessing potential risks, and formulating adaptation strategies.\n\n\n\nThe primary objectives of this study are:\n\nTo ensure that the necessary R packages required for the Shiny application are compatible with R CRAN and function correctly.\nTo develop and validate R scripts that produce accurate and meaningful climate analysis outputs.\nTo define key climate parameters (e.g., temperature trends, rainfall patterns) and determine their relevance for visualization in the Shiny application.\nTo design and implement an intuitive Shiny user interface that effectively presents climate data and analysis to users."
   },
   {
     "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#background",
     "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#background",
-    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "title": "Geospatial Prototype for Climate Change in Singapore",
     "section": "",
     "text": "Climate change has become an increasingly pressing issue globally, with significant impacts on temperature, precipitation, and extreme weather events. As a densely populated urban city-state, Singapore faces unique challenges related to climate change, including rising temperatures, increased frequency of heavy rainfall, and shifting wind patterns. These changes can affect public health, infrastructure resilience, and urban sustainability.\nWith Singapore’s equatorial location, the country already experiences high humidity and relatively stable but warm temperatures throughout the year. Understanding these trends through historical weather data is crucial for identifying climate patterns, assessing potential risks, and formulating adaptation strategies."
   },
   {
     "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#objectives",
     "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#objectives",
-    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "title": "Geospatial Prototype for Climate Change in Singapore",
     "section": "",
     "text": "The primary objectives of this study are:\n\nTo ensure that the necessary R packages required for the Shiny application are compatible with R CRAN and function correctly.\nTo develop and validate R scripts that produce accurate and meaningful climate analysis outputs.\nTo define key climate parameters (e.g., temperature trends, rainfall patterns) and determine their relevance for visualization in the Shiny application.\nTo design and implement an intuitive Shiny user interface that effectively presents climate data and analysis to users."
   },
   {
     "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#data-collection-process",
     "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#data-collection-process",
-    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "title": "Geospatial Prototype for Climate Change in Singapore",
     "section": "3.1 Data Collection Process",
     "text": "3.1 Data Collection Process\nThe historical daily weather data was scraped from the MSS website using the BeautifulSoup Python package, allowing for automated extraction of climate records over multiple years. This method enabled efficient retrieval of key meteorological parameters, including:\n\nTemperature Trends – Mean, maximum, and minimum daily temperatures to observe long-term warming patterns.\nRainfall Patterns – Daily rainfall measurements to track precipitation trends and extreme weather events.\nWind Speed – Mean and maximum wind speeds to assess changes in wind patterns and their potential effects.\n\nOnce scraped, the extracted weather records were cleaned, structured, and combined into a single CSV file using Python. This consolidated dataset was then imported into R Studio for further processing and analysis within the Shiny application."
   },
   {
     "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#purpose-of-the-dataset",
     "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#purpose-of-the-dataset",
-    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "title": "Geospatial Prototype for Climate Change in Singapore",
     "section": "3.2 Purpose of the Dataset",
     "text": "3.2 Purpose of the Dataset\nBy analyzing this dataset, we aim to:\n\nIdentify significant climate-related trends over time.\nAssess seasonal and long-term variations in temperature, rainfall, and wind patterns.\nExplore how Singapore’s climate has evolved and its potential implications."
   },
   {
     "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#importing-the-data",
     "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#importing-the-data",
-    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "title": "Geospatial Prototype for Climate Change in Singapore",
     "section": "4.1 Importing the Data",
     "text": "4.1 Importing the Data\n\nweather&lt;- read_csv(\"data/combined_weather_data.csv\")\n\nWe will see the format of the imported data and check if there are any missing values using ExpData from SmartEDA package.\n\ntype 1: Overall data summarytype 2: Variable level summary\n\n\nComplete cases shows us if there are missing values. 100% means there is no missing values.\n\nweather %&gt;%\n  ExpData(type=1)\n\n                                          Descriptions      Value\n1                                   Sample size (nrow)     446491\n2                              No. of variables (ncol)         16\n3                    No. of numeric/interger variables          3\n4                              No. of factor variables          0\n5                                No. of text variables         13\n6                             No. of logical variables          0\n7                          No. of identifier variables          0\n8                                No. of date variables          0\n9             No. of zero variance variables (uniform)          0\n10               %. of variables having complete cases    25% (4)\n11   %. of variables having &gt;0% and &lt;50% missing cases 56.25% (9)\n12 %. of variables having &gt;=50% and &lt;90% missing cases 18.75% (3)\n13          %. of variables having &gt;=90% missing cases     0% (0)\n\n\n\n\nThis further break down by variables.\n\nweather %&gt;%\n  ExpData(type=2)\n\n   Index                 Variable_Name Variable_Type Sample_n Missing_Count\n1      1                       Station     character   446491             0\n2      2                          Year       numeric   445641           850\n3      3                         Month       numeric   445641           850\n4      4                           Day       numeric   445641           850\n5      5     Daily Rainfall Total (mm)     character   446491             0\n6      6  Highest 30 min Rainfall (mm)     character   173989        272502\n7      7  Highest 60 min Rainfall (mm)     character   173989        272502\n8      8 Highest 120 min Rainfall (mm)     character   173989        272502\n9      9         Mean Temperature (°C)     character   446491             0\n10    10      Maximum Temperature (°C)     character   446256           235\n11    11      Minimum Temperature (°C)     character   446244           247\n12    12        Mean Wind Speed (km/h)     character   446491             0\n13    13         Max Wind Speed (km/h)     character   446217           274\n14    14  Highest 30 Min Rainfall (mm)     character   272502        173989\n15    15  Highest 60 Min Rainfall (mm)     character   272502        173989\n16    16 Highest 120 Min Rainfall (mm)     character   272502        173989\n   Per_of_Missing No_of_distinct_values\n1           0.000                    63\n2           0.002                    21\n3           0.002                    12\n4           0.002                    31\n5           0.000                  1478\n6           0.610                   477\n7           0.610                   609\n8           0.610                   719\n9           0.000                   106\n10          0.001                   159\n11          0.001                   116\n12          0.000                   326\n13          0.001                   576\n14          0.390                   414\n15          0.390                   545\n16          0.390                   637"
   },
   {
     "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#renaming-variables",
     "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#renaming-variables",
-    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "title": "Geospatial Prototype for Climate Change in Singapore",
     "section": "4.2 Renaming Variables",
     "text": "4.2 Renaming Variables\nVariable names will be renamed for consistency and ease of analysis. For instance, “Daily Rainfall Total (mm)” will be renamed to “DailyRainfallmm”.\n\ncolnames(weather) &lt;- c(\"Station\", \"Year\", \"Month\", \"Day\", \n                            \"DailyRainfall\", \"Highest30minRainfall.x\",\"Highest60minRainfall.x\",\"Highest120minRainfall.x\",\n                          \"MeanTemperature\", \n                            \"MaxTemperature\", \"MinTemperature\", \n                            \"MeanWindSpeed\", \"MaxWindSpeed\", \n                            \"Highest30minRainfall.y\",\"Highest60minRainfall.y\",\"Highest120minRainfall.y\")"
   },
   {
     "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#date-field",
     "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#date-field",
-    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "title": "Geospatial Prototype for Climate Change in Singapore",
     "section": "4.3 Date Field",
     "text": "4.3 Date Field\n\nweather &lt;- weather %&gt;%\n  mutate(\n    Year = as.numeric(Year),\n    Month = as.numeric(Month),\n    Day = as.numeric(Day),\n    Date = as.Date(paste(Year, Month, Day, sep = \"-\"), format = \"%Y-%m-%d\")\n  )"
   },
   {
     "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#merging-columns",
     "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#merging-columns",
-    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "title": "Geospatial Prototype for Climate Change in Singapore",
     "section": "4.4 Merging Columns",
     "text": "4.4 Merging Columns\nThe columns Highest30minRainfall.x and Highest30minRainfall.y need to be merged into a single column. Whenever one of these columns has an NA value, the other column will have a valid value, meaning that together they form the complete dataset.\n\n# Merge the columns and replace any remaining NA or \"-\" with 0\nweather &lt;- weather %&gt;%\n  mutate(\n    Highest30minRainfall = coalesce(`Highest30minRainfall.x`, `Highest30minRainfall.y`),\n    Highest60minRainfall = coalesce(`Highest60minRainfall.x`, `Highest60minRainfall.y`),\n    Highest120minRainfall = coalesce(`Highest120minRainfall.x`, `Highest120minRainfall.y`)\n  ) %&gt;%\n  # Convert \"-\" to NA, then replace NA with 0\n  mutate(\n    Highest30minRainfall = as.numeric(Highest30minRainfall), \n    Highest30minRainfall = ifelse(is.na(Highest30minRainfall), 0, Highest30minRainfall),\n    \n    Highest60minRainfall = as.numeric(Highest60minRainfall), \n    Highest60minRainfall = ifelse(is.na(Highest60minRainfall), 0, Highest60minRainfall),\n    \n    Highest120minRainfall = as.numeric(Highest120minRainfall), \n    Highest120minRainfall = ifelse(is.na(Highest120minRainfall), 0, Highest120minRainfall)\n  ) %&gt;%\n  # Drop the original columns\n  select(-c(`Highest30minRainfall.x`, `Highest30minRainfall.y`, \n            `Highest60minRainfall.x`, `Highest60minRainfall.y`, \n            `Highest120minRainfall.x`, `Highest120minRainfall.y`))"
   },
   {
     "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#converting-data-type",
     "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#converting-data-type",
-    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "title": "Geospatial Prototype for Climate Change in Singapore",
     "section": "4.5 Converting data type",
     "text": "4.5 Converting data type\nUpon inspecting the dataset, we observed that certain columns, such as Daily Rainfall Total (mm) and Mean Temperature (°C), were incorrectly classified as character variables instead of numeric. To ensure accurate analysis, these columns will be converted to numeric data types.\n\n# Convert columns 5 to 10 to numeric\nweather[, 5:10] &lt;- lapply(weather[, 5:10], function(x) {\n  as.numeric(x)  # Convert to numeric\n})"
   },
   {
     "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#calculate-columns",
     "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#calculate-columns",
-    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "title": "Geospatial Prototype for Climate Change in Singapore",
     "section": "4.6 Calculate Columns",
     "text": "4.6 Calculate Columns\n\nRainfall Sum by Month\n\nweather &lt;- weather %&gt;%\n  group_by(Station) %&gt;%\n  mutate(MonthlyRainfall = sum(DailyRainfall, na.rm = TRUE)) %&gt;%\n  ungroup()\n\n\n\nMean Temperature by Month\n\nweathermeantemp &lt;- weather %&gt;%\n  group_by(Month,Year) %&gt;%\n  summarise(MonthlyMeanTemp = mean(MeanTemperature, na.rm = TRUE)) %&gt;%\n  ungroup()"
   },
   {
     "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#remove-rows-with-no-date",
     "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#remove-rows-with-no-date",
-    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "title": "Geospatial Prototype for Climate Change in Singapore",
     "section": "4.7 Remove rows with no date",
     "text": "4.7 Remove rows with no date\n\nweather&lt;- weather[!is.na(weather$Date), ]"
   },
   {
     "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#converting-aspatial-data-into-geospatial-data",
     "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#converting-aspatial-data-into-geospatial-data",
-    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "title": "Geospatial Prototype for Climate Change in Singapore",
     "section": "4.8 Converting aspatial data into geospatial data",
     "text": "4.8 Converting aspatial data into geospatial data\n\nstations&lt;- read_csv(\"data/stations.csv\")\n\nLeft join station longitude/latitude to weather\n\nweather &lt;- stations %&gt;%   left_join(weather, by = c(\"Station\"))\n\nConvert to sf using sf package\n\nweather_sf &lt;- st_as_sf(weather, \n                      coords = c(\"Longitude\",\n                                 \"Latitude\"),\n                      crs= 4326) %&gt;%\n  st_transform(crs = 3414)"
   },
   {
     "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#extract-month-for-geospatial-analysis",
     "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#extract-month-for-geospatial-analysis",
-    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "title": "Geospatial Prototype for Climate Change in Singapore",
     "section": "4.9 Extract Month for Geospatial Analysis",
     "text": "4.9 Extract Month for Geospatial Analysis\n\n4.9.1 Which Month has most extreme weather?\nThe goal was to determine the month with the most extreme weather conditions based on three key factors from our dataframe. We created a new variable to measure the extremeness (‘ExtremeIndex’) by finding the following:\n\nTotal Monthly Rainfall → Measures overall precipitation, indicating wet/extreme months.\nMean of Temperature Variance → Measures temperature fluctuations (Max - Min), capturing extreme hot/cold changes.\nMax of Highest Wind Speed → Captures the strongest winds, which indicate stormy or extreme conditions.\n\n\nweather_extreme &lt;- weather %&gt;%\n  group_by(Year, Month) %&gt;%\n  summarise(\n    MonthlyRainfall = sum(DailyRainfall, na.rm = TRUE),\n    TempVariance = mean(MaxTemperature-MinTemperature, na.rm = TRUE),\n    MaxWindSpeed = max(MaxWindSpeed, na.rm = TRUE)\n  ) %&gt;%\n  ungroup() %&gt;%\n  mutate(ExtremeIndex = scale(MonthlyRainfall) + scale(TempVariance) + scale(MaxWindSpeed))\n\nmost_extreme_month &lt;- weather_extreme %&gt;% filter(ExtremeIndex == max(ExtremeIndex))\n\n\np &lt;- ggplot(weather_extreme, aes(x = as.Date(paste(Year, Month, \"01\", sep = \"-\")), y = ExtremeIndex)) +\n  geom_line(color = \"black\", size = 0.5) +\n  geom_point(aes(text = paste(\"Month:\", Month, Year, \"&lt;br&gt;Extreme Index:\", round(ExtremeIndex, 2)))) +\n  labs(title = \"Extreme Weather Index Over Time\",\n       x = \"Time (Month)\",\n       y = \"Extreme Weather Index\") +\n  theme_minimal()\n\nggplotly(p, tooltip = \"text\")\n\n\n\n\n\n\n\n4.9.2 Data Extraction\nWe found that April 2021 had the most extreme weather. Therefore, we will extract this month for deeper insights with geospatial analysis.\n\nweather_apr2021 &lt;- weather_sf %&gt;%\n  filter(Year == 2021 & Month == 4)"
   },
