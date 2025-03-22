@@ -1,0 +1,292 @@
+---
+title: "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore"
+format: html
+author: "Sei Sar Hla Kyi"
+date: "March 21, 2025"
+date-modified: "`r Sys.Date()`"
+execute: 
+  eval: true
+  echo: true
+  message: false
+  freeze: true
+  warning: false
+---
+
+# 1 Overview
+
+## 1.1 Background
+
+Climate change has become an increasingly pressing issue globally, with significant impacts on temperature, precipitation, and extreme weather events. As a densely populated urban city-state, Singapore faces unique challenges related to climate change, including rising temperatures, increased frequency of heavy rainfall, and shifting wind patterns. These changes can affect public health, infrastructure resilience, and urban sustainability.
+
+With Singapore’s equatorial location, the country already experiences high humidity and relatively stable but warm temperatures throughout the year. Understanding these trends through historical weather data is crucial for identifying climate patterns, assessing potential risks, and formulating adaptation strategies.
+
+## 1.2 Objectives
+
+The primary objectives of this study are:
+
+-   To ensure that the necessary R packages required for the Shiny application are compatible with R CRAN and function correctly.
+
+-   To develop and validate R scripts that produce accurate and meaningful climate analysis outputs.
+
+-   To define key climate parameters (e.g., temperature trends, rainfall patterns) and determine their relevance for visualization in the Shiny application.
+
+-   To design and implement an intuitive Shiny user interface that effectively presents climate data and analysis to users.
+
+------------------------------------------------------------------------
+
+# 2 Methodology & R Packages Used
+
+::: panel-tabset
+## Packages Used
+
+| Package | Explanation |
+|-----------------------|-------------------------------------------------|
+| tidyverse | to efficiently manipulate and clean data, utilizing functions from packages like `dplyr` and `tidyr` for data wrangling |
+| SmartEDA | to help summarize dataset by providing insights such as missing values |
+| sf | for easy manipulation of spatial objects and performing geospatial analysis |
+| plotly | for dynamically exploring climate trends over time |
+
+## Code to Launch
+
+```{r}
+pacman::p_load(tidyverse,SmartEDA,sf,plotly)
+```
+:::
+
+------------------------------------------------------------------------
+
+# 3 The Dataset
+
+To analyze the impact of climate change on various aspects of daily life in Singapore, we will integrate multiple datasets from different government agencies. Our primary dataset consists of historical weather records obtained from the **Meteorological Service Singapore (MSS)** website.
+
+## **3.1 Data Collection Process**
+
+The historical daily weather data was **scraped from the MSS website** using the **BeautifulSoup** Python package, allowing for automated extraction of climate records over multiple years. This method enabled efficient retrieval of key meteorological parameters, including:
+
+-   **Temperature Trends** – Mean, maximum, and minimum daily temperatures to observe long-term warming patterns.
+
+-   **Rainfall Patterns** – Daily rainfall measurements to track precipitation trends and extreme weather events.
+
+-   **Wind Speed** – Mean and maximum wind speeds to assess changes in wind patterns and their potential effects.
+
+Once scraped, the extracted weather records were **cleaned, structured, and combined** into a single **CSV file** using Python. This consolidated dataset was then **imported into R Studio** for further processing and analysis within the Shiny application.
+
+## **3.2 Purpose of the Dataset**
+
+By analyzing this dataset, we aim to:
+
+-   Identify significant climate-related trends over time.
+
+-   Assess seasonal and long-term variations in temperature, rainfall, and wind patterns.
+
+-   Explore how Singapore's climate has evolved and its potential implications.
+
+------------------------------------------------------------------------
+
+# 4 Aspatial Data Wrangling
+
+## 4.1 Importing the Data
+
+```{r}
+weather<- read_csv("data/combined_weather_data.csv")
+```
+
+We will see the format of the imported data and check if there are any missing values using ExpData from SmartEDA package.
+
+::: panel-tabset
+## type 1: Overall data summary
+
+Complete cases shows us if there are missing values. 100% means there is no missing values.
+
+```{r}
+weather %>%
+  ExpData(type=1)
+```
+
+## type 2: Variable level summary
+
+This further break down by variables.
+
+```{r}
+weather %>%
+  ExpData(type=2)
+```
+:::
+
+## 4.2 Renaming Variables
+
+Variable names will be **renamed** for consistency and ease of analysis. For instance, **"Daily Rainfall Total (mm)"** will be renamed to **"DailyRainfallmm"**.
+
+```{r}
+colnames(weather) <- c("Station", "Year", "Month", "Day", 
+                            "DailyRainfall", "Highest30minRainfall.x","Highest60minRainfall.x","Highest120minRainfall.x",
+                          "MeanTemperature", 
+                            "MaxTemperature", "MinTemperature", 
+                            "MeanWindSpeed", "MaxWindSpeed", 
+                            "Highest30minRainfall.y","Highest60minRainfall.y","Highest120minRainfall.y")
+```
+
+## 4.3 Date Field
+
+```{r}
+weather <- weather %>%
+  mutate(
+    Year = as.numeric(Year),
+    Month = as.numeric(Month),
+    Day = as.numeric(Day),
+    Date = as.Date(paste(Year, Month, Day, sep = "-"), format = "%Y-%m-%d")
+  )
+```
+
+## 4.4 Merging Columns
+
+The columns **`Highest30minRainfall.x`** and **`Highest30minRainfall.y`** need to be merged into a single column. Whenever one of these columns has an `NA` value, the other column will have a valid value, meaning that together they form the complete dataset.
+
+```{r}
+# Merge the columns and replace any remaining NA or "-" with 0
+weather <- weather %>%
+  mutate(
+    Highest30minRainfall = coalesce(`Highest30minRainfall.x`, `Highest30minRainfall.y`),
+    Highest60minRainfall = coalesce(`Highest60minRainfall.x`, `Highest60minRainfall.y`),
+    Highest120minRainfall = coalesce(`Highest120minRainfall.x`, `Highest120minRainfall.y`)
+  ) %>%
+  # Convert "-" to NA, then replace NA with 0
+  mutate(
+    Highest30minRainfall = as.numeric(Highest30minRainfall), 
+    Highest30minRainfall = ifelse(is.na(Highest30minRainfall), 0, Highest30minRainfall),
+    
+    Highest60minRainfall = as.numeric(Highest60minRainfall), 
+    Highest60minRainfall = ifelse(is.na(Highest60minRainfall), 0, Highest60minRainfall),
+    
+    Highest120minRainfall = as.numeric(Highest120minRainfall), 
+    Highest120minRainfall = ifelse(is.na(Highest120minRainfall), 0, Highest120minRainfall)
+  ) %>%
+  # Drop the original columns
+  select(-c(`Highest30minRainfall.x`, `Highest30minRainfall.y`, 
+            `Highest60minRainfall.x`, `Highest60minRainfall.y`, 
+            `Highest120minRainfall.x`, `Highest120minRainfall.y`))
+
+```
+
+## 4.5 Converting data type
+
+Upon inspecting the dataset, we observed that certain columns, such as **Daily Rainfall Total (mm)** and **Mean Temperature (°C)**, were incorrectly classified as **character** variables instead of numeric. To ensure accurate analysis, these columns will be converted to **numeric** data types.
+
+```{r}
+# Convert columns 5 to 10 to numeric
+weather[, 5:10] <- lapply(weather[, 5:10], function(x) {
+  as.numeric(x)  # Convert to numeric
+})
+```
+
+## 4.6 **Calculate Columns**
+
+### **Rainfall Sum by Month**
+
+```{r}
+weather <- weather %>%
+  group_by(Station) %>%
+  mutate(MonthlyRainfall = sum(DailyRainfall, na.rm = TRUE)) %>%
+  ungroup()
+```
+
+### **Mean Temperature by Month**
+
+```{r}
+weathermeantemp <- weather %>%
+  group_by(Month,Year) %>%
+  summarise(MonthlyMeanTemp = mean(MeanTemperature, na.rm = TRUE)) %>%
+  ungroup()
+```
+
+## 4.7 Remove rows with no date
+
+```{r}
+weather<- weather[!is.na(weather$Date), ]
+```
+
+## 4.8 **Converting aspatial data into geospatial data**
+
+```{r}
+stations<- read_csv("data/stations.csv")
+```
+
+Left join station longitude/latitude to weather
+
+```{r}
+weather <- stations %>%   left_join(weather, by = c("Station"))
+```
+
+Convert to sf using sf package
+
+```{r}
+weather_sf <- st_as_sf(weather, 
+                      coords = c("Longitude",
+                                 "Latitude"),
+                      crs= 4326) %>%
+  st_transform(crs = 3414)
+```
+
+## 4.9 Extract Month for Geospatial Analysis
+
+### 4.9.1 Which Month has most extreme weather?
+
+The goal was to determine the month with the most **extreme weather conditions** based on three key factors from our dataframe. We created a new variable to measure the extremeness ('ExtremeIndex') by finding the following:
+
+1.  **Total Monthly Rainfall** → Measures overall precipitation, indicating wet/extreme months.
+
+2.  **Mean of Temperature Variance** → Measures temperature fluctuations (Max - Min), capturing extreme hot/cold changes.
+
+3.  **Max of Highest Wind Speed** → Captures the strongest winds, which indicate stormy or extreme conditions.
+
+```{r}
+weather_extreme <- weather %>%
+  group_by(Year, Month) %>%
+  summarise(
+    MonthlyRainfall = sum(DailyRainfall, na.rm = TRUE),
+    TempVariance = mean(MaxTemperature-MinTemperature, na.rm = TRUE),
+    MaxWindSpeed = max(MaxWindSpeed, na.rm = TRUE)
+  ) %>%
+  ungroup() %>%
+  mutate(ExtremeIndex = scale(MonthlyRainfall) + scale(TempVariance) + scale(MaxWindSpeed))
+
+most_extreme_month <- weather_extreme %>% filter(ExtremeIndex == max(ExtremeIndex))
+
+
+p <- ggplot(weather_extreme, aes(x = as.Date(paste(Year, Month, "01", sep = "-")), y = ExtremeIndex)) +
+  geom_line(color = "black", size = 0.5) +
+  geom_point(aes(text = paste("Month:", Month, Year, "<br>Extreme Index:", round(ExtremeIndex, 2)))) +
+  labs(title = "Extreme Weather Index Over Time",
+       x = "Time (Month)",
+       y = "Extreme Weather Index") +
+  theme_minimal()
+
+ggplotly(p, tooltip = "text")
+```
+
+### 4.9.2 Data Extraction
+
+We found that April 2021 had the most extreme weather. Therefore, we will extract this month for deeper insights with geospatial analysis.
+
+```{r}
+weather_apr2021 <- weather_sf %>%
+  filter(Year == 2021 & Month == 4)
+```
+
+------------------------------------------------------------------------
+
+# 5 Geospatial Data
+
+```{r}
+mpsz2019 <- st_read(dsn = "data/geospatial", 
+                    layer = "MPSZ-2019") %>%
+  st_transform(crs = 3414)
+```
+
+------------------------------------------------------------------------
+
+# 6 Geospatial Analysis
+
+------------------------------------------------------------------------
+
+# 7 Shiny App UI Prototype

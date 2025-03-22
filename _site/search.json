@@ -1482,5 +1482,250 @@
     "title": "In-class Exercise 08: Updated Choloropleth Maps",
     "section": "3.7 With a selection criterion",
     "text": "3.7 With a selection criterion\n\ntm_shape(mpsz_pop2020[mpsz_pop2020$REGION_N==\"CENTRAL REGION\", ])+\n  tm_fill(\"DEPENDENCY\", \n          style = \"quantile\", \n          palette = \"Blues\", \n          legend.hist = TRUE, \n          legend.is.portrait = TRUE,\n          legend.hist.z = 0.1) +\n  tm_layout(legend.outside = TRUE,\n            legend.height = 0.45, \n            legend.width = 5.0,\n            legend.position = c(\"right\", \"bottom\"),\n            frame = FALSE) +\n  tm_borders(alpha = 0.5)"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html",
+    "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html",
+    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "section": "",
+    "text": "Climate change has become an increasingly pressing issue globally, with significant impacts on temperature, precipitation, and extreme weather events. As a densely populated urban city-state, Singapore faces unique challenges related to climate change, including rising temperatures, increased frequency of heavy rainfall, and shifting wind patterns. These changes can affect public health, infrastructure resilience, and urban sustainability.\nWith Singapore’s equatorial location, the country already experiences high humidity and relatively stable but warm temperatures throughout the year. Understanding these trends through historical weather data is crucial for identifying climate patterns, assessing potential risks, and formulating adaptation strategies.\n\n\n\nThe primary objectives of this study are:\n\nTo ensure that the necessary R packages required for the Shiny application are compatible with R CRAN and function correctly.\nTo develop and validate R scripts that produce accurate and meaningful climate analysis outputs.\nTo define key climate parameters (e.g., temperature trends, rainfall patterns) and determine their relevance for visualization in the Shiny application.\nTo design and implement an intuitive Shiny user interface that effectively presents climate data and analysis to users."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#background",
+    "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#background",
+    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "section": "",
+    "text": "Climate change has become an increasingly pressing issue globally, with significant impacts on temperature, precipitation, and extreme weather events. As a densely populated urban city-state, Singapore faces unique challenges related to climate change, including rising temperatures, increased frequency of heavy rainfall, and shifting wind patterns. These changes can affect public health, infrastructure resilience, and urban sustainability.\nWith Singapore’s equatorial location, the country already experiences high humidity and relatively stable but warm temperatures throughout the year. Understanding these trends through historical weather data is crucial for identifying climate patterns, assessing potential risks, and formulating adaptation strategies."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#objectives",
+    "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#objectives",
+    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "section": "",
+    "text": "The primary objectives of this study are:\n\nTo ensure that the necessary R packages required for the Shiny application are compatible with R CRAN and function correctly.\nTo develop and validate R scripts that produce accurate and meaningful climate analysis outputs.\nTo define key climate parameters (e.g., temperature trends, rainfall patterns) and determine their relevance for visualization in the Shiny application.\nTo design and implement an intuitive Shiny user interface that effectively presents climate data and analysis to users."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#data-collection-process",
+    "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#data-collection-process",
+    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "section": "3.1 Data Collection Process",
+    "text": "3.1 Data Collection Process\nThe historical daily weather data was scraped from the MSS website using the BeautifulSoup Python package, allowing for automated extraction of climate records over multiple years. This method enabled efficient retrieval of key meteorological parameters, including:\n\nTemperature Trends – Mean, maximum, and minimum daily temperatures to observe long-term warming patterns.\nRainfall Patterns – Daily rainfall measurements to track precipitation trends and extreme weather events.\nWind Speed – Mean and maximum wind speeds to assess changes in wind patterns and their potential effects.\n\nOnce scraped, the extracted weather records were cleaned, structured, and combined into a single CSV file using Python. This consolidated dataset was then imported into R Studio for further processing and analysis within the Shiny application."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#purpose-of-the-dataset",
+    "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#purpose-of-the-dataset",
+    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "section": "3.2 Purpose of the Dataset",
+    "text": "3.2 Purpose of the Dataset\nBy analyzing this dataset, we aim to:\n\nIdentify significant climate-related trends over time.\nAssess seasonal and long-term variations in temperature, rainfall, and wind patterns.\nExplore how Singapore’s climate has evolved and its potential implications."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#importing-the-data",
+    "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#importing-the-data",
+    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "section": "4.1 Importing the Data",
+    "text": "4.1 Importing the Data\n\nweather&lt;- read_csv(\"data/combined_weather_data.csv\")\n\nWe will see the format of the imported data and check if there are any missing values using ExpData from SmartEDA package.\n\ntype 1: Overall data summarytype 2: Variable level summary\n\n\nComplete cases shows us if there are missing values. 100% means there is no missing values.\n\nweather %&gt;%\n  ExpData(type=1)\n\n                                          Descriptions      Value\n1                                   Sample size (nrow)     446491\n2                              No. of variables (ncol)         16\n3                    No. of numeric/interger variables          3\n4                              No. of factor variables          0\n5                                No. of text variables         13\n6                             No. of logical variables          0\n7                          No. of identifier variables          0\n8                                No. of date variables          0\n9             No. of zero variance variables (uniform)          0\n10               %. of variables having complete cases    25% (4)\n11   %. of variables having &gt;0% and &lt;50% missing cases 56.25% (9)\n12 %. of variables having &gt;=50% and &lt;90% missing cases 18.75% (3)\n13          %. of variables having &gt;=90% missing cases     0% (0)\n\n\n\n\nThis further break down by variables.\n\nweather %&gt;%\n  ExpData(type=2)\n\n   Index                 Variable_Name Variable_Type Sample_n Missing_Count\n1      1                       Station     character   446491             0\n2      2                          Year       numeric   445641           850\n3      3                         Month       numeric   445641           850\n4      4                           Day       numeric   445641           850\n5      5     Daily Rainfall Total (mm)     character   446491             0\n6      6  Highest 30 min Rainfall (mm)     character   173989        272502\n7      7  Highest 60 min Rainfall (mm)     character   173989        272502\n8      8 Highest 120 min Rainfall (mm)     character   173989        272502\n9      9         Mean Temperature (°C)     character   446491             0\n10    10      Maximum Temperature (°C)     character   446256           235\n11    11      Minimum Temperature (°C)     character   446244           247\n12    12        Mean Wind Speed (km/h)     character   446491             0\n13    13         Max Wind Speed (km/h)     character   446217           274\n14    14  Highest 30 Min Rainfall (mm)     character   272502        173989\n15    15  Highest 60 Min Rainfall (mm)     character   272502        173989\n16    16 Highest 120 Min Rainfall (mm)     character   272502        173989\n   Per_of_Missing No_of_distinct_values\n1           0.000                    63\n2           0.002                    21\n3           0.002                    12\n4           0.002                    31\n5           0.000                  1478\n6           0.610                   477\n7           0.610                   609\n8           0.610                   719\n9           0.000                   106\n10          0.001                   159\n11          0.001                   116\n12          0.000                   326\n13          0.001                   576\n14          0.390                   414\n15          0.390                   545\n16          0.390                   637"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#renaming-variables",
+    "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#renaming-variables",
+    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "section": "4.2 Renaming Variables",
+    "text": "4.2 Renaming Variables\nVariable names will be renamed for consistency and ease of analysis. For instance, “Daily Rainfall Total (mm)” will be renamed to “DailyRainfallmm”.\n\ncolnames(weather) &lt;- c(\"Station\", \"Year\", \"Month\", \"Day\", \n                            \"DailyRainfall\", \"Highest30minRainfall.x\",\"Highest60minRainfall.x\",\"Highest120minRainfall.x\",\n                          \"MeanTemperature\", \n                            \"MaxTemperature\", \"MinTemperature\", \n                            \"MeanWindSpeed\", \"MaxWindSpeed\", \n                            \"Highest30minRainfall.y\",\"Highest60minRainfall.y\",\"Highest120minRainfall.y\")"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#date-field",
+    "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#date-field",
+    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "section": "4.3 Date Field",
+    "text": "4.3 Date Field\n\nweather &lt;- weather %&gt;%\n  mutate(\n    Year = as.numeric(Year),\n    Month = as.numeric(Month),\n    Day = as.numeric(Day),\n    Date = as.Date(paste(Year, Month, Day, sep = \"-\"), format = \"%Y-%m-%d\")\n  )"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#merging-columns",
+    "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#merging-columns",
+    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "section": "4.4 Merging Columns",
+    "text": "4.4 Merging Columns\nThe columns Highest30minRainfall.x and Highest30minRainfall.y need to be merged into a single column. Whenever one of these columns has an NA value, the other column will have a valid value, meaning that together they form the complete dataset.\n\n# Merge the columns and replace any remaining NA or \"-\" with 0\nweather &lt;- weather %&gt;%\n  mutate(\n    Highest30minRainfall = coalesce(`Highest30minRainfall.x`, `Highest30minRainfall.y`),\n    Highest60minRainfall = coalesce(`Highest60minRainfall.x`, `Highest60minRainfall.y`),\n    Highest120minRainfall = coalesce(`Highest120minRainfall.x`, `Highest120minRainfall.y`)\n  ) %&gt;%\n  # Convert \"-\" to NA, then replace NA with 0\n  mutate(\n    Highest30minRainfall = as.numeric(Highest30minRainfall), \n    Highest30minRainfall = ifelse(is.na(Highest30minRainfall), 0, Highest30minRainfall),\n    \n    Highest60minRainfall = as.numeric(Highest60minRainfall), \n    Highest60minRainfall = ifelse(is.na(Highest60minRainfall), 0, Highest60minRainfall),\n    \n    Highest120minRainfall = as.numeric(Highest120minRainfall), \n    Highest120minRainfall = ifelse(is.na(Highest120minRainfall), 0, Highest120minRainfall)\n  ) %&gt;%\n  # Drop the original columns\n  select(-c(`Highest30minRainfall.x`, `Highest30minRainfall.y`, \n            `Highest60minRainfall.x`, `Highest60minRainfall.y`, \n            `Highest120minRainfall.x`, `Highest120minRainfall.y`))"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#converting-data-type",
+    "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#converting-data-type",
+    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "section": "4.5 Converting data type",
+    "text": "4.5 Converting data type\nUpon inspecting the dataset, we observed that certain columns, such as Daily Rainfall Total (mm) and Mean Temperature (°C), were incorrectly classified as character variables instead of numeric. To ensure accurate analysis, these columns will be converted to numeric data types.\n\n# Convert columns 5 to 10 to numeric\nweather[, 5:10] &lt;- lapply(weather[, 5:10], function(x) {\n  as.numeric(x)  # Convert to numeric\n})"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#calculate-columns",
+    "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#calculate-columns",
+    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "section": "4.6 Calculate Columns",
+    "text": "4.6 Calculate Columns\n\nRainfall Sum by Month\n\nweather &lt;- weather %&gt;%\n  group_by(Station) %&gt;%\n  mutate(MonthlyRainfall = sum(DailyRainfall, na.rm = TRUE)) %&gt;%\n  ungroup()\n\n\n\nMean Temperature by Month\n\nweathermeantemp &lt;- weather %&gt;%\n  group_by(Month,Year) %&gt;%\n  summarise(MonthlyMeanTemp = mean(MeanTemperature, na.rm = TRUE)) %&gt;%\n  ungroup()"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#remove-rows-with-no-date",
+    "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#remove-rows-with-no-date",
+    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "section": "4.7 Remove rows with no date",
+    "text": "4.7 Remove rows with no date\n\nweather&lt;- weather[!is.na(weather$Date), ]"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#converting-aspatial-data-into-geospatial-data",
+    "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#converting-aspatial-data-into-geospatial-data",
+    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "section": "4.8 Converting aspatial data into geospatial data",
+    "text": "4.8 Converting aspatial data into geospatial data\n\nstations&lt;- read_csv(\"data/stations.csv\")\n\nLeft join station longitude/latitude to weather\n\nweather &lt;- stations %&gt;%   left_join(weather, by = c(\"Station\"))\n\nConvert to sf using sf package\n\nweather_sf &lt;- st_as_sf(weather, \n                      coords = c(\"Longitude\",\n                                 \"Latitude\"),\n                      crs= 4326) %&gt;%\n  st_transform(crs = 3414)"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#extract-month-for-geospatial-analysis",
+    "href": "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html#extract-month-for-geospatial-analysis",
+    "title": "Take-home Exercise 03: Geospatial Prototype for Climate Change in Singapore",
+    "section": "4.9 Extract Month for Geospatial Analysis",
+    "text": "4.9 Extract Month for Geospatial Analysis\n\n4.9.1 Which Month has most extreme weather?\nThe goal was to determine the month with the most extreme weather conditions based on three key factors from our dataframe. We created a new variable to measure the extremeness (‘ExtremeIndex’) by finding the following:\n\nTotal Monthly Rainfall → Measures overall precipitation, indicating wet/extreme months.\nMean of Temperature Variance → Measures temperature fluctuations (Max - Min), capturing extreme hot/cold changes.\nMax of Highest Wind Speed → Captures the strongest winds, which indicate stormy or extreme conditions.\n\n\nweather_extreme &lt;- weather %&gt;%\n  group_by(Year, Month) %&gt;%\n  summarise(\n    MonthlyRainfall = sum(DailyRainfall, na.rm = TRUE),\n    TempVariance = mean(MaxTemperature-MinTemperature, na.rm = TRUE),\n    MaxWindSpeed = max(MaxWindSpeed, na.rm = TRUE)\n  ) %&gt;%\n  ungroup() %&gt;%\n  mutate(ExtremeIndex = scale(MonthlyRainfall) + scale(TempVariance) + scale(MaxWindSpeed))\n\nmost_extreme_month &lt;- weather_extreme %&gt;% filter(ExtremeIndex == max(ExtremeIndex))\n\n\np &lt;- ggplot(weather_extreme, aes(x = as.Date(paste(Year, Month, \"01\", sep = \"-\")), y = ExtremeIndex)) +\n  geom_line(color = \"black\", size = 0.5) +\n  geom_point(aes(text = paste(\"Month:\", Month, Year, \"&lt;br&gt;Extreme Index:\", round(ExtremeIndex, 2)))) +\n  labs(title = \"Extreme Weather Index Over Time\",\n       x = \"Time (Month)\",\n       y = \"Extreme Weather Index\") +\n  theme_minimal()\n\nggplotly(p, tooltip = \"text\")\n\n\n\n\n\n\n\n4.9.2 Data Extraction\nWe found that April 2021 had the most extreme weather. Therefore, we will extract this month for deeper insights with geospatial analysis.\n\nweather_apr2021 &lt;- weather_sf %&gt;%\n  filter(Year == 2021 & Month == 4)"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex03/data/geospatial/MPSZ-2019.html",
+    "href": "Take-home_Ex/Take-home_Ex03/data/geospatial/MPSZ-2019.html",
+    "title": "ISSS608",
+    "section": "",
+    "text": "&lt;!DOCTYPE qgis PUBLIC ‘http://mrcc.com/qgis.dtd’ ‘SYSTEM’&gt;     dataset\n\n\n        0 0     false"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html",
+    "href": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html",
+    "title": "Hands-on Exercise 09:Modelling, Visualising and Analysing Network Data with R",
+    "section": "",
+    "text": "pacman::p_load(igraph, tidygraph, ggraph, \n               visNetwork, lubridate, clock,\n               tidyverse, graphlayouts)"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#reviewing-the-imported-data",
+    "href": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#reviewing-the-imported-data",
+    "title": "Hands-on Exercise 09:Modelling, Visualising and Analysing Network Data with R",
+    "section": "2.1 Reviewing the imported data",
+    "text": "2.1 Reviewing the imported data\n\nglimpse(GAStech_edges)\n\nRows: 9,063\nColumns: 8\n$ source      &lt;dbl&gt; 43, 43, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 26, 26, 26…\n$ target      &lt;dbl&gt; 41, 40, 51, 52, 53, 45, 44, 46, 48, 49, 47, 54, 27, 28, 29…\n$ SentDate    &lt;chr&gt; \"6/1/2014\", \"6/1/2014\", \"6/1/2014\", \"6/1/2014\", \"6/1/2014\"…\n$ SentTime    &lt;time&gt; 08:39:00, 08:39:00, 08:58:00, 08:58:00, 08:58:00, 08:58:0…\n$ Subject     &lt;chr&gt; \"GT-SeismicProcessorPro Bug Report\", \"GT-SeismicProcessorP…\n$ MainSubject &lt;chr&gt; \"Work related\", \"Work related\", \"Work related\", \"Work rela…\n$ sourceLabel &lt;chr&gt; \"Sven.Flecha\", \"Sven.Flecha\", \"Kanon.Herrero\", \"Kanon.Herr…\n$ targetLabel &lt;chr&gt; \"Isak.Baza\", \"Lucas.Alcazar\", \"Felix.Resumir\", \"Hideki.Coc…"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#data-wrangling",
+    "href": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#data-wrangling",
+    "title": "Hands-on Exercise 09:Modelling, Visualising and Analysing Network Data with R",
+    "section": "2.2 Data Wrangling",
+    "text": "2.2 Data Wrangling\n\nThe CodeThings to note\n\n\n\nGAStech_edges &lt;- GAStech_edges %&gt;%\n  mutate(SendDate = dmy(SentDate)) %&gt;%\n  mutate(Weekday = wday(SentDate,\n                        label = TRUE,\n                        abbr = FALSE))\n\n\n\n\nboth dmy() and wday() are functions of lubridate package. lubridate is an R package that makes it easier to work with dates and times.\ndmy() transforms the SentDate to Date data type.\nwday() returns the day of the week as a decimal number or an ordered factor if label is TRUE. The argument abbr is FALSE keep the daya spells in full, i.e. Monday. The function will create a new column in the data.frame i.e. Weekday and the output of wday() will save in this newly created field.\nthe values in the Weekday field are in ordinal scale.\n\n\n\n\nA close examination of GAStech_edges data.frame reveals that it consists of individual e-mail flow records. This is not very useful for visualisation.\nIn view of this, we will aggregate the individual by date, senders, receivers, main subject and day of the week.\n\nThe CodeThings to note\n\n\n\nGAStech_edges_aggregated &lt;- GAStech_edges %&gt;%\n  filter(MainSubject == \"Work related\") %&gt;%\n  group_by(source, target, Weekday) %&gt;%\n    summarise(Weight = n()) %&gt;%\n  filter(source!=target) %&gt;%\n  filter(Weight &gt; 1) %&gt;%\n  ungroup()\n\n\n\n\nfour functions from dplyr package are used. They are: filter(), group(), summarise(), and ungroup().\nThe output data.frame is called GAStech_edges_aggregated.\nA new field called Weight has been added in GAStech_edges_aggregated"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#using-tbl_graph-to-build-tidygraph-data-model",
+    "href": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#using-tbl_graph-to-build-tidygraph-data-model",
+    "title": "Hands-on Exercise 09:Modelling, Visualising and Analysing Network Data with R",
+    "section": "3.1 Using tbl_graph() to build tidygraph data model",
+    "text": "3.1 Using tbl_graph() to build tidygraph data model\n\nGAStech_graph &lt;- tbl_graph(nodes = GAStech_nodes,\n                           edges = GAStech_edges_aggregated, \n                           directed = TRUE)"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#reviewing-the-output-tidygraphs-graph-object",
+    "href": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#reviewing-the-output-tidygraphs-graph-object",
+    "title": "Hands-on Exercise 09:Modelling, Visualising and Analysing Network Data with R",
+    "section": "3.2 Reviewing the output tidygraph’s graph object",
+    "text": "3.2 Reviewing the output tidygraph’s graph object\n\nGAStech_graph\n\n# A tbl_graph: 54 nodes and 1372 edges\n#\n# A directed multigraph with 1 component\n#\n# Node Data: 54 × 4 (active)\n      id label               Department     Title                               \n   &lt;dbl&gt; &lt;chr&gt;               &lt;chr&gt;          &lt;chr&gt;                               \n 1     1 Mat.Bramar          Administration Assistant to CEO                    \n 2     2 Anda.Ribera         Administration Assistant to CFO                    \n 3     3 Rachel.Pantanal     Administration Assistant to CIO                    \n 4     4 Linda.Lagos         Administration Assistant to COO                    \n 5     5 Ruscella.Mies.Haber Administration Assistant to Engineering Group Mana…\n 6     6 Carla.Forluniau     Administration Assistant to IT Group Manager       \n 7     7 Cornelia.Lais       Administration Assistant to Security Group Manager \n 8    44 Kanon.Herrero       Security       Badging Office                      \n 9    45 Varja.Lagos         Security       Badging Office                      \n10    46 Stenig.Fusil        Security       Building Control                    \n# ℹ 44 more rows\n#\n# Edge Data: 1,372 × 4\n   from    to Weekday Weight\n  &lt;int&gt; &lt;int&gt; &lt;ord&gt;    &lt;int&gt;\n1     1     2 Sunday       5\n2     1     2 Monday       2\n3     1     2 Tuesday      3\n# ℹ 1,369 more rows\n\n\n\nThe output above reveals that GAStech_graph is a tbl_graph object with 54 nodes and 4541 edges.\nThe command also prints the first six rows of “Node Data” and the first three of “Edge Data”.\nIt states that the Node Data is active. The notion of an active tibble within a tbl_graph object makes it possible to manipulate the data in one tibble at a time."
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#changing-the-active-object",
+    "href": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#changing-the-active-object",
+    "title": "Hands-on Exercise 09:Modelling, Visualising and Analysing Network Data with R",
+    "section": "3.3 Changing the active object",
+    "text": "3.3 Changing the active object\n\nGAStech_graph %&gt;%\n  activate(edges) %&gt;%\n  arrange(desc(Weight))\n\n# A tbl_graph: 54 nodes and 1372 edges\n#\n# A directed multigraph with 1 component\n#\n# Edge Data: 1,372 × 4 (active)\n    from    to Weekday   Weight\n   &lt;int&gt; &lt;int&gt; &lt;ord&gt;      &lt;int&gt;\n 1    40    41 Saturday      13\n 2    41    43 Monday        11\n 3    35    31 Tuesday       10\n 4    40    41 Monday        10\n 5    40    43 Monday        10\n 6    36    32 Sunday         9\n 7    40    43 Saturday       9\n 8    41    40 Monday         9\n 9    19    15 Wednesday      8\n10    35    38 Tuesday        8\n# ℹ 1,362 more rows\n#\n# Node Data: 54 × 4\n     id label           Department     Title           \n  &lt;dbl&gt; &lt;chr&gt;           &lt;chr&gt;          &lt;chr&gt;           \n1     1 Mat.Bramar      Administration Assistant to CEO\n2     2 Anda.Ribera     Administration Assistant to CFO\n3     3 Rachel.Pantanal Administration Assistant to CIO\n# ℹ 51 more rows\n\n\nIf we wanted to rearrange the rows in the edges tibble to list those with the highest “weight” first, we could use activate() and then arrange()."
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#plotting-a-basic-network-graph",
+    "href": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#plotting-a-basic-network-graph",
+    "title": "Hands-on Exercise 09:Modelling, Visualising and Analysing Network Data with R",
+    "section": "4.1 Plotting a basic network graph",
+    "text": "4.1 Plotting a basic network graph\n\nggraph(GAStech_graph) +\n  geom_edge_link() +\n  geom_node_point()"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#changing-the-default-network-graph-theme",
+    "href": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#changing-the-default-network-graph-theme",
+    "title": "Hands-on Exercise 09:Modelling, Visualising and Analysing Network Data with R",
+    "section": "4.2 Changing the default network graph theme",
+    "text": "4.2 Changing the default network graph theme\n\ng &lt;- ggraph(GAStech_graph) + \n  geom_edge_link(aes()) +\n  geom_node_point(aes())\n\ng + theme_graph()\n\n\n\n\n\n\n\n\n\nggraph introduces a special ggplot theme that provides better defaults for network graphs than the normal ggplot defaults. theme_graph(), besides removing axes, grids, and border, changes the font to Arial Narrow (this can be overridden).\nThe ggraph theme can be set for a series of plots with the set_graph_style() command run before the graphs are plotted or by using theme_graph() in the individual plots."
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#changing-the-coloring-of-the-plot",
+    "href": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#changing-the-coloring-of-the-plot",
+    "title": "Hands-on Exercise 09:Modelling, Visualising and Analysing Network Data with R",
+    "section": "4.3 Changing the coloring of the plot",
+    "text": "4.3 Changing the coloring of the plot\n\ng &lt;- ggraph(GAStech_graph) + \n  geom_edge_link(aes(colour = 'grey50')) +\n  geom_node_point(aes(colour = 'grey40'))\n\ng + theme_graph(background = 'grey10',\n                text_colour = 'white')"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#working-with-ggraphs-layouts",
+    "href": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#working-with-ggraphs-layouts",
+    "title": "Hands-on Exercise 09:Modelling, Visualising and Analysing Network Data with R",
+    "section": "4.4 Working with ggraph’s layouts",
+    "text": "4.4 Working with ggraph’s layouts\n\n4.4.1 Fruchterman and Reingold layout\n\ng &lt;- ggraph(GAStech_graph, \n            layout = \"fr\") +\n  geom_edge_link(aes()) +\n  geom_node_point(aes())\n\ng + theme_graph()\n\n\n\n\n\n\n\n\n\n\n4.4.2 Modifying network nodes\n\ng &lt;- ggraph(GAStech_graph, \n            layout = \"nicely\") + \n  geom_edge_link(aes()) +\n  geom_node_point(aes(colour = Department, \n                      size = 3))\n\ng + theme_graph()\n\n\n\n\n\n\n\n\n\ngeom_node_point is equivalent in functionality to geo_point of ggplot2. It allows for simple plotting of nodes in different shapes, colours and sizes. In the codes chnuks above colour and size are used.\n\n\n\n4.4.3 Modifying edges\n\ng &lt;- ggraph(GAStech_graph, \n            layout = \"nicely\") +\n  geom_edge_link(aes(width=Weight), \n                 alpha=0.2) +\n  scale_edge_width(range = c(0.1, 5)) +\n  geom_node_point(aes(colour = Department), \n                  size = 3)\n\ng + theme_graph()\n\n\n\n\n\n\n\n\n\ngeom_edge_link draws edges in the simplest way - as straight lines between the start and end nodes. But, it can do more that that. In the example above, argument width is used to map the width of the line in proportional to the Weight attribute and argument alpha is used to introduce opacity on the line."
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#creating-facet-graphs",
+    "href": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#creating-facet-graphs",
+    "title": "Hands-on Exercise 09:Modelling, Visualising and Analysing Network Data with R",
+    "section": "4.5 Creating facet graphs",
+    "text": "4.5 Creating facet graphs\n\n4.5.1 Working with facet_edges()\n\nset_graph_style()\n\ng &lt;- ggraph(GAStech_graph, \n            layout = \"nicely\") + \n  geom_edge_link(aes(width=Weight), \n                 alpha=0.2) +\n  scale_edge_width(range = c(0.1, 5)) +\n  geom_node_point(aes(colour = Department), \n                  size = 2)\n\ng + facet_edges(~Weekday)\n\n\n\n\n\n\n\n\nThe code chunk below uses theme() to change the position of the legend.\n\nset_graph_style()\n\ng &lt;- ggraph(GAStech_graph, \n            layout = \"nicely\") + \n  geom_edge_link(aes(width=Weight), \n                 alpha=0.2) +\n  scale_edge_width(range = c(0.1, 5)) +\n  geom_node_point(aes(colour = Department), \n                  size = 2) +\n  theme(legend.position = 'bottom')\n  \ng + facet_edges(~Weekday)\n\n\n\n\n\n\n\n\n\n\n4.5.2 A framed facet graph\n\nset_graph_style() \n\ng &lt;- ggraph(GAStech_graph, \n            layout = \"nicely\") + \n  geom_edge_link(aes(width=Weight), \n                 alpha=0.2) +\n  scale_edge_width(range = c(0.1, 5)) +\n  geom_node_point(aes(colour = Department), \n                  size = 2)\n  \ng + facet_edges(~Weekday) +\n  th_foreground(foreground = \"grey80\",  \n                border = TRUE) +\n  theme(legend.position = 'bottom')\n\n\n\n\n\n\n\n\n\n\n4.5.3 Working with facet_nodes()\n\nset_graph_style()\n\ng &lt;- ggraph(GAStech_graph, \n            layout = \"nicely\") + \n  geom_edge_link(aes(width=Weight), \n                 alpha=0.2) +\n  scale_edge_width(range = c(0.1, 5)) +\n  geom_node_point(aes(colour = Department), \n                  size = 2)\n  \ng + facet_nodes(~Department)+\n  th_foreground(foreground = \"grey80\",  \n                border = TRUE) +\n  theme(legend.position = 'bottom')"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#computing-centrality-indices",
+    "href": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#computing-centrality-indices",
+    "title": "Hands-on Exercise 09:Modelling, Visualising and Analysing Network Data with R",
+    "section": "5.1 Computing centrality indices",
+    "text": "5.1 Computing centrality indices\n\ng &lt;- GAStech_graph %&gt;%\n  mutate(betweenness_centrality = centrality_betweenness()) %&gt;%\n  ggraph(layout = \"fr\") + \n  geom_edge_link(aes(width=Weight), \n                 alpha=0.2) +\n  scale_edge_width(range = c(0.1, 5)) +\n  geom_node_point(aes(colour = Department,\n            size=betweenness_centrality))\ng + theme_graph()\n\n\n\n\n\n\n\n\n\nmutate() of dplyr is used to perform the computation.\nthe algorithm used, on the other hand, is the centrality_betweenness() of tidygraph."
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#visualising-network-metrics",
+    "href": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#visualising-network-metrics",
+    "title": "Hands-on Exercise 09:Modelling, Visualising and Analysing Network Data with R",
+    "section": "5.2 Visualising network metrics",
+    "text": "5.2 Visualising network metrics\n\ng &lt;- GAStech_graph %&gt;%\n  ggraph(layout = \"fr\") + \n  geom_edge_link(aes(width=Weight), \n                 alpha=0.2) +\n  scale_edge_width(range = c(0.1, 5)) +\n  geom_node_point(aes(colour = Department, \n                      size = centrality_betweenness()))\ng + theme_graph()"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#visualising-community",
+    "href": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#visualising-community",
+    "title": "Hands-on Exercise 09:Modelling, Visualising and Analysing Network Data with R",
+    "section": "5.3 Visualising Community",
+    "text": "5.3 Visualising Community\n\ng &lt;- GAStech_graph %&gt;%\n  mutate(community = as.factor(group_edge_betweenness(weights = Weight, directed = TRUE))) %&gt;%\n  ggraph(layout = \"fr\") + \n  geom_edge_link(aes(width=Weight), \n                 alpha=0.2) +\n  scale_edge_width(range = c(0.1, 5)) +\n  geom_node_point(aes(colour = community))  \n\ng + theme_graph()"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#data-preparation",
+    "href": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#data-preparation",
+    "title": "Hands-on Exercise 09:Modelling, Visualising and Analysing Network Data with R",
+    "section": "6.1 Data preparation",
+    "text": "6.1 Data preparation\n\nGAStech_edges_aggregated &lt;- GAStech_edges %&gt;%\n  left_join(GAStech_nodes, by = c(\"sourceLabel\" = \"label\")) %&gt;%\n  rename(from = id) %&gt;%\n  left_join(GAStech_nodes, by = c(\"targetLabel\" = \"label\")) %&gt;%\n  rename(to = id) %&gt;%\n  filter(MainSubject == \"Work related\") %&gt;%\n  group_by(from, to) %&gt;%\n    summarise(weight = n()) %&gt;%\n  filter(from!=to) %&gt;%\n  filter(weight &gt; 1) %&gt;%\n  ungroup()"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#plotting-the-first-interactive-network-graph",
+    "href": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#plotting-the-first-interactive-network-graph",
+    "title": "Hands-on Exercise 09:Modelling, Visualising and Analysing Network Data with R",
+    "section": "6.2 Plotting the first interactive network graph",
+    "text": "6.2 Plotting the first interactive network graph\n\nvisNetwork(GAStech_nodes, \n           GAStech_edges_aggregated)"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#working-with-layout",
+    "href": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#working-with-layout",
+    "title": "Hands-on Exercise 09:Modelling, Visualising and Analysing Network Data with R",
+    "section": "6.3 Working with layout",
+    "text": "6.3 Working with layout\n\nvisNetwork(GAStech_nodes,\n           GAStech_edges_aggregated) %&gt;%\n  visIgraphLayout(layout = \"layout_with_fr\")"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#working-with-visual-attributes---nodes",
+    "href": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#working-with-visual-attributes---nodes",
+    "title": "Hands-on Exercise 09:Modelling, Visualising and Analysing Network Data with R",
+    "section": "6.4 Working with visual attributes - Nodes",
+    "text": "6.4 Working with visual attributes - Nodes\n\nGAStech_nodes &lt;- GAStech_nodes %&gt;%\n  rename(group = Department) \n\n\nvisNetwork(GAStech_nodes,\n           GAStech_edges_aggregated) %&gt;%\n  visIgraphLayout(layout = \"layout_with_fr\") %&gt;%\n  visLegend() %&gt;%\n  visLayout(randomSeed = 123)"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#working-with-visual-attributes---edges",
+    "href": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#working-with-visual-attributes---edges",
+    "title": "Hands-on Exercise 09:Modelling, Visualising and Analysing Network Data with R",
+    "section": "6.5 Working with visual attributes - Edges",
+    "text": "6.5 Working with visual attributes - Edges\n\nvisNetwork(GAStech_nodes,\n           GAStech_edges_aggregated) %&gt;%\n  visIgraphLayout(layout = \"layout_with_fr\") %&gt;%\n  visEdges(arrows = \"to\", \n           smooth = list(enabled = TRUE, \n                         type = \"curvedCW\")) %&gt;%\n  visLegend() %&gt;%\n  visLayout(randomSeed = 123)"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#interactivity",
+    "href": "Hands-on_Ex/Hands-on_Ex09/Hands-on_Ex09.html#interactivity",
+    "title": "Hands-on Exercise 09:Modelling, Visualising and Analysing Network Data with R",
+    "section": "6.6 Interactivity",
+    "text": "6.6 Interactivity\nIn the code chunk below, visOptions() is used to incorporate interactivity features in the data visualisation.\n\nThe argument highlightNearest highlights nearest when clicking a node.\nThe argument nodesIdSelection adds an id node selection creating an HTML select element.\n\n\nvisNetwork(GAStech_nodes,\n           GAStech_edges_aggregated) %&gt;%\n  visIgraphLayout(layout = \"layout_with_fr\") %&gt;%\n  visOptions(highlightNearest = TRUE,\n             nodesIdSelection = TRUE) %&gt;%\n  visLegend() %&gt;%\n  visLayout(randomSeed = 123)"
   }
 ]
