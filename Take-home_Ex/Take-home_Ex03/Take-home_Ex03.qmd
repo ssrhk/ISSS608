@@ -40,7 +40,7 @@ The primary objectives of this study are:
 ## Packages Used
 
 | Package | Explanation |
-|----|----|
+|------------------------------------|------------------------------------|
 | tidyverse | to efficiently manipulate and clean data, utilizing functions from packages like `dplyr` and `tidyr` for data wrangling |
 | SmartEDA | to help summarize dataset by providing insights such as missing values |
 | sf | for easy manipulation of spatial objects and performing geospatial analysis |
@@ -51,7 +51,7 @@ The primary objectives of this study are:
 ## Code to Launch
 
 ```{r}
-pacman::p_load(tidyverse,SmartEDA,sf,plotly,tmap,terra,gstat)
+pacman::p_load(tidyverse,SmartEDA,sf,plotly,tmap,terra,gstat,automap,patchwork)
 ```
 :::
 
@@ -187,8 +187,7 @@ weather[, 5:10] <- lapply(weather[, 5:10], function(x) {
 weather <- weather %>%
   group_by(Station) %>%
   mutate(
-    MonthlyRainfall = sum(DailyRainfall, na.rm = TRUE),
-    MonthlyMeanTemp = mean(MeanTemperature, na.rm = TRUE)
+    MonthlyRainfall = sum(DailyRainfall, na.rm = TRUE)
   ) %>%
   ungroup()
 ```
@@ -221,17 +220,34 @@ weather_sf <- st_as_sf(weather,
   st_transform(crs = 3414)
 ```
 
-## 4.9 Extract Month for Geospatial Analysis
+## 4.9 Extract Data for Geospatial Analysis
 
-### 4.9.1 Which Month has most extreme weather?
+### 4.9.1 Set Timeframe
 
-The goal was to determine the month with the most **extreme weather conditions** based on three key factors from our dataframe. We created a new variable to measure the extremeness ('ExtremeIndex') by finding the following:
+First we filter the dataset from Janurary 2021 to April 2024 since there are the most data recorded during these months, using the code chunk below.
 
-1.  **Total Monthly Rainfall** → Measures overall precipitation, indicating wet/extreme months.
+```{r}
+weather_filtered <- weather_sf %>%
+  filter((Year > 2021 | (Year == 2021 & Month >= 1)) & 
+         (Year < 2024 | (Year == 2024 & Month <= 4)))
 
-2.  **Mean of Temperature Variance** → Measures temperature fluctuations (Max - Min), capturing extreme hot/cold changes.
+```
 
-3.  **Max of Highest Wind Speed** → Captures the strongest winds, which indicate stormy or extreme conditions.
+### 4.9.2 Which Month has most extreme weather?
+
+::: callout-note
+## Shiny App Note
+
+For the purpose of this take-home exercise, we will focus on one month. Users will be able to choose different Months and Years in Shiny app.
+:::
+
+To see which month is the most interesting to focus on we determine the month with the most **extreme weather conditions** based on three key factors from our dataframe. We created a new variable to measure the extremeness ('ExtremeIndex') by finding the following:
+
+1.  **Total Monthly Rainfall** → Measures overall precipitation, indicating wet/extreme months.
+
+2.  **Mean of Temperature Variance** → Measures temperature fluctuations (Max - Min), capturing extreme hot/cold changes.
+
+3.  **Max of Highest Wind Speed** → Captures the strongest winds, which indicate stormy or extreme conditions.
 
 ```{r}
 weather_extreme <- weather %>%
@@ -258,18 +274,34 @@ p <- ggplot(weather_extreme, aes(x = as.Date(paste(Year, Month, "01", sep = "-")
 ggplotly(p, tooltip = "text")
 ```
 
-### 4.9.2 Data Extraction
+### 4.9.3 Data Extraction
 
-We found that April 2021 had the most extreme weather. Therefore, we will extract this month for deeper insights with geospatial analysis.
+We found that April 2021 had the most extreme weather. Therefore, we will extract this month for deeper insights with geospatial analysis ( for the purpose of this take-home exercise).
+
+We keep the stations that has data for all three fields throughout our time-series data.
 
 ```{r}
-weather_apr2021 <- weather_sf %>%
-  filter(Year == 2021 & Month == 4)
+weather_month <- weather_filtered %>%
+  filter(Year == 2021, Month == 4) %>%
+  group_by(Station) %>%
+  summarise(
+    MonthlyRainfall = sum(DailyRainfall, na.rm = TRUE),
+    MonthlyMeanTemp = mean(MeanTemperature, na.rm = TRUE),
+    MonthlyMeanWindSpeed = mean(MeanWindSpeed, na.rm = TRUE)
+  ) %>%
+  ungroup()
+
+keepstations <- c("Admiralty", "Ang Mo Kio", "Changi","Choa Chu Kang (South)","East Coast Parkway","Jurong (West)","Jurong Island","Newton","Pasir Panjang","Pulau Ubin","Seletar","Sentosa Island","Tai Seng","Tuas South")
+
+weather_month<- weather_month%>%
+  filter(Station %in% keepstations)
 ```
 
 ------------------------------------------------------------------------
 
 # 5 Geospatial Data
+
+Import the geospatial data using `st_read` and then transform it to Singapore's coordinate reference system (CRS) 3414 using the `st_transform` function from the `sf` package.
 
 ```{r}
 mpsz2019 <- st_read(dsn = "data/geospatial", 
@@ -277,30 +309,15 @@ mpsz2019 <- st_read(dsn = "data/geospatial",
   st_transform(crs = 3414)
 ```
 
-```{r}
-# Spatial join to associate weather data points with subzones
-weather_subzones <- st_join(weather_sf, mpsz2019, join = st_intersects)
-```
-
-Visualizing the prepared data.
-
-```{r}
-tm_check_fix()
-tmap_mode("view")
-tm_shape(mpsz2019) +
-  tm_borders() +
-tm_shape(weather_apr2021) +
-  tm_dots(fill = 'MonthlyRainfall')
-
-```
-
-```{r}
-tmap_mode("plot")
-```
-
 ------------------------------------------------------------------------
 
-# **6 Spatial Interpolation: gstat method**
+# **6 Spatial Interpolation**
+
+Spatial interpolation is a critical technique in geospatial analysis, especially when dealing with **unsampled locations**. In the case of the SG ClimateViz project, there are many areas where weather stations are missing or sparse, making it impossible to directly obtain weather-related metrics such as **monthly rainfall** for certain regions. Spatial interpolation allows us to estimate these missing values by leveraging the known data points from nearby locations.
+
+## 6.1 Data Preparation
+
+We need create a grid data object by using `rast()` of **terra** package as shown in the cod chunk below.
 
 ```{r}
 grid <- terra::rast(mpsz2019, 
@@ -309,11 +326,15 @@ grid <- terra::rast(mpsz2019,
 grid
 ```
 
+Next, a list called xy will be created by using `xyFromCell()` of **terra** package.
+
 ```{r}
 xy <- terra::xyFromCell(grid, 
                         1:ncell(grid))
 head(xy)
 ```
+
+We will create a data frame called *coop* with prediction/simulation locations by using the code chunk below.
 
 ```{r}
 coop <- st_as_sf(as.data.frame(xy), 
@@ -324,56 +345,177 @@ head(coop)
 
 ```
 
-## **6.1 Inverse Distance Weighted (IDW)**
+## **6.2 Kriging for Mean Temperature**
+
+Kriging is one of several methods that use a limited set of sampled data points to estimate the value of a variable over a continuous spatial field. Since monthly rainfall over Singapore varies across a random spatial field, we will use kriging.
 
 ```{r}
-res <- gstat(formula = MonthlyRainfall ~ 1, 
-             locations = weather_apr2021, 
-             nmax = 10,
-             set = list(idp = 0))
+# Kriging for Monthly Mean Temperature
+v_temp <- autofitVariogram(MonthlyMeanTemp ~ 1, weather_month)
+k_temp <- gstat(formula = MonthlyMeanTemp ~ 1, 
+                model = v_temp$var_model,
+                data = weather_month)
 
+# Create prediction grid
+resp_temp <- predict(k_temp, coop)
+
+# Extract coordinates 
+resp_temp$x <- st_coordinates(resp_temp)[,1]
+resp_temp$y <- st_coordinates(resp_temp)[,2]
+resp_temp$pred <- resp_temp$var1.pred
+
+# Kriging Variance
+resp_temp$variance <- resp_temp$var1.var
+
+# Create raster layer
+kpred_temp <- terra::rasterize(resp_temp, grid, field = "pred")
+
+# Kriging Variance Raster
+kpred_temp_variance <- terra::rasterize(resp_temp, grid, field = "variance")
 ```
 
-```{r}
-resp <- predict(res, coop)
-```
-
-```{r}
-resp$x <- st_coordinates(resp)[,1]
-resp$y <- st_coordinates(resp)[,2]
-resp$pred <- resp$var1.pred
-
-pred <- terra::rasterize(resp, grid, 
-                         field = "pred", 
-                         fun = "mean")
-
-```
-
-### **Mapping the interpolated rainfall raster**
+::: panel-tabset
+## Mean Temp
 
 ```{r}
 tm_check_fix()
 tmap_mode("plot")
-tm_shape(pred) + 
+
+tm_shape(kpred_temp) + 
   tm_raster(col_alpha = 0.6, 
-            col.scale = tm_scale(
-              values = "brewer.blues"))
+            palette = "YlOrRd", 
+            title = "Mean Temperature (°C)") +
+  tm_layout(main.title = "Distribution of Mean Temperature, Apr 2021",
+            frame = TRUE) +
+  tm_compass(type = "8star", size = 2) +
+  tm_grid(alpha = 0.2)
+
 ```
+
+## Kriging Variance
+
+```{r}
+tm_shape(kpred_temp_variance) + 
+  tm_raster(col_alpha = 0.6, 
+            palette = "YlGnBu", 
+            title = "Temperature Variance") +
+  tm_layout(main.title = "Kriging Variance of Temperature, Apr 2021",
+            frame = TRUE) +
+  tm_compass(type = "8star", size = 2) +
+  tm_grid(alpha = 0.2)
+```
+:::
+
+## **6.3 Kriging for Monthly Rainfall**
+
+```{r}
+v_rainfall <- autofitVariogram(MonthlyRainfall ~ 1, weather_month)
+k_rainfall <- gstat(formula = MonthlyRainfall ~ 1, 
+                    model = v_rainfall$var_model,
+                    data = weather_month)
+
+resp_rainfall <- predict(k_rainfall, coop)
+
+resp_rainfall$x <- st_coordinates(resp_rainfall)[,1]
+resp_rainfall$y <- st_coordinates(resp_rainfall)[,2]
+resp_rainfall$pred <- resp_rainfall$var1.pred
+
+resp_rainfall$variance <- resp_rainfall$var1.var
+
+kpred_rainfall <- terra::rasterize(resp_rainfall, grid, field = "pred")
+
+kpred_rainfall_variance <- terra::rasterize(resp_rainfall, grid, field = "variance")
+```
+
+::: panel-tabset
+## Monthly Rainfall
+
+```{r}
+tm_shape(kpred_rainfall) + 
+  tm_raster(col_alpha = 0.6, 
+            palette = "Blues", 
+            title = "Monthly Rainfall (mm)") +
+  tm_layout(main.title = "Distribution of Monthly Rainfall, Apr 2021",
+            frame = TRUE) +
+  tm_compass(type = "8star", size = 2) +
+  tm_grid(alpha = 0.2)
+```
+
+## Kriging Variance
+
+```{r}
+tm_shape(kpred_rainfall_variance) + 
+  tm_raster(col_alpha = 0.6, 
+            palette = "Purples", 
+            title = "Rainfall Variance") +
+  tm_layout(main.title = "Kriging Variance of Rainfall, Apr 2021",
+            frame = TRUE) +
+  tm_compass(type = "8star", size = 2) +
+  tm_grid(alpha = 0.2)
+```
+:::
+
+## **6.4 Kriging for Mean Wind Speed**
+
+```{r}
+v_wind <- autofitVariogram(MonthlyMeanWindSpeed ~ 1, weather_month)
+k_wind <- gstat(formula = MonthlyMeanWindSpeed ~ 1, 
+                    model = v_wind$var_model,
+                    data = weather_month)
+
+resp_wind <- predict(k_wind, coop)
+
+resp_wind$x <- st_coordinates(resp_wind)[,1]
+resp_wind$y <- st_coordinates(resp_wind)[,2]
+resp_wind$pred <- resp_wind$var1.pred
+
+resp_wind$variance <- resp_wind$var1.var
+
+kpred_wind <- terra::rasterize(resp_wind, grid, field = "pred")
+
+kpred_wind_variance <- terra::rasterize(resp_wind, grid, field = "variance")
+```
+
+::: panel-tabset
+## Average Rainfall
+
+```{r}
+tm_shape(kpred_wind) + 
+  tm_raster(col_alpha = 0.6, 
+            palette = "Blues", 
+            title = "Monthly Rainfall (mm)") +
+  tm_layout(main.title = "Distribution of Average Wind Speed, Apr 2021",
+            frame = TRUE) +
+  tm_compass(type = "8star", size = 2) +
+  tm_grid(alpha = 0.2)
+```
+
+## Kriging Variance
+
+```{r}
+tm_shape(kpred_wind_variance) + 
+  tm_raster(col_alpha = 0.6, 
+            palette = "Purples", 
+            title = "WindSpeed Variance") +
+  tm_layout(main.title = "Kriging Variance of Average Wind Speed, Apr 2021",
+            frame = TRUE) +
+  tm_compass(type = "8star", size = 2) +
+  tm_grid(alpha = 0.2)
+```
+:::
 
 ------------------------------------------------------------------------
 
-# 7 **Local Measures of Spatial Autocorrelation**
+# 7 Shiny UI
 
-```{r}
-tmap_mode("plot")
-tm_shape(weather_apr2021) +
-  tm_fill("MonthlyRainfall", 
-          style = "quantile", 
-          palette = "Blues",
-          title = "Incidents") +
-  
-  tm_borders(alpha = 0.5) +
-  tm_compass(type="8star", size = 2) +
-  tm_scale_bar() +
-  tm_grid(alpha =0.2)
-```
+## 7.1 Storyboard
+
+The following is the sketch of planned Shiny App user interface
+
+![](proto1.jpg)
+
+## 7.2 Prototype 
+
+<iframe src="https://sshk.shinyapps.io/Take-Home3/" width="100%" height="600px">
+
+</iframe>

@@ -1,0 +1,12 @@
+name: Take-Home3
+title: Take-Home3
+username: sshk
+account: sshk
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 14322967
+bundleId: 9994852
+url: https://sshk.shinyapps.io/Take-Home3/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
