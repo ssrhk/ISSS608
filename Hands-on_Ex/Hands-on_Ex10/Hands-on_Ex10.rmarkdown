@@ -12,24 +12,36 @@ execute:
   warning: false
 ---
 
+
+
 # 1 Installing and launching R packages
+
+
 
 ```{r}
 pacman::p_load(lubridate, ggthemes, reactable,
 reactablefmtr, gt, gtExtras, tidyverse)
 ```
 
+
+
 # **2 The Data**
 
 Load the CoffeeChain dataset from the .rds file
+
+
 
 ```{r}
 coffeechain <- read_rds("data/CoffeeChain.rds")
 ```
 
+
+
 ## **2.1 Data Preparation**
 
 The code chunk below is used to aggregate Sales and Budgeted Sales at the Product level.
+
+
 
 ```{r}
 product <- coffeechain %>%
@@ -39,7 +51,11 @@ product <- coffeechain %>%
   ungroup()
 ```
 
+
+
 ## 2.2 **Bullet chart in ggplot2**
+
+
 
 ```{r}
 ggplot(product, aes(Product, current)) + 
@@ -62,9 +78,13 @@ ggplot(product, aes(Product, current)) +
   coord_flip()
 ```
 
+
+
 ## 2.3 **Lollipop chart in ggplot2**
 
 This visualization is another way, making it easy to compare the gap between target and actual sales. Add at legend for clarity.
+
+
 
 ```{r}
 ggplot(product, aes(x = Product)) +
@@ -78,9 +98,13 @@ ggplot(product, aes(x = Product)) +
 
 ```
 
+
+
 # **3 Plotting sparklines using ggplot2**
 
 ## **3.1 Preparing the data**
+
+
 
 ```{r}
 sales_report <- coffeechain %>%
@@ -92,7 +116,11 @@ sales_report <- coffeechain %>%
   select(Month, Product, Sales)
 ```
 
+
+
 Compute the minimum, maximum and end othe the month sales.
+
+
 
 ```{r}
 mins <- group_by(sales_report, Product) %>% 
@@ -103,7 +131,11 @@ ends <- group_by(sales_report, Product) %>%
   filter(Month == max(Month))
 ```
 
+
+
 Compute the 25 and 75 quantiles.
+
+
 
 ```{r}
 quarts <- sales_report %>%
@@ -115,7 +147,11 @@ quarts <- sales_report %>%
   right_join(sales_report)
 ```
 
+
+
 ## **3.2 Sparklines in ggplot2**
+
+
 
 ```{r}
 ggplot(sales_report, aes(x=Month, y=Sales)) + 
@@ -138,6 +174,8 @@ ggplot(sales_report, aes(x=Month, y=Sales)) +
         axis.ticks = element_blank(), strip.text = element_blank())
 ```
 
+
+
 1.  Each row represents a different product, showing its monthly sales performance over time.
 
 2.  The **grey ribbon** represents the interquartile range (IQR) between `quart1` and `quart2`, showing the middle 50% of sales values. A wider ribbon suggests higher variability, while a narrower ribbon indicates more stable sales.
@@ -147,6 +185,8 @@ ggplot(sales_report, aes(x=Month, y=Sales)) +
 # **4 Static Information Dashboard Design: gt and gtExtras methods**
 
 ## **4.1 Plotting a simple bullet chart**
+
+
 
 ```{r}
 product %>%
@@ -159,7 +199,11 @@ product %>%
   gt_theme_538()
 ```
 
+
+
 # **5 sparklines: gtExtras method**
+
+
 
 ```{r}
 report <- coffeechain %>%
@@ -173,7 +217,11 @@ report <- coffeechain %>%
   ungroup()
 ```
 
+
+
 One of the requirement of gtExtras functions is that almost exclusively they require you to pass data.frame with list columns. In view of this, code chunk below will be used to convert the report data.frame into list columns.
+
+
 
 ```{r}
 report %>%
@@ -182,7 +230,11 @@ report %>%
             .groups = "drop")
 ```
 
+
+
 ## **5.1 Plotting Coffechain Sales report**
+
+
 
 ```{r}
 report %>%
@@ -194,7 +246,11 @@ report %>%
                     same_limit = FALSE)
 ```
 
+
+
 ## **5.2 Adding statistics**
+
+
 
 ```{r}
 report %>% 
@@ -208,7 +264,11 @@ report %>%
     decimals = 2)
 ```
 
+
+
 ## **5.3 Combining the data.frame**
+
+
 
 ```{r}
 spark <- report %>%
@@ -230,7 +290,11 @@ sales <- report %>%
 sales_data = left_join(sales, spark)
 ```
 
+
+
 ## **5.4 Plotting the updated data.table**
+
+
 
 ```{r}
 sales_data %>%
@@ -239,7 +303,11 @@ sales_data %>%
                    same_limit = FALSE)
 ```
 
+
+
 ## **5.5 Combining bullet chart and sparklines**
+
+
 
 ```{r}
 bullet <- coffeechain %>%
@@ -267,23 +335,35 @@ sales_data %>%
   gt_theme_538()
 ```
 
+
+
 There's less variation in the sparklines since we put a filter on the date.
 
 # **6 Interactive Information Dashboard Design: reactable and reactablefmtr methods**
 
 We need to install dataui R package
 
+
+
 ```{r}
 remotes::install_github("timelyportfolio/dataui")
 ```
 
+
+
 Load the package onto R environment
+
+
 
 ```{r}
 library(dataui)
 ```
 
+
+
 ## **6.1 Plotting interactive sparklines**
+
+
 
 ```{r}
 report <- report %>%
@@ -303,9 +383,13 @@ reactable(
 )
 ```
 
+
+
 ## **6.2 Changing the pagesize**
 
 By default the pagesize is 10. In the code chunk below, arguments defaultPageSize is used to change the default setting.
+
+
 
 ```{r}
 reactable(
@@ -320,7 +404,11 @@ reactable(
 )
 ```
 
+
+
 ## **6.3 Adding points and labels**
+
+
 
 ```{r}
 reactable(
@@ -340,7 +428,11 @@ reactable(
 )
 ```
 
+
+
 ## **6.4 Adding reference line**
+
+
 
 ```{r}
 reactable(
@@ -360,7 +452,11 @@ reactable(
 )
 ```
 
+
+
 ## 6.5 **Adding bandline**
+
+
 
 ```{r}
 reactable(
@@ -382,7 +478,11 @@ reactable(
 )
 ```
 
+
+
 ## **6.6 Changing from sparkline to sparkbar**
+
+
 
 ```{r}
 reactable(
@@ -402,8 +502,11 @@ reactable(
 )
 ```
 
+
+
 1.  Each row corresponds to a **product**, and the **sparkbar** visually represents **monthly sales** over time. This makes it easy to spot trends at a glance without needing a full line chart.
 
 2.  The **lowest monthly sales** are marked in **red**, while the **highest monthly sales** are marked in **blue**. This allows for quick identification of months when sales were at their worst or best for each product.
 
 3.  The **bandline** provides an indication of the central range where most sales typically fall while the **statline** gives a reference for the average monthly sales, helping compare individual months against the overall performance.
+

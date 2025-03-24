@@ -40,16 +40,18 @@ The primary objectives of this study are:
 ## Packages Used
 
 | Package | Explanation |
-|-----------------------|-------------------------------------------------|
+|----|----|
 | tidyverse | to efficiently manipulate and clean data, utilizing functions from packages like `dplyr` and `tidyr` for data wrangling |
 | SmartEDA | to help summarize dataset by providing insights such as missing values |
 | sf | for easy manipulation of spatial objects and performing geospatial analysis |
 | plotly | for dynamically exploring climate trends over time |
+| terra |  |
+| gstat |  |
 
 ## Code to Launch
 
 ```{r}
-pacman::p_load(tidyverse,SmartEDA,sf,plotly)
+pacman::p_load(tidyverse,SmartEDA,sf,plotly,tmap,terra,gstat)
 ```
 :::
 
@@ -181,21 +183,13 @@ weather[, 5:10] <- lapply(weather[, 5:10], function(x) {
 
 ## 4.6 **Calculate Columns**
 
-### **Rainfall Sum by Month**
-
 ```{r}
 weather <- weather %>%
   group_by(Station) %>%
-  mutate(MonthlyRainfall = sum(DailyRainfall, na.rm = TRUE)) %>%
-  ungroup()
-```
-
-### **Mean Temperature by Month**
-
-```{r}
-weathermeantemp <- weather %>%
-  group_by(Month,Year) %>%
-  summarise(MonthlyMeanTemp = mean(MeanTemperature, na.rm = TRUE)) %>%
+  mutate(
+    MonthlyRainfall = sum(DailyRainfall, na.rm = TRUE),
+    MonthlyMeanTemp = mean(MeanTemperature, na.rm = TRUE)
+  ) %>%
   ungroup()
 ```
 
@@ -217,7 +211,7 @@ Left join station longitude/latitude to weather
 weather <- stations %>%   left_join(weather, by = c("Station"))
 ```
 
-Convert to sf using sf package
+Convert to sf using sf package. s*vy21* is the official projected coordinates of Singapore. *3414* is the EPSG code of svy21.
 
 ```{r}
 weather_sf <- st_as_sf(weather, 
@@ -283,10 +277,103 @@ mpsz2019 <- st_read(dsn = "data/geospatial",
   st_transform(crs = 3414)
 ```
 
+```{r}
+# Spatial join to associate weather data points with subzones
+weather_subzones <- st_join(weather_sf, mpsz2019, join = st_intersects)
+```
+
+Visualizing the prepared data.
+
+```{r}
+tm_check_fix()
+tmap_mode("view")
+tm_shape(mpsz2019) +
+  tm_borders() +
+tm_shape(weather_apr2021) +
+  tm_dots(fill = 'MonthlyRainfall')
+
+```
+
+```{r}
+tmap_mode("plot")
+```
+
 ------------------------------------------------------------------------
 
-# 6 Geospatial Analysis
+# **6 Spatial Interpolation: gstat method**
+
+```{r}
+grid <- terra::rast(mpsz2019, 
+                    nrows = 690, 
+                    ncols = 1075)
+grid
+```
+
+```{r}
+xy <- terra::xyFromCell(grid, 
+                        1:ncell(grid))
+head(xy)
+```
+
+```{r}
+coop <- st_as_sf(as.data.frame(xy), 
+                 coords = c("x", "y"),
+                 crs = st_crs(mpsz2019))
+coop <- st_filter(coop, mpsz2019)
+head(coop)
+
+```
+
+## **6.1 Inverse Distance Weighted (IDW)**
+
+```{r}
+res <- gstat(formula = MonthlyRainfall ~ 1, 
+             locations = weather_apr2021, 
+             nmax = 10,
+             set = list(idp = 0))
+
+```
+
+```{r}
+resp <- predict(res, coop)
+```
+
+```{r}
+resp$x <- st_coordinates(resp)[,1]
+resp$y <- st_coordinates(resp)[,2]
+resp$pred <- resp$var1.pred
+
+pred <- terra::rasterize(resp, grid, 
+                         field = "pred", 
+                         fun = "mean")
+
+```
+
+### **Mapping the interpolated rainfall raster**
+
+```{r}
+tm_check_fix()
+tmap_mode("plot")
+tm_shape(pred) + 
+  tm_raster(col_alpha = 0.6, 
+            col.scale = tm_scale(
+              values = "brewer.blues"))
+```
 
 ------------------------------------------------------------------------
 
-# 7 Shiny App UI Prototype
+# 7 **Local Measures of Spatial Autocorrelation**
+
+```{r}
+tmap_mode("plot")
+tm_shape(weather_apr2021) +
+  tm_fill("MonthlyRainfall", 
+          style = "quantile", 
+          palette = "Blues",
+          title = "Incidents") +
+  
+  tm_borders(alpha = 0.5) +
+  tm_compass(type="8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha =0.2)
+```
