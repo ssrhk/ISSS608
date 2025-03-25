@@ -233,6 +233,21 @@ weather_filtered <- weather_sf %>%
 
 ```
 
+::: panel-tabset
+## Save
+
+```{r}
+#| eval: False
+write_rds(weather_filtered, "data/rds/weather_filtered.rds")
+```
+
+## Load
+
+```{r}
+weather_filtered <- read_rds("data/rds/weather_filtered.rds")
+```
+:::
+
 ### 4.9.2 Which Month has most extreme weather?
 
 ::: callout-note
@@ -297,6 +312,21 @@ weather_month<- weather_month%>%
   filter(Station %in% keepstations)
 ```
 
+::: panel-tabset
+## Save
+
+```{r}
+#| eval: False
+write_rds(weather_month, "data/rds/weather_month.rds")
+```
+
+## Load
+
+```{r}
+weather_month <- read_rds("data/rds/weather_month.rds")
+```
+:::
+
 ------------------------------------------------------------------------
 
 # 5 Geospatial Data
@@ -308,6 +338,21 @@ mpsz2019 <- st_read(dsn = "data/geospatial",
                     layer = "MPSZ-2019") %>%
   st_transform(crs = 3414)
 ```
+
+::: panel-tabset
+## Save
+
+```{r}
+#| eval: False
+write_rds(mpsz2019, "data/rds/mpsz2019.rds")
+```
+
+## Load
+
+```{r}
+mpsz2019 <- read_rds("data/rds/mpsz2019.rds")
+```
+:::
 
 ------------------------------------------------------------------------
 
@@ -345,9 +390,74 @@ head(coop)
 
 ```
 
-## **6.2 Kriging for Mean Temperature**
+## **6.2 Manual Variogram**
 
 Kriging is one of several methods that use a limited set of sampled data points to estimate the value of a variable over a continuous spatial field. Since monthly rainfall over Singapore varies across a random spatial field, we will use kriging.
+
+### **6.2.1 Kriging for Mean Temperature**
+
+```{r}
+# the empirical variogram
+v_temp <- variogram(MonthlyMeanTemp ~ 1, data = weather_month)
+
+# Manually fit the variogram model
+fv_temp <- fit.variogram(v_temp, model = vgm(psill = 0.5, model = "Sph", range = 5000, nugget = 0.1))
+
+# Perform Kriging
+k_temp <- gstat(formula = MonthlyMeanTemp ~ 1, data = weather_month, model = fv_temp)
+
+# Create prediction grid and perform kriging
+resp_temp <- predict(k_temp, coop)
+
+# Extract coordinates and predictions
+resp_temp$x <- st_coordinates(resp_temp)[,1]
+resp_temp$y <- st_coordinates(resp_temp)[,2]
+resp_temp$pred <- resp_temp$var1.pred
+
+# Kriging Variance
+resp_temp$variance <- resp_temp$var1.var
+
+# Create raster layer for predicted values
+kpred_temp <- terra::rasterize(resp_temp, grid, field = "pred")
+
+# Create raster layer for Kriging Variance
+kpred_temp_variance <- terra::rasterize(resp_temp, grid, field = "variance")
+
+```
+
+```{r}
+# Kriging prediction map
+tm_check_fix()
+tmap_mode("plot")
+
+tm_shape(kpred_temp) + 
+  tm_raster(col_alpha = 0.6, 
+            palette = "Blues", 
+            title = "Mean Temperature (°C)") +
+  tm_layout(main.title = "Distribution of Mean Temperature, Apr 2021",
+            frame = TRUE) +
+  tm_compass(type = "8star", size = 2) +
+  tm_grid(alpha = 0.2)
+
+```
+
+```{r}
+# Kriging Variance map
+tm_shape(kpred_temp_variance) + 
+  tm_raster(col_alpha = 0.6, 
+            palette = "Purples", 
+            title = "Kriging Variance") +
+  tm_layout(main.title = "Kriging Variance of Mean Temperature, Apr 2021",
+            frame = TRUE) +
+  tm_compass(type = "8star", size = 2) +
+  tm_grid(alpha = 0.2)
+
+
+```
+
+## **6.3 AutoVariogram**
+
+### **6.3.1 Kriging for Mean Temperature**
 
 ```{r}
 # Kriging for Monthly Mean Temperature
@@ -406,7 +516,7 @@ tm_shape(kpred_temp_variance) +
 ```
 :::
 
-## **6.3 Kriging for Monthly Rainfall**
+### **6.3.2 Kriging for Monthly Rainfall**
 
 ```{r}
 v_rainfall <- autofitVariogram(MonthlyRainfall ~ 1, weather_month)
@@ -455,7 +565,7 @@ tm_shape(kpred_rainfall_variance) +
 ```
 :::
 
-## **6.4 Kriging for Mean Wind Speed**
+### **6.3.3 Kriging for Mean Wind Speed**
 
 ```{r}
 v_wind <- autofitVariogram(MonthlyMeanWindSpeed ~ 1, weather_month)

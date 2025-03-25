@@ -5,8 +5,9 @@ account: sshk
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 14322967
-bundleId: 9994852
+bundleId: 9999279
 url: https://sshk.shinyapps.io/Take-Home3/
 version: 1
 asMultiple: FALSE
 asStatic: FALSE
+ignoredFiles: rds/weather_month.rds
