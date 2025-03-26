@@ -40,14 +40,14 @@ The primary objectives of this study are:
 ## Packages Used
 
 | Package | Explanation |
-|------------------------------------|------------------------------------|
+|--------------|----------------------------------------------------------|
 | tidyverse | to efficiently manipulate and clean data, utilizing functions from packages like `dplyr` and `tidyr` for data wrangling |
 | SmartEDA | to help summarize dataset by providing insights such as missing values |
 | sf | for easy manipulation of spatial objects and performing geospatial analysis |
 | plotly | for dynamically exploring climate trends over time |
-| terra |  |
-| gstat |  |
-| automap |  |
+| terra | for handling raster data and performing geospatial analysis in R |
+| gstat | for geostatistical modeling, including functions for spatial interpolation, variogram modeling, and kriging |
+| automap | to simplifies the process of spatial interpolation by automating model selection, variogram fitting, and kriging |
 
 ## Code to Launch
 
