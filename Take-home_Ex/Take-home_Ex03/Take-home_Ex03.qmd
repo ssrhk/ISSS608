@@ -47,11 +47,12 @@ The primary objectives of this study are:
 | plotly | for dynamically exploring climate trends over time |
 | terra |  |
 | gstat |  |
+| automap |  |
 
 ## Code to Launch
 
 ```{r}
-pacman::p_load(tidyverse,SmartEDA,sf,plotly,tmap,terra,gstat,automap,patchwork)
+pacman::p_load(tidyverse,SmartEDA,sf,plotly,tmap,terra,gstat,automap)
 ```
 :::
 
@@ -394,8 +395,6 @@ head(coop)
 
 Kriging is one of several methods that use a limited set of sampled data points to estimate the value of a variable over a continuous spatial field. Since monthly rainfall over Singapore varies across a random spatial field, we will use kriging.
 
-### **6.2.1 Kriging for Mean Temperature**
-
 ```{r}
 # the empirical variogram
 v_temp <- variogram(MonthlyMeanTemp ~ 1, data = weather_month)
@@ -425,14 +424,16 @@ kpred_temp_variance <- terra::rasterize(resp_temp, grid, field = "variance")
 
 ```
 
+::: panel-tabset
+## Mean
+
 ```{r}
-# Kriging prediction map
 tm_check_fix()
 tmap_mode("plot")
 
 tm_shape(kpred_temp) + 
   tm_raster(col_alpha = 0.6, 
-            palette = "Blues", 
+            palette = "YlOrRd", 
             title = "Mean Temperature (°C)") +
   tm_layout(main.title = "Distribution of Mean Temperature, Apr 2021",
             frame = TRUE) +
@@ -441,23 +442,21 @@ tm_shape(kpred_temp) +
 
 ```
 
+## Kriging Variance
+
 ```{r}
-# Kriging Variance map
 tm_shape(kpred_temp_variance) + 
   tm_raster(col_alpha = 0.6, 
-            palette = "Purples", 
+            palette = "YlGnBu", 
             title = "Kriging Variance") +
   tm_layout(main.title = "Kriging Variance of Mean Temperature, Apr 2021",
             frame = TRUE) +
   tm_compass(type = "8star", size = 2) +
   tm_grid(alpha = 0.2)
-
-
 ```
+:::
 
 ## **6.3 AutoVariogram**
-
-### **6.3.1 Kriging for Mean Temperature**
 
 ```{r}
 # Kriging for Monthly Mean Temperature
@@ -516,104 +515,6 @@ tm_shape(kpred_temp_variance) +
 ```
 :::
 
-### **6.3.2 Kriging for Monthly Rainfall**
-
-```{r}
-v_rainfall <- autofitVariogram(MonthlyRainfall ~ 1, weather_month)
-k_rainfall <- gstat(formula = MonthlyRainfall ~ 1, 
-                    model = v_rainfall$var_model,
-                    data = weather_month)
-
-resp_rainfall <- predict(k_rainfall, coop)
-
-resp_rainfall$x <- st_coordinates(resp_rainfall)[,1]
-resp_rainfall$y <- st_coordinates(resp_rainfall)[,2]
-resp_rainfall$pred <- resp_rainfall$var1.pred
-
-resp_rainfall$variance <- resp_rainfall$var1.var
-
-kpred_rainfall <- terra::rasterize(resp_rainfall, grid, field = "pred")
-
-kpred_rainfall_variance <- terra::rasterize(resp_rainfall, grid, field = "variance")
-```
-
-::: panel-tabset
-## Monthly Rainfall
-
-```{r}
-tm_shape(kpred_rainfall) + 
-  tm_raster(col_alpha = 0.6, 
-            palette = "Blues", 
-            title = "Monthly Rainfall (mm)") +
-  tm_layout(main.title = "Distribution of Monthly Rainfall, Apr 2021",
-            frame = TRUE) +
-  tm_compass(type = "8star", size = 2) +
-  tm_grid(alpha = 0.2)
-```
-
-## Kriging Variance
-
-```{r}
-tm_shape(kpred_rainfall_variance) + 
-  tm_raster(col_alpha = 0.6, 
-            palette = "Purples", 
-            title = "Rainfall Variance") +
-  tm_layout(main.title = "Kriging Variance of Rainfall, Apr 2021",
-            frame = TRUE) +
-  tm_compass(type = "8star", size = 2) +
-  tm_grid(alpha = 0.2)
-```
-:::
-
-### **6.3.3 Kriging for Mean Wind Speed**
-
-```{r}
-v_wind <- autofitVariogram(MonthlyMeanWindSpeed ~ 1, weather_month)
-k_wind <- gstat(formula = MonthlyMeanWindSpeed ~ 1, 
-                    model = v_wind$var_model,
-                    data = weather_month)
-
-resp_wind <- predict(k_wind, coop)
-
-resp_wind$x <- st_coordinates(resp_wind)[,1]
-resp_wind$y <- st_coordinates(resp_wind)[,2]
-resp_wind$pred <- resp_wind$var1.pred
-
-resp_wind$variance <- resp_wind$var1.var
-
-kpred_wind <- terra::rasterize(resp_wind, grid, field = "pred")
-
-kpred_wind_variance <- terra::rasterize(resp_wind, grid, field = "variance")
-```
-
-::: panel-tabset
-## Average Rainfall
-
-```{r}
-tm_shape(kpred_wind) + 
-  tm_raster(col_alpha = 0.6, 
-            palette = "Blues", 
-            title = "Monthly Rainfall (mm)") +
-  tm_layout(main.title = "Distribution of Average Wind Speed, Apr 2021",
-            frame = TRUE) +
-  tm_compass(type = "8star", size = 2) +
-  tm_grid(alpha = 0.2)
-```
-
-## Kriging Variance
-
-```{r}
-tm_shape(kpred_wind_variance) + 
-  tm_raster(col_alpha = 0.6, 
-            palette = "Purples", 
-            title = "WindSpeed Variance") +
-  tm_layout(main.title = "Kriging Variance of Average Wind Speed, Apr 2021",
-            frame = TRUE) +
-  tm_compass(type = "8star", size = 2) +
-  tm_grid(alpha = 0.2)
-```
-:::
-
 ------------------------------------------------------------------------
 
 # 7 Shiny UI
@@ -624,7 +525,13 @@ The following is the sketch of planned Shiny App user interface
 
 ![](proto1.jpg)
 
-## 7.2 Prototype (In Progress)
+## 7.2 Prototype
+
+::: callout-note
+## Note
+
+Note that this is a prototype and not the actual dimensions that will be shown in the Shiny app. The plots will be bigger. The actual dimensions may be viewed here:<https://sshk.shinyapps.io/Take-Home3/>
+:::
 
 <iframe src="https://sshk.shinyapps.io/Take-Home3/" width="100%" height="600px">
 

@@ -1,4 +1,3 @@
-
 pacman::p_load(shiny,readr,dplyr,tidyverse,SmartEDA,sf,plotly,tmap,terra,gstat,automap)
 
 weather_filtered <- read_rds("rds/weather_filtered.rds")
@@ -20,10 +19,11 @@ ui <- fluidPage(
       selectInput("month_year", 
                   "Select Month-Year:", 
                   choices = format(seq(as.Date("2021-01-01"), as.Date("2024-04-01"), by = "month"), "%b-%Y"),
-                  selected = "Apr-2021"),
+                  selected = "Jan-2021"),
       
-      # Add a tabset for manual adjustments
+      # Tabset for Auto and Manual
       tabsetPanel(
+        id = "tabset_variogram",
         tabPanel("Automatic Variogram",
                  h4("Auto-Fitted Variogram"),
                  p("Auto-fitted variogram automatically determines the optimal variogram model and parameters (psill, range, nugget) based on the data, so users don't need to manually input these values.")
@@ -40,8 +40,6 @@ ui <- fluidPage(
                  sliderInput("nugget", "Nugget:", min = 0, max = 1, value = 0.1)
         )
       ),
-      
-      # Move the action button below the tabset panel
       actionButton("show_result", "Show Result")
     ),
     
@@ -50,7 +48,7 @@ ui <- fluidPage(
         column(6, tmapOutput("mean_temp_plot")),
         column(6, tmapOutput("variance_plot"))
       ),
-      
+       
       wellPanel(
         h4("Introduction to Spatial Interpolation"),
         p("Spatial interpolation is the process of predicting values for unmeasured locations based on known values from nearby locations."),
@@ -66,20 +64,18 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   
-  
   # Create the grid data
-  grid <- terra::rast(mpsz2019, nrows = 200, ncols = 300)  
-  
+  grid <- terra::rast(mpsz2019, nrows = 200, ncols = 500)  
   
   # Create xy from the grid
   xy <- terra::xyFromCell(grid, 1:ncell(grid))
   
-  # Create coop spatial points data frame (sf object)
+  # Create coop spatial points data frame 
   coop <- st_as_sf(as.data.frame(xy), coords = c("x", "y"), crs = st_crs(mpsz2019))
   coop <- st_filter(coop, mpsz2019)
   
   # Reactive dataset based on selected Month-Year
-  weather_month <- reactive({
+  weather_month <- eventReactive(input$show_result, {
     selected_date <- as.Date(paste("01", input$month_year), format = "%d %b-%Y")
     selected_year <- format(selected_date, "%Y")
     selected_month <- format(selected_date, "%m")
@@ -99,57 +95,54 @@ server <- function(input, output, session) {
                             "Tai Seng", "Tuas South"))
   })
   
-  # Perform Kriging (based on the input values and manually set parameters)
+  # Kriging 
   kriging_results <- eventReactive(input$show_result, {
     req(weather_month())
     
-    # Determine whether to use auto or manual parameters
-    if (input$model == "Sph") {
-      model_type <- "Sph"
-    } else if (input$model == "Exp") {
-      model_type <- "Exp"
-    } else {
-      model_type <- "Gau"
-    }
+    model_type <- switch(input$model, "Sph" = "Sph", "Exp" = "Exp", "Gau" = "Gau")
     
-    # Manually set variogram parameters
-    v_model <- vgm(psill = input$psill, model = model_type, range = input$range, nugget = input$nugget)
+    # Check which tab is active
+    if (input$tabset_variogram == "Automatic Variogram") {
+      # Automatically compute variogram model
+      auto_vgm <- variogram(as.formula(paste(input$variable, "~ 1")), data = weather_month())
+      v_model <- fit.variogram(auto_vgm, vgm(model = model_type))
+    } else {
+      # Use manually specified values for variogram parameters
+      v_model <- vgm(psill = input$psill, model = model_type, range = input$range, nugget = input$nugget)
+    }
     
     krige_model <- gstat(formula = as.formula(paste(input$variable, "~ 1")), 
                          model = v_model, 
                          data = weather_month())
     
-    # Create prediction grid
     predictions <- predict(krige_model, coop)
-    
-    # Extract values
     predictions$x <- st_coordinates(predictions)[,1]
     predictions$y <- st_coordinates(predictions)[,2]
     predictions$pred <- predictions$var1.pred
     predictions$variance <- predictions$var1.var
     
-    # Rasterize results
     kpred <- terra::rasterize(predictions, grid, field = "pred")
     kpred_var <- terra::rasterize(predictions, grid, field = "variance")
     
-    list(pred_raster = kpred, var_raster = kpred_var)
+    list(pred_raster = kpred, var_raster = kpred_var, selected_variable = input$variable, selected_month_year = input$month_year)
   })
   
-  # Render Mean Temperature Plot
+  
+  
+  # Render Kriging Plot
   output$mean_temp_plot <- renderTmap({
     req(kriging_results())
     
-    tmap_mode("plot")
-    
-    # Dynamically adjust the title and units
-    variable_title <- switch(input$variable,
+    variable_title <- switch(kriging_results()$selected_variable,
                              "MonthlyMeanTemp" = "Mean Temperature (°C)",
                              "MonthlyRainfall" = "Total Rainfall (mm)",
                              "MonthlyMeanWindSpeed" = "Mean Wind Speed (km/h)")
     
     tm_shape(kriging_results()$pred_raster) + 
-      tm_raster(col_alpha = 0.6, palette = "YlOrRd", title = paste(variable_title, "for", input$month_year)) +
-      tm_layout(main.title = paste("Distribution of", variable_title, "for", input$month_year), frame = TRUE) +
+      tm_raster(col_alpha = 0.6, palette = "YlOrRd", title = paste(variable_title)) +
+      tm_layout(main.title = paste("Distribution of", variable_title, "for", kriging_results()$selected_month_year), frame = TRUE, 
+                legend.position = c("left", "top"), legend.frame = FALSE,
+                asp = 1) +
       tm_compass(type = "8star", size = 2) +
       tm_grid(alpha = 0.2)
   })
@@ -158,19 +151,20 @@ server <- function(input, output, session) {
   output$variance_plot <- renderTmap({
     req(kriging_results())
     
-    # Dynamically adjust the title and units
-    variable_title <- switch(input$variable,
+    variable_title <- switch(kriging_results()$selected_variable,
                              "MonthlyMeanTemp" = "Mean Temperature (°C)",
                              "MonthlyRainfall" = "Total Rainfall (mm)",
                              "MonthlyMeanWindSpeed" = "Mean Wind Speed (km/h)")
     
     tm_shape(kriging_results()$var_raster) + 
-      tm_raster(col_alpha = 0.6, palette = "YlGnBu", title = "Kriging Variance") +
-      tm_layout(main.title = paste("Kriging Variance of", variable_title,"for",input$month_year), frame = TRUE) +
+      tm_raster(col_alpha = 0.6, palette = "YlGnBu", title = paste("Kriging Variance of", variable_title)) +
+      tm_layout(main.title = paste("Kriging Variance of", variable_title, "for", kriging_results()$selected_month_year), frame = TRUE, 
+                legend.position = c("left", "top"), legend.frame = FALSE,
+                asp = 1) +
       tm_compass(type = "8star", size = 2) +
       tm_grid(alpha = 0.2)
   })
 }
 
-shinyApp(ui, server)
 
+shinyApp(ui, server)
