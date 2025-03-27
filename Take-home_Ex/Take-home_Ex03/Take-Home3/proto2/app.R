@@ -1,9 +1,4 @@
-library(shiny)
-library(tmap)
-library(sf)
-library(dplyr)
-library(gstat)
-library(spdep)
+pacman::p_load(shiny, readr, dplyr, tidyverse, sf, sfdep, tmap, terra, gstat, automap)
 
 # Define UI
 ui <- fluidPage(
@@ -19,11 +14,21 @@ ui <- fluidPage(
       
       selectInput("month_year", "Select Month-Year:",
                   choices = format(seq(as.Date("2021-01-01"), as.Date("2024-04-01"), by = "month"), "%b-%Y"),
-                  selected = "Apr-2021"),
+                  selected = "Jan-2021"),
       
       selectInput("stat", "Select Statistic:",
-                  choices = c("ii" = "ii", "p_ii" = "p_ii", "z_ii" = "z_ii", "var_ii" = "var_ii", "eii" = "eii"),
-                  selected = "ii")
+                  choices = c("Local Moran I" = "ii", "P-value" = "p_ii", "Std Deviation" = "z_ii", "Variance" = "var_ii", "Expectation" = "eii"),
+                  selected = "ii"),
+      
+      actionButton("show_result", "Show Result"),
+      
+      # Text box explaining the maps
+      br(),
+      wellPanel(
+        h5("Interpretation of Maps:"),
+        p("The first map displays the selected statistic (e.g., Local Moran's I, P-value, Std Deviation, etc.) for the chosen variable (e.g., Total Rainfall, Mean Temperature, Mean Wind Speed). Each color in the map represents the value of the statistic for a particular geographic region, where darker or lighter colors indicate higher or lower values of the statistic, respectively. This allows you to observe the spatial distribution and variability of the statistic across the different regions of Singapore."),
+        p("The second map is the LISA (Local Indicators of Spatial Association) map, which shows significant clusters of similar values for the selected variable. LISA highlights areas where high values are clustered together, and similarly, low values are grouped in specific locations. The LISA map helps to identify whether the spatial patterns are random or whether they exhibit some form of spatial autocorrelation (i.e., whether nearby areas tend to have similar or dissimilar values).")
+      )
     ),
     
     mainPanel(
@@ -40,31 +45,51 @@ server <- function(input, output, session) {
   weather <- read_rds("rds/weather.rds")
   mpsz2019 <- read_rds("rds/mpsz.rds")
   
-  # Filter data based on user input
-  filtered_data <- reactive({
+  filtered_data <- eventReactive(input$show_result, {
+    # Capture all the inputs inside the eventReactive to trigger only on button click
     month_year_selected <- input$month_year
     variable_selected <- input$variable
+    stat_selected <- input$stat 
     
     weather_month <- weather %>%
       filter(format(as.Date(paste(Year, Month, "01", sep = "-")), "%b-%Y") == month_year_selected)
     
-    # Filter for relevant stations
     keepstations <- c("Admiralty", "Ang Mo Kio", "Changi", "Choa Chu Kang (South)", "East Coast Parkway", 
                       "Jurong (West)", "Jurong Island", "Newton", "Pasir Panjang", "Pulau Ubin", 
                       "Seletar", "Sentosa Island", "Tai Seng", "Tuas South")
     
-    weather_month <- weather_month %>%
-      filter(Station %in% keepstations)
+    weather_month <- weather_month %>% filter(Station %in% keepstations)
     
-    # Convert to spatial data
-    weather_sf <- st_as_sf(weather_month, coords = c("Longitude", "Latitude"), crs = 4326)
+    # Aggregate data
+    weather_aggregated <- weather_month %>%
+      group_by(Station) %>%
+      summarise(
+        MonthlyRainfall = sum(DailyRainfall, na.rm = TRUE),
+        MonthlyMeanTemp = mean(MeanTemperature, na.rm = TRUE),
+        MonthlyMeanWindSpeed = mean(MeanWindSpeed, na.rm = TRUE),
+        .groups = "drop"
+      )
     
-    # Build the formula dynamically based on selected variable
+    # Merge with spatial data
+    weather_sf <- left_join(weather_aggregated, mpsz2019, by = "Station") %>%
+      st_as_sf()
+    
+    if (!(variable_selected %in% colnames(weather_sf))) {
+      stop(paste("Error: Variable", variable_selected, "not found in dataset."))
+    }
+    
     formula <- as.formula(paste(variable_selected, "~ 1"))
     
-    # Fit the variogram model
     variogram_model <- variogram(formula, weather_sf)
-    fit_model <- fit.variogram(variogram_model, model = vgm("Exp"))
+    fit_model <- tryCatch({
+      fit.variogram(variogram_model, model = vgm("Exp"), fit.method = 6)
+    }, error = function(e) {
+      NULL
+    })
+    
+    if (is.null(fit_model)) {
+      stop("Error: Variogram fitting failed.")
+    }
     
     # Perform Kriging interpolation
     kriging_result <- krige(formula, weather_sf, mpsz2019, model = fit_model)
@@ -72,57 +97,78 @@ server <- function(input, output, session) {
     # Convert kriging result to sf object
     kriged_sf <- st_as_sf(kriging_result)
     
-    # Create centroids for the polygons in mpsz2019
+    # Compute spatial weights using sfdep
     mpsz_centroids <- st_centroid(mpsz2019)
-    
-    # Apply KNN for spatial weights
     knn_result <- st_knn(mpsz_centroids, k = 3)
     knn_weights <- st_weights(knn_result, style = "W")
     
-    # Calculate Local Moran's I using kriged predicted values (var1.pred)
-    local_moran_res <- local_moran(kriged_sf$var1.pred, knn_result, knn_weights, nsim = 99)
+    # Compute Local Moran’s I
+    local_moran_res <- local_moran(as.numeric(kriged_sf$var1.pred), nb = knn_result, wt = knn_weights, nsim = 99)
     local_moran_df <- as.data.frame(local_moran_res)
     
-    # Add results to kriged_sf
     kriged_sf <- kriged_sf %>%
       mutate(
         ii = local_moran_df$ii,
-        p_ii_sim = local_moran_df$p_ii_sim,
-        eii = local_moran_df$eii,
-        var_ii = local_moran_df$var_ii,
-        z_ii = local_moran_df$z_ii,
         p_ii = local_moran_df$p_ii,
-        mean = local_moran_df$mean
+        z_ii = local_moran_df$z_ii,
+        var_ii = local_moran_df$var_ii,
+        eii = local_moran_df$eii
       )
     
-    kriged_sf
+    return(kriged_sf)
   })
   
-  # Render Stat Plot
   output$stat_plot <- renderTmap({
+    req(filtered_data())  
     data <- filtered_data()
+    
+    # Use input values to build titles inside the eventReactive context
+    variable_title <- switch(input$variable,
+                             "MonthlyMeanTemp" = "Mean Temperature (°C)",
+                             "MonthlyRainfall" = "Total Rainfall (mm)",
+                             "MonthlyMeanWindSpeed" = "Mean Wind Speed (km/h)")
+    
+    stat_title <- switch(input$stat,
+                         "ii" = "Local Moran I",
+                         "p_ii" = "P-value",
+                         "z_ii" = "Std Deviation",
+                         "var_ii" = "Variance",
+                         "eii" = "Expectation")
+    
+    # Create the map with fixed color theme (green)
     tm_shape(data) +
-      tm_fill(input$stat, palette = "Blues", legend.show = TRUE) +  # Use dynamic statistic based on user input
+      tm_fill(input$stat, palette = "brewer.blues", legend.show = TRUE) +  
       tm_borders() +
-      tm_title(paste(input$stat))
+      tm_title(paste(stat_title, "of", variable_title,",", input$month_year))  
   })
   
-  # Render LISA Map
   output$lisa_map <- renderTmap({
+    req(filtered_data())  
     data <- filtered_data()
-    # Filter significant Local Moran's I results (p-value < 0.05)
-    lisa_sig <- data %>%
-      filter(p_ii_sim < 0.05)
     
+    # Define variable_title inside the lisa_map output function
+    variable_title <- switch(input$variable,
+                             "MonthlyMeanTemp" = "Mean Temperature (°C)",
+                             "MonthlyRainfall" = "Total Rainfall (mm)",
+                             "MonthlyMeanWindSpeed" = "Mean Wind Speed (km/h)")
+    
+    if (!"p_ii" %in% colnames(data)) {
+      stop("Error: p_ii column not found in dataset.")
+    }
+    
+    lisa_sig <- data %>% filter(p_ii < 0.05)
+    
+    # LISA map with fixed green color theme
     tm_shape(data) +
       tm_polygons() +
       tm_borders(fill_alpha = 0.5) +
       tm_shape(lisa_sig) +
-      tm_fill("mean", palette = "RdBu", legend.show = TRUE) +  # Use "mean" for LISA significance
+      tm_fill("ii", palette = "brewer.rd_bu", legend.show = TRUE)+ 
       tm_borders(fill_alpha = 0.4) +
-      tm_title("LISA Map")
+      tm_title(paste("LISA Map of", variable_title))
   })
 }
 
-# Run the application
 shinyApp(ui = ui, server = server)
+
+

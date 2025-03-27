@@ -213,6 +213,7 @@ weather <- stations %>%   left_join(weather, by = c("Station"))
 
 ```{r}
 #| eval: False
+#| echo: False
 write_rds(weather, "data/rds/weather.rds")
 weather <- read_rds("data/rds/weather.rds")
 ```
@@ -586,6 +587,7 @@ mpsz <- st_read(dsn = "data/geospatial",
 
 ```{r}
 #| eval: False
+#| echo: False
 write_rds(mpsz, "data/rds/mpsz.rds")
 mpsz <- read_rds("data/rds/mpsz.rds")
 ```
