@@ -520,9 +520,9 @@ tm_shape(kpred_temp_variance) +
 
 ------------------------------------------------------------------------
 
-# 7 Shiny UI for Spatial Interpolation
+# 7 Prototype 1: Spatial Interpolation
 
-## 7.1 Storyboard
+## 7.1 Shiny UI
 
 The following is the sketch of planned Shiny App user interface![](proto1.png)
 
@@ -564,7 +564,7 @@ weather_my<- weather_my%>%
 ```
 
 ```{r}
-mpsz2019 <- st_read(dsn = "data/geospatial", 
+mpsz <- st_read(dsn = "data/geospatial", 
                     layer = "MPSZ-2019") %>%
   st_transform(crs = 3414) %>%
   rename(Station = PLN_AREA_N) %>%
@@ -585,7 +585,13 @@ mpsz2019 <- st_read(dsn = "data/geospatial",
 ```
 
 ```{r}
-weather_with_zones <- left_join(weather_my,mpsz2019)
+#| eval: False
+write_rds(mpsz, "data/rds/mpsz.rds")
+mpsz <- read_rds("data/rds/mpsz.rds")
+```
+
+```{r}
+weather_with_zones <- left_join(weather_my,mpsz)
 ```
 
 ```{r}
@@ -667,7 +673,7 @@ tmap_arrange(plot1, plot2)
 Step 1: Convert weather station data to sf object
 
 ```{r}
-weather_sf <- st_as_sf(weather_with_zones_single_polygon, crs = st_crs(mpsz2019))
+weather_sf <- st_as_sf(weather_with_zones_single_polygon, crs = st_crs(mpsz))
 ```
 
 Step 2: Fit Exponential variogram model
@@ -680,7 +686,7 @@ fit_model <- fit.variogram(variogram(MonthlyMeanTemp ~ 1, weather_sf), model = v
 Step 3: Apply Ordinary Kriging with the new model and convert kriging result to sf
 
 ```{r}
-kriging_result <- krige(MonthlyMeanTemp ~ 1, weather_sf, mpsz2019, model = fit_model)
+kriging_result <- krige(MonthlyMeanTemp ~ 1, weather_sf, mpsz, model = fit_model)
 kriged_sf <- st_as_sf(kriging_result)
 ```
 
@@ -689,7 +695,7 @@ The kriging output is in polygons.
 Step 4: Create centroids for the polygons in mpsz2019. Use KNN (K-Nearest Neighbors) on centroids to compute spatial weights and compute weights for KNN (using inverse distance as weights).
 
 ```{r}
-mpsz_centroids <- st_centroid(mpsz2019)
+mpsz_centroids <- st_centroid(mpsz)
 
 knn_result <- st_knn(mpsz_centroids, k = 3)
 
@@ -769,20 +775,24 @@ tm_shape(kriged_sf) +
 
 ------------------------------------------------------------------------
 
-# 9 Shiny UI for Local Measure of Spatial Autocorrelation
+# 9 Prototype 2: Local Measure of Spatial Autocorrelation
 
-## 9.1 Storyboard
+## 9.1 Shiny UI
 
 The following is the sketch of planned Shiny App user interface
 
 ![](proto2.png)
 
-## 9.2 Shiny App Prototype 2
+## 9.2 Shiny App Prototype 2 (In Progress)
 
 To ensure the components are compatible and ready for Shiny App development, I will be creating a mini Shiny App for the analysis above.
 
 ::: callout-note
-Note
+## Note
 
-Note that this is a prototype and not the actual dimensions that will be shown in the Shiny app. The plots will be bigger. The actual dimensions may be viewed here:
+Note that this is a prototype and not the actual dimensions that will be shown in the Shiny app. The plots will be bigger. The actual dimensions may be viewed here: <https://sshk.shinyapps.io/proto2/>
 :::
+
+<iframe src="https://sshk.shinyapps.io/proto2/" width="100%" height="600px">
+
+</iframe>

@@ -1,0 +1,13 @@
+name: proto2
+title: proto2
+username: sshk
+account: sshk
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 14353475
+bundleId: 10011338
+url: https://sshk.shinyapps.io/proto2/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: rds/weather_filtered.rds|rds/weather_month.rds
