@@ -1,5 +1,5 @@
 ---
-title: "Geospatial Prototype for Climate Change in Singapore"
+title: "Geospatial Prototypes for Climate Change in Singapore"
 format: html
 author: "Sei Sar Hla Kyi"
 date: "March 21, 2025"
@@ -40,7 +40,7 @@ The primary objectives of this study are:
 ## Packages Used
 
 | Package | Explanation |
-|--------------|----------------------------------------------------------|
+|---------------------|---------------------------------------------------|
 | tidyverse | to efficiently manipulate and clean data, utilizing functions from packages like `dplyr` and `tidyr` for data wrangling |
 | SmartEDA | to help summarize dataset by providing insights such as missing values |
 | sf | for easy manipulation of spatial objects and performing geospatial analysis |
@@ -52,7 +52,7 @@ The primary objectives of this study are:
 ## Code to Launch
 
 ```{r}
-pacman::p_load(tidyverse,SmartEDA,sf,plotly,tmap,terra,gstat,automap)
+pacman::p_load(tidyverse,SmartEDA,sf,sfdep,plotly,tmap,terra,gstat,automap)
 ```
 :::
 
@@ -211,6 +211,12 @@ Left join station longitude/latitude to weather
 weather <- stations %>%   left_join(weather, by = c("Station"))
 ```
 
+```{r}
+#| eval: False
+write_rds(weather, "data/rds/weather.rds")
+weather <- read_rds("data/rds/weather.rds")
+```
+
 Convert to sf using sf package. s*vy21* is the official projected coordinates of Singapore. *3414* is the EPSG code of svy21.
 
 ```{r}
@@ -367,8 +373,8 @@ We need create a grid data object by using `rast()` of **terra** package as show
 
 ```{r}
 grid <- terra::rast(mpsz2019, 
-                    nrows = 690, 
-                    ncols = 1075)
+                    nrows = 200, 
+                    ncols = 500)
 grid
 ```
 
@@ -428,17 +434,15 @@ kpred_temp_variance <- terra::rasterize(resp_temp, grid, field = "variance")
 ## Mean
 
 ```{r}
-tm_check_fix()
-tmap_mode("plot")
-
 tm_shape(kpred_temp) + 
   tm_raster(col_alpha = 0.6, 
-            palette = "YlOrRd", 
-            title = "Mean Temperature (°C)") +
-  tm_layout(main.title = "Distribution of Mean Temperature, Apr 2021",
-            frame = TRUE) +
+            col.scale = tm_scale(values = "brewer.yl_or_rd"), 
+            col.legend = tm_legend(title = "Mean Temperature (°C)")) +
+  tm_title("Distribution of Mean Temperature, Apr 2021") +
+  tm_layout(frame = TRUE) +
   tm_compass(type = "8star", size = 2) +
   tm_grid(alpha = 0.2)
+
 
 ```
 
@@ -447,10 +451,10 @@ tm_shape(kpred_temp) +
 ```{r}
 tm_shape(kpred_temp_variance) + 
   tm_raster(col_alpha = 0.6, 
-            palette = "YlGnBu", 
-            title = "Kriging Variance") +
-  tm_layout(main.title = "Kriging Variance of Mean Temperature, Apr 2021",
-            frame = TRUE) +
+            col.scale = tm_scale(values = "brewer.yl_gn_bu"), 
+            col.legend = tm_legend(title = "Temperature Variance")) +
+  tm_title("Kriging Variance of Temperature, Apr 2021") +
+  tm_layout(frame = TRUE) +
   tm_compass(type = "8star", size = 2) +
   tm_grid(alpha = 0.2)
 ```
@@ -487,15 +491,14 @@ kpred_temp_variance <- terra::rasterize(resp_temp, grid, field = "variance")
 ## Mean Temp
 
 ```{r}
-tm_check_fix()
 tmap_mode("plot")
 
 tm_shape(kpred_temp) + 
   tm_raster(col_alpha = 0.6, 
-            palette = "YlOrRd", 
-            title = "Mean Temperature (°C)") +
-  tm_layout(main.title = "Distribution of Mean Temperature, Apr 2021",
-            frame = TRUE) +
+            col.scale = tm_scale(values = "brewer.yl_or_rd"), 
+            col.legend = tm_legend(title = "Mean Temperature (°C)")) +
+  tm_title("Distribution of Mean Temperature, Apr 2021") +
+  tm_layout(frame = TRUE) +
   tm_compass(type = "8star", size = 2) +
   tm_grid(alpha = 0.2)
 
@@ -506,10 +509,10 @@ tm_shape(kpred_temp) +
 ```{r}
 tm_shape(kpred_temp_variance) + 
   tm_raster(col_alpha = 0.6, 
-            palette = "YlGnBu", 
-            title = "Temperature Variance") +
-  tm_layout(main.title = "Kriging Variance of Temperature, Apr 2021",
-            frame = TRUE) +
+            col.scale = tm_scale(values = "brewer.yl_gn_bu"), 
+            col.legend = tm_legend(title = "Temperature Variance")) +
+  tm_title("Kriging Variance of Temperature, Apr 2021") +
+  tm_layout(frame = TRUE) +
   tm_compass(type = "8star", size = 2) +
   tm_grid(alpha = 0.2)
 ```
@@ -517,15 +520,15 @@ tm_shape(kpred_temp_variance) +
 
 ------------------------------------------------------------------------
 
-# 7 Shiny UI
+# 7 Shiny UI for Spatial Interpolation
 
 ## 7.1 Storyboard
 
-The following is the sketch of planned Shiny App user interface
+The following is the sketch of planned Shiny App user interface![](proto1.png)
 
-![](proto1.jpg)
+## 7.2 Shiny App Prototype 1
 
-## 7.2 Prototype
+To ensure the components are compatible and ready for Shiny App development, I will be creating a mini Shiny App for the analysis above.
 
 ::: callout-note
 ## Note
@@ -536,3 +539,250 @@ Note that this is a prototype and not the actual dimensions that will be shown i
 <iframe src="https://sshk.shinyapps.io/Take-Home3/" width="100%" height="600px">
 
 </iframe>
+
+------------------------------------------------------------------------
+
+# 8 Local Measure of Spatial Autocorrelation
+
+The next steps involve calculating **Local Moran's I** and visualizing the **LISA (Local Indicators of Spatial Association)** map. These methods will help us understand the spatial patterns of Mean Temperature, like clustering of high or low values.
+
+## 8.1 Data Prep
+
+```{r}
+weather <- weather %>%
+  filter((Year > 2021 | (Year == 2021 & Month >= 1)) & 
+         (Year < 2024 | (Year == 2024 & Month <= 4)))
+
+weather_my <- weather %>%
+  filter(Year == 2021, Month == 4)%>%
+  ungroup()
+
+keepstations <- c("Admiralty", "Ang Mo Kio", "Changi","Choa Chu Kang (South)","East Coast Parkway","Jurong (West)","Jurong Island","Newton","Pasir Panjang","Pulau Ubin","Seletar","Sentosa Island","Tai Seng","Tuas South")
+
+weather_my<- weather_my%>%
+  filter(Station %in% keepstations)
+```
+
+```{r}
+mpsz2019 <- st_read(dsn = "data/geospatial", 
+                    layer = "MPSZ-2019") %>%
+  st_transform(crs = 3414) %>%
+  rename(Station = PLN_AREA_N) %>%
+  mutate(Station = ifelse(Station == "SEMBAWANG", "Admiralty", Station)) %>%
+  mutate(Station = ifelse(Station == "ANG MO KIO", "Ang Mo Kio", Station)) %>%
+  mutate(Station = ifelse(Station == "CHANGI", "Changi", Station)) %>%
+  mutate(Station = ifelse(Station == "CHOA CHU KANG", "Choa Chu Kang (South)", Station))%>%
+  mutate(Station = ifelse(Station == "MARINE PARADE", "East Coast Parkway", Station))%>%
+  mutate(Station = ifelse(Station == "JURONG WEST", "Jurong (West)", Station))%>%
+  mutate(Station = ifelse(Station == "WESTERN ISLANDS", "Jurong Island", Station))%>%
+  mutate(Station = ifelse(Station == "NEWTON", "Newton", Station))%>%
+  mutate(Station = ifelse(Station == "QUEENSTOWN", "Pasir Panjang", Station))%>%
+  mutate(Station = ifelse(Station == "NORTH-EASTERN ISLANDS", "Pulau Ubin", Station))%>%
+  mutate(Station = ifelse(Station == "SELETAR", "Seletar", Station))%>%
+  mutate(Station = ifelse(Station == "SOUTHERN ISLANDS", "Sentosa Island", Station))%>%
+  mutate(Station = ifelse(Station == "HOUGANG", "Tai Seng", Station))%>%
+  mutate(Station = ifelse(Station == "TUAS", "Tuas South", Station))
+```
+
+```{r}
+weather_with_zones <- left_join(weather_my,mpsz2019)
+```
+
+```{r}
+weather_with_zones_single_polygon <- weather_with_zones %>%
+  group_by(Station) %>%
+  summarise(
+    MonthlyRainfall = sum(DailyRainfall, na.rm = TRUE),
+    MonthlyMeanTemp = mean(MeanTemperature, na.rm = TRUE),
+    MonthlyMeanWindSpeed = mean(MeanWindSpeed, na.rm = TRUE),
+    geometry = st_union(geometry),
+    .groups = "drop"
+  )
+
+weather_with_zones_single_polygon <- st_as_sf(weather_with_zones_single_polygon)
+```
+
+## 8.2 Raw Data - Before Spatial Interpolation
+
+Recall that only 14 stations have recorded data available for all three variables of interest. Let's visualize Local Moran I for the raw data with 14 stations present.
+
+Step 1: Compute centroids from prepared data.
+
+```{r}
+weather_centroids <- st_centroid(weather_with_zones_single_polygon) 
+
+knn <- st_knn(weather_centroids, k = 2)
+
+knn_weights <- st_weights(knn, style = "W")
+```
+
+Step 2: Calculate Local Moran's I for the predicted values and merge the Local Moran's I results back into the sf object
+
+```{r}
+local_moran_res <- local_moran(weather_centroids$MonthlyMeanTemp, 
+                              knn, 
+                               knn_weights, 
+                               nsim = 99)
+
+local_moran_df <- as.data.frame(local_moran_res)
+
+weather_lisa <- weather_with_zones_single_polygon %>%
+  mutate(ii = local_moran_df$ii, 
+         p_ii_sim = local_moran_df$p_ii_sim,
+         p_ii = local_moran_df$p_ii,
+         mean = local_moran_df$mean,
+         .before = 1) 
+```
+
+Step 3: Plot the Local Moran's I map and P-value significance map
+
+```{r}
+tmap_mode("plot")
+
+# Local Moran’s I Map 
+plot1 <- tm_shape(weather_lisa) +
+  tm_fill("ii", 
+          fill.scale = tm_scale(palette = "RdBu", midpoint = 0), 
+          legend.show = TRUE) +
+  tm_borders() +  
+  tm_title("Local Moran's I of Kriged Mean Temperature", size = 0.5) +  
+  tm_legend(text.size = 0.5)
+
+# P-value significance map 
+plot2 <- tm_shape(weather_lisa) +
+  tm_fill("p_ii", 
+          fill.scale = tm_scale(breaks = c(0, 0.001, 0.01, 0.05, 1),
+                               labels = c("0.001", "0.01", "0.05", "Not sig")),
+          palette = "Blues",  
+          midpoint = NA) + 
+  tm_borders() +  
+  tm_title("P-value of Local Moran's I", size = 0.5) +  
+  tm_legend(text.size = 0.5)
+
+tmap_arrange(plot1, plot2)
+```
+
+## 8.3 After Spatial Interpolation
+
+Step 1: Convert weather station data to sf object
+
+```{r}
+weather_sf <- st_as_sf(weather_with_zones_single_polygon, crs = st_crs(mpsz2019))
+```
+
+Step 2: Fit Exponential variogram model
+
+```{r}
+variogram_model <- variogram(MonthlyMeanTemp ~ 1, weather_sf)
+fit_model <- fit.variogram(variogram(MonthlyMeanTemp ~ 1, weather_sf), model = vgm("Exp"))
+```
+
+Step 3: Apply Ordinary Kriging with the new model and convert kriging result to sf
+
+```{r}
+kriging_result <- krige(MonthlyMeanTemp ~ 1, weather_sf, mpsz2019, model = fit_model)
+kriged_sf <- st_as_sf(kriging_result)
+```
+
+The kriging output is in polygons.
+
+Step 4: Create centroids for the polygons in mpsz2019. Use KNN (K-Nearest Neighbors) on centroids to compute spatial weights and compute weights for KNN (using inverse distance as weights).
+
+```{r}
+mpsz_centroids <- st_centroid(mpsz2019)
+
+knn_result <- st_knn(mpsz_centroids, k = 3)
+
+knn_weights <- st_weights(knn_result, style = "W")
+```
+
+Step 5: Calculate Local Moran's I using KNN weights and add Local Moran's I results to the kriged polygons
+
+```{r}
+local_moran_res <- local_moran(kriged_sf$var1.pred, 
+                               knn_result, 
+                               knn_weights, 
+                               nsim = 99)
+
+local_moran_df <- as.data.frame(local_moran_res)
+
+kriged_sf <- kriged_sf %>%
+  mutate(
+    ii = local_moran_df$ii,
+    p_ii_sim = local_moran_df$p_ii_sim,
+    p_ii = local_moran_df$p_ii,
+    mean = local_moran_df$mean
+  )
+
+```
+
+Step 6: Plot the Local Moran's I map and P-value significance map
+
+```{r}
+tmap_mode("plot")
+
+# Local Moran's I Map for mean temperature
+plot1 <- tm_shape(kriged_sf) +
+  tm_fill("ii", 
+          fill.scale = tm_scale(midpoint = 0, palette = "brewer.rd_bu"), 
+          legend.show = TRUE) +
+  tm_borders() +  
+  tm_title("Local Moran's I of Kriged Mean Temperature", size = 0.5) +  
+  tm_legend(text.size = 0.5)
+
+# P-value significance map
+plot2 <- tm_shape(kriged_sf) +
+  tm_fill("p_ii", 
+          fill.scale = tm_scale(breaks = c(0, 0.001, 0.01, 0.05, 1),
+                               labels = c("0.001", "0.01", "0.05", "Not sig"),
+                               palette = "brewer.blues"),  
+          midpoint = NA) + 
+  tm_borders() +  
+  tm_title("P-value of Local Moran's I", size = 0.5) +  
+  tm_legend(text.size = 0.5)
+
+tmap_arrange(plot1, plot2)
+```
+
+Step 7: Plot LISA Map for significant Local Moran's I results (p-value \< 0.05)
+
+```{r}
+lisa_sig <- kriged_sf %>%
+  filter(p_ii_sim < 0.05)
+
+tmap_mode("plot")
+
+# LISA Map with polygon borders
+tm_shape(kriged_sf) +
+  tm_polygons() +  
+  tm_borders(fill_alpha = 0.5) +
+  tm_title(
+    text = "LISA Map",
+    size = 0.5  # Adjust title size
+  ) +
+  tm_shape(lisa_sig) +  
+  tm_fill("mean", 
+          fill.scale = tm_scale(palette = "brewer.rd_bu", midpoint = 0),
+          legend.show = TRUE) +  
+  tm_borders(fill_alpha = 0.4)
+```
+
+------------------------------------------------------------------------
+
+# 9 Shiny UI for Local Measure of Spatial Autocorrelation
+
+## 9.1 Storyboard
+
+The following is the sketch of planned Shiny App user interface
+
+![](proto2.png)
+
+## 9.2 Shiny App Prototype 2
+
+To ensure the components are compatible and ready for Shiny App development, I will be creating a mini Shiny App for the analysis above.
+
+::: callout-note
+Note
+
+Note that this is a prototype and not the actual dimensions that will be shown in the Shiny app. The plots will be bigger. The actual dimensions may be viewed here:
+:::
