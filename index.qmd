@@ -1,3 +1,1 @@
-![](1.png){fig-align="center" width="452"}
-
-[![](2.png){fig-align="center" width="466"}](https://www.linkedin.com/in/seisarhlakyi/)
+[![](1.png){style="display: flex;   justify-content: center;   align-items: center;   overflow: hidden;" width="100%"}](https://www.linkedin.com/in/seisarhlakyi/)
