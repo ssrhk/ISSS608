@@ -62,7 +62,7 @@ pacman::p_load(tidyverse,SmartEDA,sf,sfdep,plotly,tmap,terra,gstat,automap)
 
 To analyze the impact of climate change on various aspects of daily life in Singapore, we will integrate multiple datasets from different government agencies. Our primary dataset consists of historical weather records obtained from the **Meteorological Service Singapore (MSS)** website.
 
-## **3.1 Data Collection Process**
+## 3.1 Data Collection Process
 
 The historical daily weather data was **scraped from the MSS website** using the **BeautifulSoup** Python package, allowing for automated extraction of climate records over multiple years. This method enabled efficient retrieval of key meteorological parameters, including:
 
@@ -74,7 +74,7 @@ The historical daily weather data was **scraped from the MSS website** using the
 
 Once scraped, the extracted weather records were **cleaned, structured, and combined** into a single **CSV file** using Python. This consolidated dataset was then **imported into R Studio** for further processing and analysis within the Shiny application.
 
-## **3.2 Purpose of the Dataset**
+## 3.2 Purpose of the Dataset
 
 By analyzing this dataset, we aim to:
 
@@ -182,7 +182,7 @@ weather[, 5:10] <- lapply(weather[, 5:10], function(x) {
 })
 ```
 
-## 4.6 **Calculate Columns**
+## 4.6 Calculate Columns
 
 ```{r}
 weather <- weather %>%
@@ -199,7 +199,7 @@ weather <- weather %>%
 weather<- weather[!is.na(weather$Date), ]
 ```
 
-## 4.8 **Converting aspatial data into geospatial data**
+## 4.8 Converting aspatial data into geospatial data
 
 ```{r}
 stations<- read_csv("data/stations.csv")
@@ -364,7 +364,7 @@ mpsz2019 <- read_rds("data/rds/mpsz2019.rds")
 
 ------------------------------------------------------------------------
 
-# **6 Spatial Interpolation**
+# 6 Spatial Interpolation
 
 Spatial interpolation is a critical technique in geospatial analysis, especially when dealing with **unsampled locations**. In the case of the SG ClimateViz project, there are many areas where weather stations are missing or sparse, making it impossible to directly obtain weather-related metrics such as **monthly rainfall** for certain regions. Spatial interpolation allows us to estimate these missing values by leveraging the known data points from nearby locations.
 
@@ -398,7 +398,7 @@ head(coop)
 
 ```
 
-## **6.2 Manual Variogram**
+## 6.2 Manual Variogram
 
 Kriging is one of several methods that use a limited set of sampled data points to estimate the value of a variable over a continuous spatial field. Since monthly rainfall over Singapore varies across a random spatial field, we will use kriging.
 
@@ -461,7 +461,7 @@ tm_shape(kpred_temp_variance) +
 ```
 :::
 
-## **6.3 AutoVariogram**
+## 6.3 AutoVariogram
 
 ```{r}
 # Kriging for Monthly Mean Temperature
