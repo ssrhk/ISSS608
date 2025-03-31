@@ -40,7 +40,7 @@ The primary objectives of this study are:
 ## Packages Used
 
 | Package | Explanation |
-|---------------------|---------------------------------------------------|
+|----------------------|--------------------------------------------------|
 | tidyverse | to efficiently manipulate and clean data, utilizing functions from packages like `dplyr` and `tidyr` for data wrangling |
 | SmartEDA | to help summarize dataset by providing insights such as missing values |
 | sf | for easy manipulation of spatial objects and performing geospatial analysis |
@@ -90,6 +90,8 @@ By analyzing this dataset, we aim to:
 
 ## 4.1 Importing the Data
 
+We import the scraped data by using *read_csv* from readr package.
+
 ```{r}
 weather<- read_csv("data/combined_weather_data.csv")
 ```
@@ -118,7 +120,7 @@ weather %>%
 
 ## 4.2 Renaming Variables
 
-Variable names will be **renamed** for consistency and ease of analysis. For instance, **"Daily Rainfall Total (mm)"** will be renamed to **"DailyRainfallmm"**.
+Variable names will be renamed for consistency and ease of analysis. For instance, **"Daily Rainfall Total (mm)"** will be renamed to **"DailyRainfall"**.
 
 ```{r}
 colnames(weather) <- c("Station", "Year", "Month", "Day", 
@@ -130,6 +132,8 @@ colnames(weather) <- c("Station", "Year", "Month", "Day",
 ```
 
 ## 4.3 Date Field
+
+Now we must ensure that Year, Month and Day fields are represented as numeric and combined as Date column by using *as.Date*.
 
 ```{r}
 weather <- weather %>%
@@ -195,17 +199,21 @@ weather <- weather %>%
 
 ## 4.7 Remove rows with no date
 
+Rows with no date will not be helpful for our analysis in later sections. Therefore, we will be removing these rows.
+
 ```{r}
 weather<- weather[!is.na(weather$Date), ]
 ```
 
 ## 4.8 Converting aspatial data into geospatial data
 
+First, we will import station.csv which contains the longitude and latitude of each of the stations from our scraped data. We extracted this from the same website.
+
 ```{r}
 stations<- read_csv("data/stations.csv")
 ```
 
-Left join station longitude/latitude to weather
+Left join each station's longitude/latitude data to weather dataframe by using the common column "Station."
 
 ```{r}
 weather <- stations %>%   left_join(weather, by = c("Station"))
@@ -218,7 +226,7 @@ write_rds(weather, "data/rds/weather.rds")
 weather <- read_rds("data/rds/weather.rds")
 ```
 
-Convert to sf using sf package. s*vy21* is the official projected coordinates of Singapore. *3414* is the EPSG code of svy21.
+Convert to sf using *sf* package. s*vy21* is the official projected coordinates of Singapore. *3414* is the EPSG code of svy21.
 
 ```{r}
 weather_sf <- st_as_sf(weather, 
@@ -234,12 +242,20 @@ weather_sf <- st_as_sf(weather,
 
 First we filter the dataset from Janurary 2021 to April 2024 since there are the most data recorded during these months, using the code chunk below.
 
+::: callout-note
+## Shiny App Note
+
+This will be only used later for development of Shiny App prototype!
+:::
+
 ```{r}
 weather_filtered <- weather_sf %>%
   filter((Year > 2021 | (Year == 2021 & Month >= 1)) & 
          (Year < 2024 | (Year == 2024 & Month <= 4)))
 
 ```
+
+We then save it as a rds file using *write_rds* and *read_rds* to load it.
 
 ::: panel-tabset
 ## Save
@@ -264,7 +280,7 @@ weather_filtered <- read_rds("data/rds/weather_filtered.rds")
 For the purpose of this take-home exercise, we will focus on one month. Users will be able to choose different Months and Years in Shiny app.
 :::
 
-To see which month is the most interesting to focus on we determine the month with the most **extreme weather conditions** based on three key factors from our dataframe. We created a new variable to measure the extremeness ('ExtremeIndex') by finding the following:
+To see which month is the most interesting to focus on we determine the month with the most extremeweather conditions based on three key factors from our dataframe. We created a new variable to measure the extremeness ('ExtremeIndex') by finding the following:
 
 1.  **Total Monthly Rainfall** → Measures overall precipitation, indicating wet/extreme months.
 
@@ -297,7 +313,7 @@ p <- ggplot(weather_extreme, aes(x = as.Date(paste(Year, Month, "01", sep = "-")
 ggplotly(p, tooltip = "text")
 ```
 
-### 4.9.3 Data Extraction
+### 4.9.3 Month Data Extraction
 
 We found that April 2021 had the most extreme weather. Therefore, we will extract this month for deeper insights with geospatial analysis ( for the purpose of this take-home exercise).
 
@@ -319,6 +335,8 @@ keepstations <- c("Admiralty", "Ang Mo Kio", "Changi","Choa Chu Kang (South)","E
 weather_month<- weather_month%>%
   filter(Station %in% keepstations)
 ```
+
+We save it in the same way as a rds file.
 
 ::: panel-tabset
 ## Save
@@ -347,6 +365,8 @@ mpsz2019 <- st_read(dsn = "data/geospatial",
   st_transform(crs = 3414)
 ```
 
+We save this for later use.
+
 ::: panel-tabset
 ## Save
 
@@ -366,11 +386,11 @@ mpsz2019 <- read_rds("data/rds/mpsz2019.rds")
 
 # 6 Spatial Interpolation
 
-Spatial interpolation is a critical technique in geospatial analysis, especially when dealing with **unsampled locations**. In the case of the SG ClimateViz project, there are many areas where weather stations are missing or sparse, making it impossible to directly obtain weather-related metrics such as **monthly rainfall** for certain regions. Spatial interpolation allows us to estimate these missing values by leveraging the known data points from nearby locations.
+Spatial interpolation is a critical technique in geospatial analysis, especially when dealing with unsampled locations. In the case of the SG ClimateViz project, there are many areas where weather stations are missing or sparse, making it impossible to directly obtain weather-related metrics such as monthly rainfall for certain regions. Spatial interpolation allows us to estimate these missing values by leveraging the known data points from nearby locations.
 
 ## 6.1 Data Preparation
 
-We need create a grid data object by using `rast()` of **terra** package as shown in the cod chunk below.
+We need create a grid data object by using `rast()` of terra package as shown in the cod chunk below.
 
 ```{r}
 grid <- terra::rast(mpsz2019, 
@@ -379,7 +399,7 @@ grid <- terra::rast(mpsz2019,
 grid
 ```
 
-Next, a list called xy will be created by using `xyFromCell()` of **terra** package.
+Next, a list called xy will be created by using `xyFromCell()` of terra package.
 
 ```{r}
 xy <- terra::xyFromCell(grid, 
@@ -402,8 +422,10 @@ head(coop)
 
 Kriging is one of several methods that use a limited set of sampled data points to estimate the value of a variable over a continuous spatial field. Since monthly rainfall over Singapore varies across a random spatial field, we will use kriging.
 
+Let's explore both manually inputting variogram paramaters and autofitting it. The following steps and code chunk was used to perform kriging.
+
 ```{r}
-# the empirical variogram
+# The empirical variogram
 v_temp <- variogram(MonthlyMeanTemp ~ 1, data = weather_month)
 
 # Manually fit the variogram model
@@ -432,7 +454,7 @@ kpred_temp_variance <- terra::rasterize(resp_temp, grid, field = "variance")
 ```
 
 ::: panel-tabset
-## Mean
+## Mean Temp
 
 ```{r}
 tm_shape(kpred_temp) + 
@@ -462,6 +484,8 @@ tm_shape(kpred_temp_variance) +
 :::
 
 ## 6.3 AutoVariogram
+
+Next, we explore autofitting by using *autofitVariogram*. The rest of the steps are the same as the previous section.
 
 ```{r}
 # Kriging for Monthly Mean Temperature
@@ -519,6 +543,28 @@ tm_shape(kpred_temp_variance) +
 ```
 :::
 
+::: {.callout-note style="color: black; background-color: #e0f3f9"}
+## Insights for Mean Temp
+
+**1. Spatial Interpolation of Mean Temperature**
+
+Both maps of Mean Temperature Distribution appear visually identical, indicating that the temperature predictions are not significantly affected by variogram parameter adjustments. This suggests that the temperature trends are well captured by both approaches.
+
+**2. Kriging Variance Comparison**
+
+-   **Auto Variogram:**
+
+    -   The kriging variance is more evenly distributed, with slightly lower uncertainty in central regions.The pattern of variance seems more smooth, likely due to default parameters optimizing a general fit.
+
+-   **Manual Variogram Adjustments:**
+
+    -   The variance map shows more pronounced patches of uncertainty in different locations.
+
+    -   The kriging variance is more localized, suggesting that the manual tuning has affected the spatial relationships between points.
+
+    -   This could indicate that the manually chosen sill, range, and model parameters have led to more refined spatial dependence assumptions.
+:::
+
 ------------------------------------------------------------------------
 
 # 7 Prototype 1: Spatial Interpolation
@@ -549,6 +595,8 @@ The next steps involve calculating **Local Moran's I** and visualizing the **LIS
 
 ## 8.1 Data Prep
 
+Before doing our analysis, we must first filter for Jan 2021 to Apr 2024 (for Shiny App development) and just Apr 2021 (for this takehome exercise). We will do this on the dataframe that has not been converted to sf. For this section, we will only do this by left joining with the boundary polygons.
+
 ```{r}
 weather <- weather %>%
   filter((Year > 2021 | (Year == 2021 & Month >= 1)) & 
@@ -563,6 +611,8 @@ keepstations <- c("Admiralty", "Ang Mo Kio", "Changi","Choa Chu Kang (South)","E
 weather_my<- weather_my%>%
   filter(Station %in% keepstations)
 ```
+
+Import the boundary polygons using *st_read* and transform it to Singapore's coordinate reference system (CRS) 3414 using the *st_transform.* Ensure that there is one common column, "Station", and also ensure that the names of the Stations match that of weather_my dataframe that we just prepared.
 
 ```{r}
 mpsz <- st_read(dsn = "data/geospatial", 
@@ -592,9 +642,13 @@ write_rds(mpsz, "data/rds/mpsz.rds")
 mpsz <- read_rds("data/rds/mpsz.rds")
 ```
 
+Left join the boundary data into weather_my using the common column.
+
 ```{r}
 weather_with_zones <- left_join(weather_my,mpsz)
 ```
+
+Aggregate columns by calculating MonthlyRainfall, MonthlyMeanTemp, and MonthlyMeanWindSpeed for each Station for April 2021. While aggregating, we also ensure that there is only one single polygon for each station using *st_union*. Lastly, we convert it as sf using *st_as_sf*.
 
 ```{r}
 weather_with_zones_single_polygon <- weather_with_zones %>%
@@ -612,7 +666,9 @@ weather_with_zones_single_polygon <- st_as_sf(weather_with_zones_single_polygon)
 
 ## 8.2 Raw Data - Before Spatial Interpolation
 
-Recall that only 14 stations have recorded data available for all three variables of interest. Let's visualize Local Moran I for the raw data with 14 stations present.
+Let's first explore local measures of the raw data before doing any spatial interpolation.
+
+Recall that only 14 stations have recorded data available for all three variables of interest so there will be missing parts. Let's visualize Local Moran I for the raw data with 14 stations present.
 
 Step 1: Compute centroids from prepared data.
 
@@ -670,15 +726,19 @@ plot2 <- tm_shape(weather_lisa) +
 tmap_arrange(plot1, plot2)
 ```
 
+We can see from the above plots that it is a broken map with only a few stations present. There is a need to perform spatial interpolation for areas with no recorded data.
+
 ## 8.3 After Spatial Interpolation
 
-Step 1: Convert weather station data to sf object
+As we did before, we will perform spatial interpolation in the following steps:
+
+Step 1: Convert weather station data to sf object by using st_as_sf
 
 ```{r}
 weather_sf <- st_as_sf(weather_with_zones_single_polygon, crs = st_crs(mpsz))
 ```
 
-Step 2: Fit Exponential variogram model
+Step 2: Fit Exponential variogram model using variogram
 
 ```{r}
 variogram_model <- variogram(MonthlyMeanTemp ~ 1, weather_sf)
@@ -692,9 +752,9 @@ kriging_result <- krige(MonthlyMeanTemp ~ 1, weather_sf, mpsz, model = fit_model
 kriged_sf <- st_as_sf(kriging_result)
 ```
 
-The kriging output is in polygons.
+Note that the kriging output is in polygons.
 
-Step 4: Create centroids for the polygons in mpsz2019. Use KNN (K-Nearest Neighbors) on centroids to compute spatial weights and compute weights for KNN (using inverse distance as weights).
+Step 4: Create centroids for the polygons in mpsz2019. Use KNN (K-Nearest Neighbors, this is set as 3) on centroids to compute spatial weights and compute weights for KNN (using inverse distance as weights).
 
 ```{r}
 mpsz_centroids <- st_centroid(mpsz)
@@ -704,9 +764,10 @@ knn_result <- st_knn(mpsz_centroids, k = 3)
 knn_weights <- st_weights(knn_result, style = "W")
 ```
 
-Step 5: Calculate Local Moran's I using KNN weights and add Local Moran's I results to the kriged polygons
+Step 5: Calculate Local Moran's I using KNN weights (with 99 simulations) and add Local Moran's I results to the kriged polygons
 
 ```{r}
+set.seed(1234)
 local_moran_res <- local_moran(kriged_sf$var1.pred, 
                                knn_result, 
                                knn_weights, 
@@ -724,7 +785,7 @@ kriged_sf <- kriged_sf %>%
 
 ```
 
-Step 6: Plot the Local Moran's I map and P-value significance map
+Step 6: Plot the Local Moran's I map and P-value significance map using tmap.
 
 ```{r}
 tmap_mode("plot")
@@ -752,7 +813,37 @@ plot2 <- tm_shape(kriged_sf) +
 tmap_arrange(plot1, plot2)
 ```
 
-Step 7: Plot LISA Map for significant Local Moran's I results (p-value \< 0.05)
+::: {.callout-note style="color: black; background-color: #e0f3f9"}
+## Insights from Local Moran I
+
+**1. Local Moran’s I:** shows clusters and outliers of mean temperature based on spatial autocorrelation.
+
+-   **Darker green areas (higher Moran’s I values)** indicate strong positive spatial autocorrelation, meaning these regions have neighboring areas with similar temperature values.
+
+-   **Lighter green areas (lower Moran’s I values)** suggest weaker spatial autocorrelation or more dispersed temperature patterns.
+
+-   **Light purple areas (negative Moran’s I values)** might indicate potential spatial outliers where temperature values differ significantly from their neighbors.
+
+-   Strong positive clusters (dark green) are seen in the northwest and central regions of Singapore, meaning these areas have consistently high or low mean temperatures.
+
+-   The southern and eastern regions appear to have weaker spatial autocorrelation, suggesting more temperature variability or transition zones between different temperature regimes.
+
+------------------------------------------------------------------------
+
+**2. P-Value of Local Moran’s I:** assesses the statistical significance of the Local Moran’s I results.
+
+-   **Purple areas (low p-values, \<0.2)** indicate strong evidence that spatial clustering is significant (i.e., temperature patterns are not random).
+
+-   **Green areas (higher p-values, \>0.6)** suggest weaker or non-significant spatial autocorrelation, meaning that any apparent clustering might be due to chance.
+
+-   **White areas (mid-range p-values, 0.4-0.6)** indicate moderate evidence, suggesting inconclusive clustering.
+
+-   The northern and central regions have significant clustering (dark purple), reinforcing that these areas show clear spatial dependence in temperature.
+
+-   Some southwestern areas have higher p-values, meaning the detected clusters there might not be statistically significant.
+:::
+
+Step 7: Plot LISA Map for significant Local Moran's I results (p-value \< 0.05) using tmap.
 
 ```{r}
 lisa_sig <- kriged_sf %>%
@@ -775,6 +866,52 @@ tm_shape(kriged_sf) +
   tm_borders(fill_alpha = 0.4)
 ```
 
+::: {.callout-note style="color: black; background-color: #e0f3f9"}
+## Insights from LISA map
+
+**1. High-High Clusters (Green Areas):** These regions have high temperatures surrounded by high temperatures, indicating strong positive spatial autocorrelation.
+
+-   **Observed in:**
+
+    -   Central Region (Bishan, Ang Mo Kio)
+
+    -   Southern coastal areas & islands (Sentosa, Southern Islands, possibly Marina South)
+
+-   **Implications:**
+
+    -   The central region is likely experiencing an urban heat island (UHI) effect due to dense urbanization.
+
+    -   Coastal/southern clusters may be influenced by heat-retaining surfaces and lower vegetation cover.
+
+------------------------------------------------------------------------
+
+**2. Low-Low Clusters (Red Areas):** These areas have low temperatures surrounded by low temperatures, forming another significant cluster.
+
+-   **Observed in:**
+
+    -   Northwestern Singapore (Lim Chu Kang, Kranji, parts of Woodlands and western regions)
+
+-   **Implications:**
+
+    -   These areas tend to have more greenery, agricultural land, and water bodies, which contribute to cooling effects.
+
+    -   Less urban development may help moderate temperatures.
+
+------------------------------------------------------------------------
+
+**3. Non-Significant Areas (Gray):** Most of the map is gray, meaning those regions do not show statistically significant clustering at the 0.05 level.
+
+-   Temperature patterns in these areas are more randomly distributed or do not have strong local spatial dependence for the month of April 2021.
+
+-   The lack of strong clustering could be due to mixed land use, variable urbanization, or insufficient local temperature contrast.
+
+------------------------------------------------------------------------
+
+Unlike some LISA maps, there are no High-Low (blue) or Low-High (yellow) clusters for the month of April in 2021.
+
+-   This suggests no strong spatial outliers (i.e., no hot spots surrounded by cold spots or vice versa).The temperature distribution is more continuous.
+:::
+
 ------------------------------------------------------------------------
 
 # 9 Prototype 2: Local Measure of Spatial Autocorrelation
@@ -785,7 +922,7 @@ The following is the sketch of planned Shiny App user interface
 
 ![](proto2.png)
 
-## 9.2 Shiny App Prototype 2 (In Progress)
+## 9.2 Shiny App Prototype 2
 
 To ensure the components are compatible and ready for Shiny App development, I will be creating a mini Shiny App for the analysis above.
 

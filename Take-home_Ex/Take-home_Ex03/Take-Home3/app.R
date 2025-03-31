@@ -65,7 +65,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   
   # Create the grid data
-  grid <- terra::rast(mpsz2019, nrows = 200, ncols = 500)  
+  grid <- terra::rast(mpsz2019, nrows = 400, ncols = 700)  
   
   # Create xy from the grid
   xy <- terra::xyFromCell(grid, 1:ncell(grid))
