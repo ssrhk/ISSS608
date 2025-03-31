@@ -42,7 +42,7 @@ The following R packages will be used to achieve the objective.
 ## Packages Used
 
 | Package | Explanation |
-|------------------------------------|------------------------------------|
+|----|----|
 | tidyverse | to efficiently manipulate and clean data, utilizing functions from packages like `dplyr` and `tidyr` for data wrangling. |
 | ggplot2 | to create informative and aesthetically pleasing visualizations, such as histograms and boxplots, to analyze the data |
 | patchwork | to combine multiple ggplot2 plots into a cohesive layout, making it easier to present related visualizations side by side |
